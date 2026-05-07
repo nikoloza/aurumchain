@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -14,6 +14,8 @@ export interface DashboardData {
     email: string;
     investorTier: string;
     isKycVerified: boolean;
+    kycStatus: string;
+    isOnChainVerified: boolean;
   };
   stats: {
     totalInvested: number;
@@ -35,7 +37,7 @@ export function useDashboardData() {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [data, setData] = useState<DashboardData>({
-    user: { name: "", email: "", investorTier: "browser", isKycVerified: false },
+    user: { name: "", email: "", investorTier: "browser", isKycVerified: false, kycStatus: "not_started", isOnChainVerified: false },
     stats: {
       totalInvested: 0,
       totalReturns: 0,
@@ -52,60 +54,116 @@ export function useDashboardData() {
     error: null,
   });
 
+  const isFetching = useRef(false);
+
   const fetchAllData = useCallback(async () => {
+    if (isFetching.current) return;
     try {
-      setData((prev) => ({ ...prev, loading: true }));
+      isFetching.current = true;
+      let blockchainVerified = false;
+      let onChainGoldTokens = 0;
+      setData((prev) => ({ ...prev, loading: true, error: null }));
+      
       const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
-
+      
       if (!authUser) {
-        throw new Error("User not authenticated");
+        setData(prev => ({ ...prev, loading: false }));
+        return;
       }
 
-      // 1. Fetch Supabase Data (Parallel)
+      // Force-Sync wallet to profile if connected (Unifying all columns)
+      if (wallet.publicKey) {
+        const walletAddr = wallet.publicKey.toBase58();
+        const { data: currentProfile } = await supabase.from('profiles').select('crypto_wallet_address, wallet_address').eq('id', authUser.id).single();
+        
+        if (currentProfile && (currentProfile.crypto_wallet_address !== walletAddr || currentProfile.wallet_address !== walletAddr)) {
+          console.log(`[useDashboardData] Unifying wallet ${walletAddr} across all columns...`);
+          
+          // 1. Update Profiles (Both columns)
+          await supabase.from('profiles').update({ 
+            crypto_wallet_address: walletAddr,
+            wallet_address: walletAddr 
+          }).eq('id', authUser.id);
+
+          // 2. Update Wallets table
+          await supabase.from('wallets').update({ 
+            wallet_address: walletAddr 
+          }).eq('user_id', authUser.id);
+        }
+      }
+
+      // --- CRITICAL: BLOCKCHAIN CHECK (Unified Seed: eligibility) ---
+      if (wallet.publicKey && connection) {
+        try {
+          const { getComplianceProgram } = await import("@/lib/web3/clients/anchorClients");
+          const program = getComplianceProgram(connection);
+          const [eligibilityPDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from("eligibility"), wallet.publicKey.toBuffer()],
+            program.programId
+          );
+          const acc: any = await program.account.investorEligibilityAccount.fetch(eligibilityPDA);
+          blockchainVerified = acc && (
+            acc.kycStatus?.approved !== undefined || 
+            acc.kycStatus === 1 || 
+            Object.keys(acc.kycStatus || {})[0]?.toLowerCase() === 'approved'
+          );
+        } catch (e) {
+          // No account yet
+        }
+      }
+
+      // 1. Fetch Supabase Data (Independent try-catches so one failure doesn't block the dashboard)
+      const profilePromise = supabase.from("profiles").select("*").eq("id", authUser.id).single();
+      const walletResPromise = supabase.from("wallets").select("*").eq("user_id", authUser.id).single();
+      const investmentsPromise = supabase.from("investments").select("*, projects(*)").eq("user_id", authUser.id).order("invested_at", { ascending: false });
+      const transactionsPromise = supabase.from("transactions").select("*, projects(*)").eq("user_id", authUser.id).order("created_at", { ascending: false });
+      const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
+      const kycPromise = supabase.from("kyc_profiles").select("*").eq("user_id", authUser.id).single();
+      const eligibilityPromise = supabase.from("eligibility_states").select("*").eq("user_id", authUser.id).single();
+
       const [
         profileRes,
         walletRes,
         investmentsRes,
         transactionsRes,
         projectsRes,
+        kycRes,
+        eligibilityRes,
       ] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", authUser.id).single(),
-        supabase.from("wallets").select("*").eq("user_id", authUser.id).single(),
-        supabase.from("investments").select("*, projects(*)").eq("user_id", authUser.id).order("invested_at", { ascending: false }),
-        supabase.from("transactions").select("*, projects(*)").eq("user_id", authUser.id).order("created_at", { ascending: false }),
-        fetch("/api/projects").then((res) => res.json()),
+        profilePromise,
+        walletResPromise,
+        investmentsPromise,
+        transactionsPromise,
+        projectsPromise,
+        kycPromise,
+        eligibilityPromise
       ]);
-
-      console.log("[useDashboardData] Fetched raw data:", {
-        profile: profileRes.data,
-        wallet: walletRes.data,
-        investments: investmentsRes.data?.length,
-        transactions: transactionsRes.data?.length,
-        projects: projectsRes?.length
-      });
-
-      if (investmentsRes.error) console.error("[useDashboardData] Investments error:", investmentsRes.error);
-      if (transactionsRes.error) console.error("[useDashboardData] Transactions error:", transactionsRes.error);
 
       const profile = profileRes.data;
       const dbWallet = walletRes.data;
       const dbInvestments = investmentsRes.data || [];
       const dbTransactions = transactionsRes.data || [];
-      const projects = projectsRes || [];
+      const projects = Array.isArray(projectsRes) ? projectsRes : [];
 
-      // 3. ON-CHAIN DATA RECOVERY: Fetch all user subscriptions from the blockchain
-      let onChainGoldTokens = 0;
-      const allInvestments: any[] = [];
+      console.log("[useDashboardData] Finalizing with:", {
+        hasProfile: !!profile,
+        blockchainVerified,
+        kycStatus: kycRes.data?.status || kycRes.data?.kyc_status || profile?.kyc_status
+      });
+
+      // 3. ON-CHAIN DATA RECOVERY & MERGING
+      // Start with DB records as the baseline so the UI never looks empty
+      const allInvestments: any[] = dbInvestments.map(inv => ({
+        ...inv,
+        is_on_chain: false // Will be updated if found on-chain
+      }));
       
-      // Keep only non-investment transactions from DB (e.g. deposits, withdrawals)
-      // Map blockchain_hash to id for better UI display/linking if it exists
-      const allTransactions = dbTransactions
-        .filter(tx => tx.type !== 'investment')
-        .map(tx => ({
-          ...tx,
-          id: tx.blockchain_hash || tx.id
-        }));
+      // Start with DB transactions
+      const allTransactions = dbTransactions.map(tx => ({
+        ...tx,
+        id: tx.blockchain_hash || tx.id
+      }));
 
       if (wallet.publicKey) {
         try {
@@ -170,20 +228,35 @@ export function useDashboardData() {
               lockup_end: project?.lockup_end_date || project?.expected_completion_date || null
             };
             
-            // DEDUPLICATION: Only add if this subId isn't already in the list
-            if (!allInvestments.some(inv => inv.subId === subId)) {
+            // DEDUPLICATION & MERGING: Find existing DB record or add new
+            const existingIndex = allInvestments.findIndex(inv => inv.subId === subId || inv.offering_id === subId);
+            
+            if (existingIndex >= 0) {
+              // HEAL existing record with blockchain truth
+              allInvestments[existingIndex] = { 
+                ...allInvestments[existingIndex], 
+                ...invData,
+                is_on_chain: true 
+              };
+            } else {
+              // Add fresh blockchain record
               allInvestments.push(invData);
               
-              allTransactions.push({
-                id: invData.id,
-                subId: invData.subId,
-                type: 'investment',
-                amount: invData.amount,
-                status: invData.status,
-                created_at: invData.invested_at,
-                projects: invData.projects,
-                description: `Blockchain Subscription #${subId}`
-              });
+              // Only push to transactions if it's a NEW blockchain-only record
+              // (Existing DB transactions are already in allTransactions)
+              const txExists = allTransactions.some(tx => tx.subId === subId || tx.blockchain_hash === invData.id);
+              if (!txExists) {
+                allTransactions.push({
+                  id: invData.id,
+                  subId: invData.subId,
+                  type: 'investment',
+                  amount: invData.amount,
+                  status: invData.status,
+                  created_at: invData.invested_at,
+                  projects: invData.projects,
+                  description: `Blockchain Subscription #${subId}`
+                });
+              }
             }
           });
 
@@ -265,16 +338,27 @@ export function useDashboardData() {
           }
 
           // Also fetch project token balances for "Gold Tokens" stat
-          const balancePromises = projects
+          // 3. Combined Token Balances Check
+          const projectMints = projects
             .filter((p: any) => p.onChain && p.onChain.mint)
-            .map(async (project: any) => {
-              try {
-                const mintPubkey = new PublicKey(project.onChain.mint);
-                const ata = await getAssociatedTokenAddress(mintPubkey, wallet.publicKey!);
-                const balanceRes = await connection.getTokenAccountBalance(ata);
-                return balanceRes.value.uiAmount || 0;
-              } catch (e) { return 0; }
-            });
+            .map((p: any) => p.onChain.mint);
+            
+          // 3. Combined Token Balances Check
+          const tokenMints = [
+            process.env.NEXT_PUBLIC_USDC_MINT,
+            process.env.NEXT_PUBLIC_USDT_MINT
+          ].filter(Boolean) as string[];
+
+          const allMints = [...new Set([...projectMints, ...tokenMints])];
+          
+          const balancePromises = allMints.map(async (mint: string) => {
+            try {
+              const mintPubkey = new PublicKey(mint);
+              const ata = await getAssociatedTokenAddress(mintPubkey, wallet.publicKey!);
+              const balanceRes = await connection.getTokenAccountBalance(ata);
+              return balanceRes.value.uiAmount || 0;
+            } catch (e) { return 0; }
+          });
           
           const tokenBalances = await Promise.all(balancePromises);
           onChainGoldTokens = tokenBalances.reduce((sum, b) => sum + b, 0);
@@ -284,17 +368,19 @@ export function useDashboardData() {
         }
       }
 
+      // 3. Final Reconciliation
       const totalInvested = allInvestments.reduce((sum, inv) => sum + Number(inv.amount), 0);
-      const totalReturns = 0; // Future calculation from dividends table
+      const totalReturns = 0; 
       const usdBalance = Number(dbWallet?.balance || 0);
-      
-      // Calculate portfolio value (for now same as invested, but can be price-aware)
       const portfolioValue = totalInvested; 
 
-      // Final sort of all merged transactions (DB + Investments + Virtual)
       allTransactions.sort(
         (a, b) => new Date(b.created_at || b.initiated_at).getTime() - new Date(a.created_at || a.initiated_at).getTime()
       );
+
+      // Determine final verification status by combining DB and Blockchain
+      const isDbVerified = eligibilityRes.data?.status === 'investment_eligible';
+      const kycStatus = kycRes.data?.status || profile?.kyc_status || 'not_started';
 
       setData({
         user: {
@@ -302,6 +388,8 @@ export function useDashboardData() {
           email: profile?.email || authUser.email || "",
           investorTier: profile?.investor_tier || "browser",
           isKycVerified: profile?.kyc_verified || false,
+          kycStatus: kycStatus,
+          isOnChainVerified: isDbVerified || blockchainVerified,
         },
         stats: {
           totalInvested,
@@ -319,13 +407,28 @@ export function useDashboardData() {
         error: null,
       });
     } catch (err: any) {
+      // 1. Silent Guard: Completely ignore AbortErrors to prevent Next.js overlay
+      if (err.name === 'AbortError' || err.message?.includes('aborted') || err.code === 20) {
+        return; 
+      }
+      
       console.error("Dashboard Data Fetch Error:", err);
-      setData((prev) => ({ ...prev, loading: false, error: err.message }));
+      setData((prev) => ({ 
+        ...prev, 
+        loading: false, 
+        error: err.message || "Failed to load data" 
+      }));
+    } finally {
+      isFetching.current = false;
     }
   }, [wallet.publicKey, connection]);
 
   useEffect(() => {
-    fetchAllData();
+    // Add a small delay to allow wallet state to stabilize
+    const timer = setTimeout(() => {
+      fetchAllData();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [fetchAllData]);
 
   return { ...data, refresh: fetchAllData };

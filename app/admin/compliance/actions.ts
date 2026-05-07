@@ -31,43 +31,56 @@ export async function syncKycApprovalAction(input: any) {
     });
     const validated = schema.parse(input);
 
-    // 3. Database Synchronization
-    // Resolve user ID from wallet
-    const { data: walletData } = await adminSupabase
-      .from('wallets')
-      .select('user_id')
-      .eq('wallet_address', validated.wallet)
-      .single();
+    // 3. Database Synchronization (Unified for Legacy & New)
+    // Find user by checking BOTH profiles.crypto_wallet_address and profiles.wallet_address
+    const { data: profileByCrypto } = await adminSupabase.from('profiles').select('id').eq('crypto_wallet_address', validated.wallet).maybeSingle();
+    const { data: profileByStandard } = await adminSupabase.from('profiles').select('id').eq('wallet_address', validated.wallet).maybeSingle();
     
-    if (!walletData) throw new Error(`User not found for wallet: ${validated.wallet}`);
-    const userId = walletData.user_id;
+    const profileId = profileByCrypto?.id || profileByStandard?.id;
+    
+    if (!profileId) throw new Error(`User not found for wallet: ${validated.wallet}`);
 
-    // Update kyc_profiles
+    // Update kyc_profiles: Create or Update (All status columns)
     const { error: kycError } = await adminSupabase
       .from('kyc_profiles')
-      .update({
-        status: mapKycStatusToString(validated.kycStatus),
+      .upsert({
+        user_id: profileId,
+        status: 'approved',
+        kyc_status: 'approved',
         approved_at: new Date().toISOString(),
         expires_at: new Date(validated.expiryTimestamp * 1000).toISOString(),
         metadata: { 
           blockchain_signature: validated.signature,
-          last_synced_at: new Date().toISOString()
+          last_synced_at: new Date().toISOString(),
+          wallet_at_approval: validated.wallet
         }
-      })
-      .eq('user_id', userId);
+      }, { onConflict: 'user_id' });
 
     if (kycError) throw kycError;
 
-    // Update global profile
+    // Update global profile: Sync ALL duplicate columns for consistency
     await adminSupabase
       .from('profiles')
-      .update({ kyc_verified: validated.kycStatus === 1 })
-      .eq('id', userId);
+      .update({ 
+        kyc_verified: true,
+        kyc_status: 'approved',
+        crypto_wallet_address: validated.wallet,
+        wallet_address: validated.wallet
+      })
+      .eq('id', profileId);
+
+    // Sync the separate 'wallets' table too
+    await adminSupabase
+      .from('wallets')
+      .upsert({ 
+        user_id: profileId,
+        wallet_address: validated.wallet 
+      }, { onConflict: 'user_id' });
 
     // 4. Audit Logging
     await createAuditLog({
       eventType: 'kyc_approved',
-      userId,
+      userId: profileId,
       actorId: adminUser.id,
       actorRole: 'admin',
       description: `Wallet ${validated.wallet} verified on-chain. Signature: ${validated.signature}`,
@@ -103,28 +116,27 @@ export async function syncKycRevokeAction(input: any) {
     });
     const validated = schema.parse(input);
 
-    const { data: walletData } = await adminSupabase
-      .from('wallets')
-      .select('user_id')
-      .eq('wallet_address', validated.wallet)
-      .single();
+    // Find user by checking BOTH profiles.crypto_wallet_address and profiles.wallet_address
+    const { data: profileByCrypto } = await adminSupabase.from('profiles').select('id').eq('crypto_wallet_address', validated.wallet).maybeSingle();
+    const { data: profileByStandard } = await adminSupabase.from('profiles').select('id').eq('wallet_address', validated.wallet).maybeSingle();
     
-    if (!walletData) throw new Error("User not found");
-    const userId = walletData.user_id;
+    const profileId = profileByCrypto?.id || profileByStandard?.id;
+    
+    if (!profileId) throw new Error("User not found");
 
     await adminSupabase
       .from('kyc_profiles')
       .update({ status: 'rejected', rejected_at: new Date().toISOString() })
-      .eq('user_id', userId);
+      .eq('user_id', profileId);
 
     await adminSupabase
       .from('profiles')
-      .update({ kyc_verified: false })
-      .eq('id', userId);
+      .update({ kyc_verified: false, kyc_status: 'rejected' })
+      .eq('id', profileId);
 
     await createAuditLog({
       eventType: 'kyc_rejected',
-      userId,
+      userId: profileId,
       actorId: adminUser.id,
       actorRole: 'admin',
       description: `Wallet ${validated.wallet} eligibility revoked on-chain. Signature: ${validated.signature}`,

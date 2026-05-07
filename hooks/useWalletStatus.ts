@@ -146,6 +146,15 @@ export function useWalletStatus(): WalletStatus {
         .eq('id', userId);
 
       if (updateError) throw updateError;
+      
+      // Update kyc_profiles status to 'under_review' to alert admin for on-chain sync
+      const { error: kycError } = await supabase
+        .from('kyc_profiles')
+        .update({ status: 'under_review' })
+        .eq('user_id', userId)
+        .eq('status', 'approved'); // Only if already approved off-chain
+      
+      if (kycError) console.warn("Failed to set kyc status to under_review:", kycError);
 
       // Refresh status
       await checkStatus();

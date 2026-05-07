@@ -10,12 +10,29 @@ interface KycProfile {
 // ... existing types
 }
 
-export function ComplianceReviewList({ initialPending }: { initialPending: any[] }) {
+export function ComplianceReviewList({ 
+  initialPending, 
+  initialVerified = [] 
+}: { 
+  initialPending: any[], 
+  initialVerified?: any[] 
+}) {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [pendingItems, setPendingItems] = useState(initialPending);
+  const [verifiedItems, setVerifiedItems] = useState(initialVerified);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const filteredPending = pendingItems.filter(item => 
+    item.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.metadata?.wallet_address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredVerified = verifiedItems.filter(item => 
+    item.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.metadata?.wallet_address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Default expiry: 1 year from now
   const [expiryDate, setExpiryDate] = useState(() => {
@@ -152,13 +169,41 @@ export function ComplianceReviewList({ initialPending }: { initialPending: any[]
         </div>
       )}
 
-      {pendingItems.length === 0 ? (
-        <div className="glass rounded-xl p-8 border border-gold/20 text-center">
-          <p className="text-gray-400">No pending KYC reviews</p>
+      {/* Search Bar */}
+      <div className="relative group mb-6">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg className="h-4 w-4 text-gold/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input 
+          type="text"
+          placeholder="Search by email or wallet address..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full bg-navy border border-gold/20 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-gold transition-all shadow-lg focus:shadow-gold/10"
+        />
+      </div>
+
+      {/* Results Section */}
+      {searchTerm && (
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-gray-400 text-sm">Found {filteredPending.length + filteredVerified.length} results for "{searchTerm}"</span>
+          <button onClick={() => setSearchTerm('')} className="text-gold text-xs hover:underline">Clear</button>
+        </div>
+      )}
+
+      {(filteredPending.length === 0 && filteredVerified.length === 0) ? (
+        <div className="glass rounded-xl p-12 border border-gold/20 text-center">
+          <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <p className="text-gray-400 text-lg">No matching requests found</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {pendingItems.map((kyc: any) => (
+          {/* Show Pending First */}
+          {filteredPending.map((kyc: any) => (
             <KycCard 
               key={kyc.id} 
               kyc={kyc} 
@@ -170,6 +215,29 @@ export function ComplianceReviewList({ initialPending }: { initialPending: any[]
               setExpiryDate={setExpiryDate}
             />
           ))}
+
+          {/* Then Show Verified if searching */}
+          {searchTerm && filteredVerified.length > 0 && (
+            <>
+              <div className="flex items-center gap-4 py-4">
+                <div className="h-[1px] flex-1 bg-gold/20"></div>
+                <span className="text-gold/50 text-[10px] font-bold uppercase tracking-widest">Verified Investors</span>
+                <div className="h-[1px] flex-1 bg-gold/20"></div>
+              </div>
+              {filteredVerified.map((kyc: any) => (
+                <KycCard 
+                  key={kyc.id} 
+                  kyc={kyc} 
+                  onApprove={handleApprove} 
+                  onReject={handleReject}
+                  onToggleBypass={handleToggleBypass}
+                  isLoading={loadingId === kyc.id || loadingId === (kyc.metadata?.wallet_address)}
+                  expiryDate={expiryDate}
+                  setExpiryDate={setExpiryDate}
+                />
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
@@ -197,8 +265,12 @@ function KycCard({ kyc, onApprove, onReject, onToggleBypass, isLoading, expiryDa
             <h3 className="text-xl font-bold text-white">
               {kyc.user?.first_name} {kyc.user?.last_name}
             </h3>
-            <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider">
-              {kyc.status}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${
+              kyc.status === 'approved' || kyc.status === 'verified' 
+                ? 'bg-green-500/20 text-green-400' 
+                : 'bg-yellow-500/20 text-yellow-400'
+            }`}>
+              {kyc.status === 'approved' || kyc.status === 'verified' ? 'KYC VERIFIED' : kyc.status}
             </span>
             
             {shouldVerify ? (

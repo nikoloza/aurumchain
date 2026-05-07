@@ -3,13 +3,15 @@
  * Review and manage KYC verifications
  */
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { redirect } from 'next/navigation';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/domains/admin/service';
 import { ComplianceReviewList } from '@/components/admin/ComplianceReviewList';
 import { ApprovedInvestorsList } from '@/components/admin/ApprovedInvestorsList';
 
-export const revalidate = 0; // Force dynamic fetching for admin dashboard
 
 export default async function AdminCompliancePage() {
   const supabase = await createClient();
@@ -30,51 +32,7 @@ export default async function AdminCompliancePage() {
     redirect('/dashboard');
   }
 
-  // Get pending KYC reviews with joined user and wallet data
-  const { data: pendingKyc } = await adminSupabase
-    .from('kyc_profiles')
-    .select(`
-      *,
-      user:user_id (
-        id,
-        email,
-        first_name,
-        last_name,
-        wallets (
-          wallet_address
-        )
-      )
-    `)
-    .in('status', ['pending', 'under_review'])
-    .order('submitted_at', { ascending: true })
-    .limit(50);
-
-  // Transform data to ensure wallet_address is accessible
-  const transformedPending = pendingKyc?.map((kyc: any) => ({
-    ...kyc,
-    metadata: {
-      ...kyc.metadata,
-      wallet_address: kyc.user?.wallets?.[0]?.wallet_address || kyc.metadata?.wallet_address
-    }
-  })) || [];
-
-  // Get recent approvals from DB (fallback/legacy)
-  const { data: dbRecentApprovals } = await adminSupabase
-    .from('kyc_profiles')
-    .select(`
-      *,
-      user:user_id (
-        id,
-        email,
-        first_name,
-        last_name
-      )
-    `)
-    .eq('status', 'approved')
-    .order('approved_at', { ascending: false })
-    .limit(10);
-
-  // Fetch true on-chain approvals
+  // 1. Fetch true on-chain approvals first to use for filtering
   let onChainApprovals: any[] = [];
   try {
     const { createDefaultConnection } = await import('@/lib/web3/config/rpc');
@@ -86,9 +44,13 @@ export default async function AdminCompliancePage() {
     const accounts = await program.account.investorEligibilityAccount.all();
     
     onChainApprovals = accounts
-      .filter((acc: any) => acc.account.kycStatus?.approved !== undefined || acc.account.kycStatus === 1) // filter approved
+      .filter((acc: any) => {
+        const k = acc.account.kycStatus;
+        return k && (k.approved !== undefined || k === 1 || Object.keys(k)[0]?.toLowerCase() === 'approved');
+      })
       .map((acc: any) => ({
         id: acc.publicKey.toBase58(),
+        wallet: acc.account.wallet.toBase58(), // ADDED THIS LINE
         user: {
           first_name: 'Wallet:',
           last_name: `${acc.account.wallet.toBase58().substring(0, 4)}...${acc.account.wallet.toBase58().slice(-4)}`,
@@ -108,7 +70,118 @@ export default async function AdminCompliancePage() {
     console.error("[AdminCompliancePage] Failed to fetch on-chain approvals:", err);
   }
 
-  // Merge on-chain with DB, prioritizing on-chain
+  // Helper set for fast filtering
+  const onChainWalletSet = new Set(onChainApprovals.map(a => a.metadata.wallet_address));
+
+  // 2. Fetch Profiles with wallets directly (No Joins to prevent 406 errors)
+  const { data: usersWithWallets, error: profileErr } = await adminSupabase
+    .from('profiles')
+    .select('*')
+    .not('crypto_wallet_address', 'is', null)
+    .limit(200);
+
+  if (profileErr) console.error("[AdminCompliance] Profile fetch error:", profileErr);
+
+  // Fetch ALL kyc_profiles separately
+  const { data: allKycProfiles } = await adminSupabase
+    .from('kyc_profiles')
+    .select('*');
+    
+  // Manually join them in memory
+  const usersWithKyc = usersWithWallets?.map(u => ({
+    ...u,
+    kyc_profiles: allKycProfiles?.filter(k => k.user_id === u.id) || []
+  })) || [];
+
+  // 3. Transform and Filter: Show only those who need on-chain verification
+  // A user needs verification if:
+  // - They have a linked wallet
+  // - They are verified off-chain (in DB)
+  // - BUT they are either NOT on-chain OR their on-chain status is not 'approved'
+  
+  const transformedPending = usersWithKyc.filter((profile: any) => {
+    const walletAddr = profile.crypto_wallet_address;
+    if (!walletAddr) return false;
+    
+    // Check if they are fully approved on-chain
+    const onChainAccount = onChainApprovals.find((acc: any) => acc.wallet === walletAddr);
+    const isFullyApproved = !!onChainAccount; // The set only contains approved wallets
+    
+    // Condition B: Has passed off-chain KYC
+    const kycProfile = profile.kyc_profiles?.[0];
+    const isKycApproved = 
+      profile.kyc_verified === true || 
+      profile.kyc_status === 'approved' || 
+      profile.kyc_status === 'verified' ||
+      kycProfile?.status === 'approved' ||
+      kycProfile?.status === 'verified' ||
+      kycProfile?.kyc_status === 'approved' ||
+      kycProfile?.kyc_status === 'verified' ||
+      kycProfile?.status === 'under_review';
+
+    return isKycApproved && !isFullyApproved;
+  }).map((profile: any) => {
+    const kycProfile = profile.kyc_profiles?.[0];
+    return {
+      id: kycProfile?.id || `temp-${profile.id}`,
+      user_id: profile.id,
+      status: kycProfile?.status || (profile.kyc_verified ? 'approved' : 'pending'),
+      provider_applicant_id: kycProfile?.provider_applicant_id || 'Legacy/Manual',
+      user: {
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        crypto_wallet_address: profile.crypto_wallet_address
+      },
+      metadata: {
+        ...kycProfile?.metadata,
+        wallet_address: profile.crypto_wallet_address
+      }
+    };
+  }) || [];
+
+  // 4. Transform Verified Investors (for searching)
+  const transformedVerified = usersWithKyc.filter((profile: any) => {
+    const walletAddr = profile.crypto_wallet_address;
+    if (!walletAddr) return false;
+    return onChainApprovals.some((acc: any) => acc.wallet === walletAddr);
+  }).map((profile: any) => {
+    const kycProfile = profile.kyc_profiles?.[0];
+    return {
+      id: kycProfile?.id || `v-${profile.id}`,
+      user_id: profile.id,
+      status: 'approved',
+      user: {
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        crypto_wallet_address: profile.crypto_wallet_address
+      },
+      metadata: {
+        wallet_address: profile.crypto_wallet_address
+      }
+    };
+  }) || [];
+
+  // 5. Get recent approvals from DB (fallback/legacy)
+  const { data: dbRecentApprovals } = await adminSupabase
+    .from('kyc_profiles')
+    .select(`
+      *,
+      user:user_id (
+        id,
+        email,
+        first_name,
+        last_name
+      )
+    `)
+    .eq('status', 'approved')
+    .order('approved_at', { ascending: false })
+    .limit(10);
+
+  // Merge on-chain with DB, prioritizing on-chain for the "Approved" list
   const recentApprovals = onChainApprovals.length > 0 ? onChainApprovals : (dbRecentApprovals || []);
 
   return (
@@ -151,12 +224,17 @@ export default async function AdminCompliancePage() {
 
         {/* Pending Reviews - Main Action Area */}
         <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Pending KYC Reviews</h2>
-            <span className="text-xs text-gray-400 font-mono">Blockchain Synchronization: ENABLED</span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+            <div>
+              <h2 className="text-3xl font-bold text-white tracking-tight">Investor Requests</h2>
+              <p className="text-gray-400 text-sm">Users who have connected a wallet and are awaiting on-chain sync</p>
+            </div>
           </div>
-
-          <ComplianceReviewList initialPending={transformedPending} />
+          <div className="space-y-8">
+          <ComplianceReviewList 
+            initialPending={transformedPending} 
+            initialVerified={transformedVerified}
+          />
         </div>
 
         {/* Recent Approvals */}
@@ -166,7 +244,8 @@ export default async function AdminCompliancePage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function StatCard({ title, value, color }: {

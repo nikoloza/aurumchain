@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWalletStatus } from '@/hooks/useWalletStatus';
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -178,42 +179,40 @@ export default function OnboardingPage() {
               {/* Connect Button */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">
-                    1. Connect Your Wallet
+                  <label className="block text-sm font-medium text-gray-300 mb-3 text-center">
+                    1. Connect Your Solana Wallet
                   </label>
                   <div className="flex justify-center">
-                    <ConnectButton
-                      accountStatus={{
-                        smallScreen: 'avatar',
-                        largeScreen: 'full',
-                      }}
-                      chainStatus="icon"
-                      showBalance={{
-                        smallScreen: false,
-                        largeScreen: true,
-                      }}
-                    />
+                    <WalletMultiButton className="!bg-gold !text-navy !font-bold hover:!bg-gold-light transition-all" />
                   </div>
                 </div>
 
                 {/* Link Wallet */}
                 {isWalletConnected && !isWalletLinked && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                  <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <label className="block text-sm font-medium text-gray-300 mb-3 text-center">
                       2. Verify Ownership
                     </label>
                     <div className="space-y-3">
-                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                        <p className="text-sm text-yellow-400">
-                          Sign a message to prove you own this wallet. This is free and doesn't cost any gas!
+                      <div className="bg-gold/10 border border-gold/30 rounded-lg p-4 text-center">
+                        <p className="text-sm text-gold">
+                          Sign a secure message to link this wallet to your account. This proves ownership and allows for dividend payouts.
                         </p>
                       </div>
                       <button
                         onClick={linkWallet}
                         disabled={isLinking}
-                        className="w-full bg-gradient-to-r from-gold to-gold-light text-navy font-bold py-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                        className="w-full bg-gradient-to-r from-gold to-gold-light text-navy font-bold py-4 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-gold/20 disabled:opacity-50"
                       >
-                        {isLinking ? 'Verifying...' : 'Sign Message to Verify'}
+                        {isLinking ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Verifying...
+                          </span>
+                        ) : 'Sign Message & Link Wallet'}
                       </button>
                     </div>
                   </div>
