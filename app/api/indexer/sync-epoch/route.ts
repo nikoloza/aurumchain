@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createAuditLog } from '@/lib/domains/admin/service';
+
 
 // Setup Supabase admin client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -45,6 +47,26 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("[Indexer] Supabase Upsert Error:", error);
       throw error;
+    }
+
+    // Audit log
+    try {
+      await createAuditLog({
+        eventType: 'admin_action',
+        description: `Created Epoch: ${name || 'Epoch ' + epochId} for Project ${projectId}`,
+        metadata: {
+          projectId,
+          dbProjectId,
+          epochId,
+          txHash,
+          profitPerToken,
+          totalAmount
+        },
+        newState: data,
+        actorRole: 'admin'
+      });
+    } catch (e) {
+      console.error("[Indexer] Audit Log Failed:", e);
     }
 
     return NextResponse.json({ success: true, data });

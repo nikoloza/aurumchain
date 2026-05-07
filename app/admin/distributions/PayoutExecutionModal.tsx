@@ -321,6 +321,23 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
           if (dbError) {
             console.error("Database Sync Error Details:", dbError);
             setStatus({ type: 'error', msg: `Batch succeeded on-chain, but DB sync failed: ${dbError.message}` });
+          } else {
+            // Audit Log for successful batch
+            await fetch('/api/admin/audit-logs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                eventType: 'payout_completed',
+                description: `Executed batch payout for Epoch ${epoch.name}: ${recordsToInsert.length} investors.`,
+                metadata: {
+                  epochId: epoch.id,
+                  projectId: epoch.project_id,
+                  txHash: tx,
+                  investorCount: recordsToInsert.length,
+                  totalAmount: recordsToInsert.reduce((sum, r) => sum + r.amount_due, 0)
+                }
+              })
+            }).catch(e => console.warn("Audit Log Failed:", e));
           }
         } else {
           console.warn("⚠️ No valid profile IDs found for this batch. Payouts executed on-chain but no database receipts created.");
