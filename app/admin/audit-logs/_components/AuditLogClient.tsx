@@ -37,6 +37,7 @@ export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
 
   const filterCategories = [
     { id: 'all', label: 'All Events' },
+    { id: 'investments', label: 'Token Purchases' },
     { id: 'project_update', label: 'Project Updates' },
     { id: 'payouts', label: 'Payouts & Distributions' },
     { id: 'compliance', label: 'KYC & Compliance' },
@@ -46,7 +47,9 @@ export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
   const filteredLogs = logs.filter(log => {
     // Smart Categorization Logic
     let matchesCategory = true;
-    if (filterCategory === 'project_update') {
+    if (filterCategory === 'investments') {
+      matchesCategory = log.event_type.includes('investment') || log.description.toLowerCase().includes('token');
+    } else if (filterCategory === 'project_update') {
       matchesCategory = 
         log.event_type === 'project_created' || 
         log.metadata?.action === 'create_project' || 
@@ -138,6 +141,31 @@ export function AuditLogClient({ initialLogs }: AuditLogClientProps) {
               <option key={cat.id} value={cat.id}>{cat.label}</option>
             ))}
           </select>
+
+          <button
+            onClick={async () => {
+              if (confirm('Sync all missing on-chain investments into the audit log? This may take a moment.')) {
+                try {
+                  const res = await fetch('/api/admin/audit-logs/sync-onchain', { method: 'POST' });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert(`Sync successful! Added ${data.newLogs} new logs. Please refresh the page.`);
+                    window.location.reload();
+                  } else {
+                    alert('Sync failed: ' + data.error);
+                  }
+                } catch (err) {
+                  alert('Sync failed. See console for details.');
+                }
+              }
+            }}
+            className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-xl transition-all font-bold text-xs"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Sync On-Chain
+          </button>
         </div>
 
         {/* Table */}

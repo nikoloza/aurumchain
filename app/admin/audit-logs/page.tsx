@@ -103,9 +103,9 @@ export default async function AdminAuditLogsPage() {
               </p>
            </div>
            <div className="glass p-4 rounded-xl border border-gold/10">
-              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Compliance Actions</p>
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Token Purchases</p>
               <p className="text-2xl font-bold text-blue-400">
-                {logs?.filter(l => l.event_type.includes('kyc') || l.event_type.includes('eligibility')).length || 0}
+                {logs?.filter(l => l.event_type.includes('investment')).length || 0}
               </p>
            </div>
            <div className="glass p-4 rounded-xl border border-gold/10">

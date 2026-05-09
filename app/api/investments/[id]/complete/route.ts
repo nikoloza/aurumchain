@@ -34,7 +34,7 @@ export async function POST(
     const { id: investmentId } = await params;
 
     // 1. Complete investment in Database
-    const investment = await InvestmentsService.completeInvestment(investmentId);
+    const investment = await InvestmentsService.completeInvestment(investmentId, user.id);
 
     // 2. TRIGGER ON-CHAIN SETTLEMENT (AC-BC-406)
     let solanaSignature = null;

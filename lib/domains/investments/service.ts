@@ -80,6 +80,7 @@ export class InvestmentsService {
     await createAuditLog({
       eventType: 'investment_created',
       userId: input.userId,
+      actorId: input.userId,
       actorRole: 'user',
       description: `Investment of ${input.amount} for ${input.tokensPurchased} tokens created`,
       metadata: { projectId: input.projectId, amount: input.amount, tokens: input.tokensPurchased },
@@ -91,7 +92,7 @@ export class InvestmentsService {
   /**
    * Complete investment (after payment confirmation)
    */
-  static async completeInvestment(investmentId: string): Promise<Investment> {
+  static async completeInvestment(investmentId: string, actorId?: string): Promise<Investment> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -112,6 +113,7 @@ export class InvestmentsService {
     await createAuditLog({
       eventType: 'investment_completed',
       userId: investment.userId,
+      actorId: actorId,
       actorRole: 'admin',
       description: `Investment ${investmentId} completed`,
       metadata: { investmentId, amount: investment.amount },
