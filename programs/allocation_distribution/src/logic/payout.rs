@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Transfer, Token, TokenAccount};
+use anchor_spl::token_interface::{self, TokenInterface, TokenAccount, Mint};
 use crate::state::*;
 use crate::errors::DistributionError;
 
@@ -51,14 +51,16 @@ pub fn handle_execute_payout(ctx: Context<ExecutePayout>) -> Result<()> {
     require!(amount > 0, DistributionError::InsufficientBalance);
 
     // 2. Perform Transfer from Treasury
-    let cpi_accounts = Transfer {
+    // Note: Treasury is usually USDC (Legacy SPL), but we use TokenInterface for future-proofing.
+    let cpi_accounts = token_interface::TransferChecked {
         from:      ctx.accounts.treasury_vault.to_account_info(),
+        mint:      ctx.accounts.payment_mint.to_account_info(),
         to:        ctx.accounts.investor_payment_account.to_account_info(),
         authority: ctx.accounts.admin.to_account_info(),
     };
 
     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
-    token::transfer(cpi_ctx, amount)?;
+    token_interface::transfer_checked(cpi_ctx, amount, ctx.accounts.payment_mint.decimals)?;
 
     // 3. Record Payout
     payout_record.epoch       = epoch.key();
@@ -118,13 +120,13 @@ pub struct ExecutePayout<'info> {
     #[account(
         constraint = investor_token_account.owner == investor.key() @ DistributionError::InvalidTokenAccount
     )]
-    pub investor_token_account: Account<'info, TokenAccount>,
+    pub investor_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
-    pub investor_payment_account: Account<'info, TokenAccount>,
+    pub investor_payment_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
-    pub treasury_vault: Account<'info, TokenAccount>,
+    pub treasury_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         seeds = [b"distribution_control"],
@@ -140,6 +142,8 @@ pub struct ExecutePayout<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    pub token_program: Program<'info, Token>,
+    pub payment_mint: InterfaceAccount<'info, Mint>,
+
+    pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }

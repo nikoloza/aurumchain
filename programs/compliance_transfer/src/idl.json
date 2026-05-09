@@ -123,7 +123,8 @@
         { "name": "mint", "isMut": true, "isSigner": false },
         { "name": "investorTokenAccount", "isMut": true, "isSigner": false },
         { "name": "mintAuthorityPda", "isMut": false, "isSigner": false },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
         { "name": "settlementTxHash", "type": { "array": ["u8", 64] } },
@@ -139,6 +140,31 @@
         { "name": "admin", "isMut": false, "isSigner": true }
       ],
       "args": [{ "name": "enabled", "type": "bool" }]
+    },
+    {
+      "name": "initializeExtraAccountMetaList",
+      "accounts": [
+        { "name": "extraAccountMetaList", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "payer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "transferHook",
+      "accounts": [
+        { "name": "sourceToken", "isMut": false, "isSigner": false },
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "destinationToken", "isMut": false, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": false },
+        { "name": "extraAccountMetaList", "isMut": false, "isSigner": false },
+        { "name": "control", "isMut": false, "isSigner": false },
+        { "name": "senderEligibility", "isMut": false, "isSigner": false },
+        { "name": "receiverEligibility", "isMut": false, "isSigner": false },
+        { "name": "mintLookup", "isMut": false, "isSigner": false }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
     }
   ],
   "accounts": [
@@ -411,86 +437,91 @@
     },
     {
       "code": 6003,
+      "name": "LockupPeriodActive",
+      "msg": "Project is currently in a mandatory lock-up period"
+    },
+    {
+      "code": 6004,
       "name": "SenderNotApproved",
       "msg": "Sender wallet is not KYC approved or transfer not allowed"
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "ReceiverNotApproved",
       "msg": "Receiver wallet is not KYC approved or transfer not allowed"
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "SenderKycExpired",
       "msg": "Sender KYC eligibility has expired – re-verification required"
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "ReceiverKycExpired",
       "msg": "Receiver KYC eligibility has expired – re-verification required"
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "SenderAmlBlocked",
       "msg": "Sender wallet is AML flagged or sanctioned"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "ReceiverAmlBlocked",
       "msg": "Receiver wallet is AML flagged or sanctioned"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "LockupActive",
       "msg": "Token lock-up period is still active for this project"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidExpiry",
       "msg": "Expiry timestamp must be in the future"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "EmptyIdentityHash",
       "msg": "Identity hash cannot be all zeros"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvestmentTooLow",
       "msg": "Investment amount is below project minimum"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvestmentTooHigh",
       "msg": "Investment amount exceeds project maximum"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "ProjectNotActive",
       "msg": "Project is not active or is paused"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "AlreadySettled",
       "msg": "Subscription is already settled or allocated"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "InvalidStatus",
       "msg": "Invalid subscription status for this operation"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "MintFailed",
       "msg": "SPL mint CPI failed inside issue_tokens"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "InvalidRegistryProgram",
       "msg": "Provided project_registry_program does not match on-chain control.registry_program"
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "OutsideSubscriptionWindow",
       "msg": "Investment subscription period is either not yet open or has already closed"
     }

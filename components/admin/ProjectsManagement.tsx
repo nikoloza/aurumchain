@@ -529,7 +529,7 @@ export default function ProjectsManagement({ initialProjects, userId }: Projects
   };
 
   const handleSyncFromChain = async (project: EnrichedProject) => {
-    if (!project.blockchain_project_id) return;
+    if (project.blockchain_project_id === null || project.blockchain_project_id === undefined) return;
     
     setStatusChanging(project.id);
     try {
@@ -735,7 +735,7 @@ export default function ProjectsManagement({ initialProjects, userId }: Projects
 
   const handleSetMint = async (project: EnrichedProject) => {
     const mintAddress = prompt('Enter the SPL Token Mint Address for this project:');
-    if (!mintAddress || !project.blockchain_project_id) return;
+    if (!mintAddress || (project.blockchain_project_id === null || project.blockchain_project_id === undefined)) return;
 
     try {
       new PublicKey(mintAddress); // Validate pubkey format

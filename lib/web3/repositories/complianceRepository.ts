@@ -222,7 +222,7 @@ export class ComplianceRepository {
     mint:                   PublicKey,
     investorTokenAccount:   PublicKey
   ): Promise<TransactionInstruction> {
-    const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+    const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EP2rHE8CYGR6GfrXK45L');
     const idBN = new BN(projectId);
 
     return await this.program.methods
@@ -237,7 +237,7 @@ export class ComplianceRepository {
         mint:                   mint,
         investorTokenAccount:   investorTokenAccount,
         mintAuthorityPda:       getMintAuthorityPDA(idBN, registryProgramId),
-        tokenProgram:           TOKEN_PROGRAM_ID,
+        tokenProgram:           TOKEN_2022_PROGRAM_ID,
       } as any)
       .instruction();
   }

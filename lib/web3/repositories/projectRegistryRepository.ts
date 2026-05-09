@@ -1,7 +1,7 @@
 import { Program, BN, utils } from '@coral-xyz/anchor';
 import { PublicKey, TransactionInstruction, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { getRegistryPDA, getProjectPDA, getMintAuthorityPDA } from '../utils/pdaHelpers';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { getRegistryPDA, getProjectPDA, getMintAuthorityPDA, getMintLookupPDA } from '../utils/pdaHelpers';
 
 /**
  * ProjectRegistryRepository
@@ -124,11 +124,15 @@ export class ProjectRegistryRepository {
     mint: PublicKey
   ): Promise<TransactionInstruction> {
     return await this.program.methods
-      .setProjectMint(mint)
+      .setProjectMint()
       .accounts({
         project: getProjectPDA(projectId, this.program.programId),
         control: getRegistryPDA(this.program.programId),
+        mint: mint,
+        mintLookup: getMintLookupPDA(mint, this.program.programId),
         admin: this.program.provider.publicKey,
+        token2022Program: TOKEN_2022_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       } as any)
       .instruction();
   }
@@ -473,7 +477,7 @@ export class ProjectRegistryRepository {
         recipientTokenAccount: recipientTokenAccount,
         mintAuthorityPda: mintAuthorityPda,
         admin: this.program.provider.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
       } as any)
       .instruction();
   }

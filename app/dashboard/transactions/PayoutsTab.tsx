@@ -53,7 +53,7 @@ export default function PayoutsTab() {
         if (publicKey) {
           try {
             const accounts = await connection.getProgramAccounts(
-              new PublicKey("9RqVyvWA4ficqK351PoYh674mP1au4NmNzVM6LQcenjm")
+              new PublicKey("EZXJQXX2vYoDrUP6JUcqeShhqKpSRuDecLK9JUiVzkTz")
             );
             
             const userPayoutAccounts = accounts.filter(p => {

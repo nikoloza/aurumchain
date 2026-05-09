@@ -9,7 +9,7 @@ import * as path from "path";
 import bs58 from "bs58";
 import { PROJECT_REGISTRY_PROGRAM_ID, COMPLIANCE_PROGRAM_ID } from "../lib/web3/config/programs";
 import { confirmTransactionRobustly } from "../lib/web3/utils/transactionUtils";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createMintToInstruction, MINT_SIZE, createInitializeMintInstruction, createSetAuthorityInstruction, AuthorityType } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, createMintToInstruction, MINT_SIZE, createInitializeMintInstruction, createSetAuthorityInstruction, AuthorityType } from "@solana/spl-token";
 
 describe("subscription_lifecycle", () => {
   // Manual Provider Setup
@@ -194,10 +194,18 @@ describe("subscription_lifecycle", () => {
     const { pda: projectAccount, id: projectId } = await createProject();
 
     // 1. Set Mint (Required before Funding)
-    const setMintIx = await registryProgram.methods.setProjectMint(mockUsdc).accounts({
+    const [mintLookupPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("mint_lookup"), mockUsdc.toBuffer()],
+        registryProgram.programId
+    );
+    const setMintIx = await registryProgram.methods.setProjectMint().accounts({
         control: registryPda,
         project: projectAccount,
+        mint: mockUsdc,
+        mintLookup: mintLookupPda,
         admin: authority.publicKey,
+        token2022Program: TOKEN_2022_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
     }).instruction();
     await sendAndConfirmCustom(new Transaction().add(setMintIx));
 
@@ -274,10 +282,18 @@ describe("subscription_lifecycle", () => {
     const { pda: projectPda, id: projectId } = await createProject();
     
     // 1. Set Mint
-    const setMintIx = await registryProgram.methods.setProjectMint(mockUsdc).accounts({
+    const [mintLookupPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("mint_lookup"), mockUsdc.toBuffer()],
+        registryProgram.programId
+    );
+    const setMintIx = await registryProgram.methods.setProjectMint().accounts({
         control: registryPda,
         project: projectPda,
+        mint: mockUsdc,
+        mintLookup: mintLookupPda,
         admin: authority.publicKey,
+        token2022Program: TOKEN_2022_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
     }).instruction();
     await sendAndConfirmCustom(new Transaction().add(setMintIx));
 
@@ -363,10 +379,18 @@ describe("subscription_lifecycle", () => {
     await sendAndConfirmCustom(createMintTx, [projectMint]);
 
     // Set the Project Mint address in the registry
-    const setMintIx = await registryProgram.methods.setProjectMint(projectMint.publicKey).accounts({
+    const [mintLookupPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("mint_lookup"), projectMint.publicKey.toBuffer()],
+        registryProgram.programId
+    );
+    const setMintIx = await registryProgram.methods.setProjectMint().accounts({
         control: registryPda,
         project: projectAccount,
+        mint: projectMint.publicKey,
+        mintLookup: mintLookupPda,
         admin: authority.publicKey,
+        token2022Program: TOKEN_2022_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
     }).instruction();
     await sendAndConfirmCustom(new Transaction().add(setMintIx));
 

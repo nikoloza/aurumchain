@@ -43,6 +43,7 @@
         { "name": "admin", "isMut": false, "isSigner": true },
         { "name": "investor", "isMut": false, "isSigner": false },
         { "name": "payer", "isMut": true, "isSigner": true },
+        { "name": "paymentMint", "isMut": false, "isSigner": false },
         { "name": "tokenProgram", "isMut": false, "isSigner": false },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],

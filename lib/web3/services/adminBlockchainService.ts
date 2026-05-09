@@ -2,7 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { getServerAnchorProvider } from '../clients/serverAnchorProvider';
 import { getComplianceProgram, getRegistryProgram } from '../clients/anchorClients';
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountIdempotentInstruction } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountIdempotentInstruction } from '@solana/spl-token';
 import { 
   getSubscriptionPDA, 
   getComplianceControlPDA, 
@@ -58,8 +58,15 @@ export class AdminBlockchainService {
         throw new Error(`Project ${projectId} has no linked mint. Cannot settle.`);
       }
 
-      // 3. Resolve Investor ATA
-      const investorTokenAccount = getAssociatedTokenAddressSync(mint, investorPubkey);
+      // 3. Resolve Investor ATA (Enforcing Token-2022)
+      const tokenProgramId = TOKEN_2022_PROGRAM_ID;
+
+      const investorTokenAccount = getAssociatedTokenAddressSync(
+        mint, 
+        investorPubkey,
+        false,
+        tokenProgramId
+      );
 
       // 4. Prepare Tx Hash (64 bytes)
       let txHashBytes = Buffer.alloc(64);
@@ -100,7 +107,8 @@ export class AdminBlockchainService {
           mint:                   mint,
           investorTokenAccount:   investorTokenAccount,
           mintAuthorityPda:       getMintAuthorityPDA(projectId, registryProgram.programId),
-          tokenProgram:           TOKEN_PROGRAM_ID,
+          tokenProgram:           tokenProgramId,
+          systemProgram:          new PublicKey('11111111111111111111111111111111'),
         } as any)
         .instruction();
 
@@ -110,12 +118,12 @@ export class AdminBlockchainService {
         investorTokenAccount,
         investorPubkey,
         mint,
-        TOKEN_PROGRAM_ID,
+        tokenProgramId,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
 
       const transaction = new Transaction()
-        .add(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }))
+        .add(ComputeBudgetProgram.setComputeUnitLimit({ units: 800_000 }))
         .add(createAtaIx)
         .add(finalizeIx);
 

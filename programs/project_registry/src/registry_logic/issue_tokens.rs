@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
+use anchor_spl::token_interface::{self, Mint, MintTo, TokenInterface, TokenAccount};
 use crate::state::*;
 use crate::RegistryError;
 
@@ -19,19 +19,18 @@ pub struct IssueTokens<'info> {
     )]
     pub project: Account<'info, ProjectAccount>,
 
-    /// The SPL Token mint for this project — must match project.mint.
+    /// The SPL Token mint for this project — supports both Legacy and Token-2022.
     #[account(
         mut,
         constraint = mint.key() == project.mint @ RegistryError::InvalidMint
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     /// The investor's associated token account — tokens land here directly.
     #[account(mut)]
-    pub recipient_token_account: Account<'info, TokenAccount>,
+    pub recipient_token_account: InterfaceAccount<'info, TokenAccount>,
 
     /// CHECK: Seeds are checked to verify this is the correct authority for the project.
-    /// Supports both legacy (uninitialized) and verified (initialized) authority accounts.
     #[account(
         seeds = [b"mint_authority", project.project_id.to_le_bytes().as_ref()],
         bump,
@@ -39,8 +38,6 @@ pub struct IssueTokens<'info> {
     pub mint_authority_pda: UncheckedAccount<'info>,
 
     /// Authorised caller: super_admin or operational_admin.
-    /// In Phase 2, the compliance program will CPI into this instruction;
-    /// the compliance admin's signature satisfies this constraint.
     #[account(
         constraint = (
             admin.key() == control.super_admin ||
@@ -49,7 +46,8 @@ pub struct IssueTokens<'info> {
     )]
     pub admin: Signer<'info>,
 
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub system_program: Program<'info, System>,
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -102,7 +100,7 @@ pub fn handle_issue_tokens(
     ];
     let signer_seeds = &[pda_seeds];
 
-    token::mint_to(
+    token_interface::mint_to(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             MintTo {

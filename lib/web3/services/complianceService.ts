@@ -5,7 +5,7 @@ import { getComplianceProgram, getRegistryProgram } from '../utils/programDiscov
 import { RecordVerifiedWalletSchema, RevokeWalletSchema, SubscribeInvestmentSchema, FinalizeSubscriptionSchema } from '../schemas/compliance';
 import { confirmTransactionRobustly } from '../utils/transactionUtils';
 import { getSubscriptionPDA, getProjectPDA } from '../utils/pdaHelpers';
-import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { PROJECT_REGISTRY_PROGRAM_ID } from '../config/programs';
 
 /**
@@ -232,7 +232,7 @@ export class ComplianceService {
       const projectData: any = await registryProgram.account.projectAccount.fetch(projectPda);
       const mint = projectData.mint as PublicKey;
 
-      const investorTokenAccount = getAssociatedTokenAddressSync(mint, investorPubkey);
+      const investorTokenAccount = getAssociatedTokenAddressSync(mint, investorPubkey, false, TOKEN_2022_PROGRAM_ID);
 
       // 2. Prepare Instruction via Repository
       const instruction = await this.repository.getFinalizeSubscriptionInstruction(

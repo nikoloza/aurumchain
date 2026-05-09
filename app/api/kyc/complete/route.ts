@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,17 +14,18 @@ export async function POST(request: NextRequest) {
     // For this implementation, we allow the authenticated client to mark themselves as verified
     // after the Sumsub SDK reports success.
     
+    const adminClient = createAdminClient();
+    
     // 1. Update public.profiles
-    const { error: profileError } = await supabase
+    const { error: profileError } = await adminClient
       .from('profiles')
       .update({ 
-        kyc_verified: true,
-        kyc_status: 'approved'
+        kyc_verified: true
       })
       .eq('id', user.id);
 
     // 2. Update public.kyc_profiles (Upsert in case it doesn't exist yet)
-    const { error: kycProfileError } = await supabase
+    const { error: kycProfileError } = await adminClient
       .from('kyc_profiles')
       .upsert({ 
         user_id: user.id,
@@ -34,14 +35,15 @@ export async function POST(request: NextRequest) {
       }, { onConflict: 'user_id' });
 
     // 3. Update public.eligibility_states (Upsert in case it doesn't exist yet)
-    const { error: eligibilityError } = await supabase
+    const { error: eligibilityError } = await adminClient
       .from('eligibility_states')
       .upsert({
         user_id: user.id,
-        status: 'investment_eligible',
-        can_invest: true,
-        can_trade: true,
+        status: 'kyc_approved',
+        can_invest: false,
+        can_trade: false,
         can_withdraw: true,
+        can_receive_dividends: true,
         status_changed_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
 

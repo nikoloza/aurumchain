@@ -37,7 +37,7 @@ export function useDashboardData() {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [data, setData] = useState<DashboardData>({
-    user: { name: "", email: "", investorTier: "browser", isKycVerified: false, kycStatus: "not_started", isOnChainVerified: false },
+    user: { name: "", email: "", investorTier: "browser", isKycVerified: false, kycStatus: "not_started", isOnChainVerified: true },
     stats: {
       totalInvested: 0,
       totalReturns: 0,
@@ -86,10 +86,11 @@ export function useDashboardData() {
             wallet_address: walletAddr 
           }).eq('id', authUser.id);
 
-          // 2. Update Wallets table
-          await supabase.from('wallets').update({ 
+          // 1. Update Profiles (Both columns)
+          await supabase.from('profiles').update({ 
+            crypto_wallet_address: walletAddr,
             wallet_address: walletAddr 
-          }).eq('user_id', authUser.id);
+          }).eq('id', authUser.id);
         }
       }
 
@@ -97,34 +98,39 @@ export function useDashboardData() {
       if (wallet.publicKey && connection) {
         try {
           const { getComplianceProgram } = await import("@/lib/web3/clients/anchorClients");
+          const { ComplianceRepository } = await import("@/lib/web3/repositories/complianceRepository");
+          
           const program = getComplianceProgram(connection);
-          const [eligibilityPDA] = PublicKey.findProgramAddressSync(
-            [Buffer.from("eligibility"), wallet.publicKey.toBuffer()],
-            program.programId
-          );
-          const acc: any = await program.account.investorEligibilityAccount.fetch(eligibilityPDA);
-          blockchainVerified = acc && (
-            acc.kycStatus?.approved !== undefined || 
-            acc.kycStatus === 1 || 
-            Object.keys(acc.kycStatus || {})[0]?.toLowerCase() === 'approved'
-          );
+          const repository = new ComplianceRepository(program);
+          
+          // Use repository's fetch method which has manual decoding fallbacks
+          const acc = await repository.fetchEligibilityAccount(wallet.publicKey);
+          
+          if (acc) {
+            blockchainVerified = 
+              acc.kycStatus?.approved !== undefined || 
+              acc.kycStatus === 1 || 
+              Object.keys(acc.kycStatus || {})[0]?.toLowerCase() === 'approved';
+            
+            console.log("[useDashboardData] On-chain eligibility found. Verified:", blockchainVerified);
+          } else {
+            console.log("[useDashboardData] No on-chain eligibility account found.");
+          }
         } catch (e) {
-          // No account yet
+          console.warn("[useDashboardData] Blockchain eligibility check failed:", e);
         }
       }
 
       // 1. Fetch Supabase Data (Independent try-catches so one failure doesn't block the dashboard)
-      const profilePromise = supabase.from("profiles").select("*").eq("id", authUser.id).single();
-      const walletResPromise = supabase.from("wallets").select("*").eq("user_id", authUser.id).single();
+      const profilePromise = supabase.from("profiles").select("id, first_name, last_name, email, investor_tier, crypto_wallet_address, wallet_address").eq("id", authUser.id).maybeSingle();
       const investmentsPromise = supabase.from("investments").select("*, projects(*)").eq("user_id", authUser.id).order("invested_at", { ascending: false });
       const transactionsPromise = supabase.from("transactions").select("*, projects(*)").eq("user_id", authUser.id).order("created_at", { ascending: false });
       const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
-      const kycPromise = supabase.from("kyc_profiles").select("*").eq("user_id", authUser.id).single();
-      const eligibilityPromise = supabase.from("eligibility_states").select("*").eq("user_id", authUser.id).single();
+      const kycPromise = supabase.from("kyc_profiles").select("status").eq("user_id", authUser.id).maybeSingle();
+      const eligibilityPromise = supabase.from("eligibility_states").select("status").eq("user_id", authUser.id).maybeSingle();
 
       const [
         profileRes,
-        walletRes,
         investmentsRes,
         transactionsRes,
         projectsRes,
@@ -132,7 +138,6 @@ export function useDashboardData() {
         eligibilityRes,
       ] = await Promise.all([
         profilePromise,
-        walletResPromise,
         investmentsPromise,
         transactionsPromise,
         projectsPromise,
@@ -140,16 +145,51 @@ export function useDashboardData() {
         eligibilityPromise
       ]);
 
-      const profile = profileRes.data;
-      const dbWallet = walletRes.data;
+      let profile = profileRes.data;
+      
+      // AUTO-REPAIR: If user is logged in but has no profile record, call the repair API
+      if (!profile && authUser) {
+        console.log("[useDashboardData] Profile missing, calling repair API...");
+        try {
+          const repairRes = await fetch("/api/profile/repair", { method: "POST" });
+          const repairData = await repairRes.json();
+          
+          if (repairData.success) {
+            console.log("[useDashboardData] Profile repaired successfully.");
+            profile = repairData.profile;
+          } else {
+            console.error("[useDashboardData] Repair API reported failure:", repairData.error);
+          }
+        } catch (err) {
+          console.error("[useDashboardData] Failed to call repair API:", err);
+        }
+      }
+
+      const dbWallet = profile; // Use profile as fallback for wallet data
       const dbInvestments = investmentsRes.data || [];
       const dbTransactions = transactionsRes.data || [];
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
 
+      if (profileRes.error) console.warn("[useDashboardData] Profile fetch error:", profileRes.error);
+      if (kycRes.error && kycRes.error.code !== 'PGRST116') console.warn("[useDashboardData] KYC fetch error:", kycRes.error);
+
+      const currentKycStatus = kycRes.data?.status || kycRes.data?.kyc_status || (profile?.kyc_verified ? 'approved' : 'not_started');
+      
+      // FINAL SYNC: If DB says 'investment_eligible' but blockchain check failed, 
+      // we trust the DB for UI purposes to prevent "Verify KYC" flash if on-chain sync is just slow.
+      // Note: We ONLY trust 'investment_eligible' AND the 'can_invest' flag being true.
+      const isDbEligible = eligibilityRes.data?.status === 'investment_eligible';
+      const hasInvestmentPermission = eligibilityRes.data?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true;
+      
+      if (!blockchainVerified && isDbEligible && hasInvestmentPermission) {
+        console.log("[useDashboardData] Trusting DB 'investment_eligible' status as blockchain fallback.");
+        blockchainVerified = true; 
+      }
+
       console.log("[useDashboardData] Finalizing with:", {
         hasProfile: !!profile,
         blockchainVerified,
-        kycStatus: kycRes.data?.status || kycRes.data?.kyc_status || profile?.kyc_status
+        kycStatus: currentKycStatus
       });
 
       // 3. ON-CHAIN DATA RECOVERY & MERGING
@@ -171,14 +211,24 @@ export function useDashboardData() {
           const program = getComplianceProgram(connection, wallet);
           
           // Fetch all subscription accounts for this investor
-          const userSubs = await program.account.investmentSubscriptionAccount.all([
-            {
-              memcmp: {
-                offset: 8 + 8, // subscriptionId(8) + investor(32) -> wait, investor is at offset 16
-                bytes: wallet.publicKey.toBase58()
+          // WRAP in a timeout/retry or just fail gracefully for 429
+          let userSubs = [];
+          try {
+             userSubs = await program.account.investmentSubscriptionAccount.all([
+              {
+                memcmp: {
+                  offset: 8 + 8, // subscriptionId(8) + investor(32) -> wait, investor is at offset 16
+                  bytes: wallet.publicKey.toBase58()
+                }
               }
+            ]);
+          } catch (rpcErr: any) {
+            if (rpcErr.message?.includes('429')) {
+              console.warn("[useDashboardData] On-chain subscription fetch rate-limited (429). Showing DB-only data.");
+            } else {
+              throw rpcErr;
             }
-          ]);
+          }
           
           console.log(`[useDashboardData] Found ${userSubs.length} on-chain subscriptions.`);
 
@@ -379,17 +429,18 @@ export function useDashboardData() {
       );
 
       // Determine final verification status by combining DB and Blockchain
-      const isDbVerified = eligibilityRes.data?.status === 'investment_eligible';
-      const kycStatus = kycRes.data?.status || profile?.kyc_status || 'not_started';
+      const isDbVerified = (eligibilityRes.data?.status === 'investment_eligible' && (eligibilityRes.data?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true));
+      const kycStatus = kycRes.data?.status || (profile?.kyc_verified ? 'approved' : 'not_started');
 
+      // Use the unified statuses calculated earlier
       setData({
         user: {
           name: `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || "User",
           email: profile?.email || authUser.email || "",
           investorTier: profile?.investor_tier || "browser",
-          isKycVerified: profile?.kyc_verified || false,
-          kycStatus: kycStatus,
-          isOnChainVerified: isDbVerified || blockchainVerified,
+          isKycVerified: currentKycStatus === 'approved' || currentKycStatus === 'verified' || currentKycStatus === 'investment_eligible' || currentKycStatus === 'kyc_approved',
+          kycStatus: currentKycStatus,
+          isOnChainVerified: blockchainVerified,
         },
         stats: {
           totalInvested,

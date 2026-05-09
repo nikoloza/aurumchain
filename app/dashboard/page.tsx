@@ -66,8 +66,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* KYC Alert Banner */}
-      {!user.isOnChainVerified && (
+      {/* KYC Alert Banner - Only show when NOT loading and NOT verified */}
+      {!loading && !user.isOnChainVerified && (
         <section className="pt-8 px-6 md:px-12 lg:px-24">
           <div className="max-w-7xl mx-auto">
             {user.kycStatus === 'approved' || user.kycStatus === 'under_review' ? (

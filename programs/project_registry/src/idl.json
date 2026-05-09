@@ -32,9 +32,13 @@
       "accounts": [
         { "name": "control", "isMut": false, "isSigner": false },
         { "name": "project", "isMut": true, "isSigner": false },
-        { "name": "admin", "isMut": false, "isSigner": true }
+        { "name": "mint", "isMut": false, "isSigner": false },
+        { "name": "token2022Program", "isMut": false, "isSigner": false },
+        { "name": "admin", "isMut": true, "isSigner": true },
+        { "name": "mintLookup", "isMut": true, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": [{ "name": "mintKey", "type": "publicKey" }]
+      "args": []
     },
     {
       "name": "revokeMintAuthority",
@@ -110,6 +114,22 @@
       "args": [{ "name": "newCount", "type": "u64" }]
     },
     {
+      "name": "burnTokens",
+      "accounts": [
+        { "name": "control", "isMut": false, "isSigner": false },
+        { "name": "project", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": true, "isSigner": false },
+        { "name": "targetTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "admin", "isMut": false, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "reasonCode", "type": "u8" },
+        { "name": "auditHash", "type": "string" }
+      ]
+    },
+    {
       "name": "issueTokens",
       "accounts": [
         { "name": "control", "isMut": false, "isSigner": false },
@@ -118,7 +138,8 @@
         { "name": "recipientTokenAccount", "isMut": true, "isSigner": false },
         { "name": "mintAuthorityPda", "isMut": false, "isSigner": false },
         { "name": "admin", "isMut": false, "isSigner": true },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [{ "name": "amount", "type": "u64" }]
     },
@@ -155,6 +176,18 @@
         "kind": "struct",
         "fields": [
           { "name": "projectId", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "MintLookupAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "projectId", "type": "u64" },
+          { "name": "projectPda", "type": "publicKey" },
+          { "name": "lockupEndTs", "type": "i64" },
           { "name": "bump", "type": "u8" }
         ]
       }
@@ -284,6 +317,16 @@
     }
   ],
   "events": [
+    {
+      "name": "TokensBurned",
+      "fields": [
+        { "name": "projectId", "type": "u64", "index": false },
+        { "name": "target", "type": "publicKey", "index": false },
+        { "name": "amount", "type": "u64", "index": false },
+        { "name": "reasonCode", "type": "u8", "index": false },
+        { "name": "auditHash", "type": "string", "index": false }
+      ]
+    },
     {
       "name": "ProjectCreated",
       "fields": [
@@ -455,6 +498,11 @@
       "code": 6015,
       "name": "LockupCannotBeReduced",
       "msg": "The lock-up end date can only be extended, not reduced."
+    },
+    {
+      "code": 6016,
+      "name": "InvalidTokenProgram",
+      "msg": "The provided mint must be owned by the Token-2022 program."
     }
   ]
 }

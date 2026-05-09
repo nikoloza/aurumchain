@@ -237,7 +237,13 @@ export class ComplianceService {
    */
   static async isEligibleToInvest(userId: string): Promise<boolean> {
     const eligibility = await this.getEligibility(userId);
-    return eligibility?.canInvest === true;
+    if (!eligibility) return false;
+    
+    // Handle both snake_case (DB) and camelCase (Model) to be safe
+    const canInvest = (eligibility as any).can_invest === true || 
+                     (eligibility as any).canInvest === true;
+                     
+    return canInvest;
   }
 }
 
@@ -262,9 +268,11 @@ export async function updateEligibilityOnWalletChange(
   // Determine new eligibility status based on wallet + KYC state
   let newStatus: EligibilityStatus = 'registered';
 
-  if (walletStatus === 'wallet_verified' && kycStatus === 'approved') {
-    newStatus = 'investment_eligible';
-  } else if (kycStatus === 'approved') {
+  if (walletStatus === 'wallet_verified' && (kycStatus === 'approved' || kycStatus === 'verified')) {
+    // If wallet is verified AND KYC is done, set to kyc_approved.
+    // Manual Admin approval is STILL required to reach 'investment_eligible'
+    newStatus = 'kyc_approved';
+  } else if (kycStatus === 'approved' || kycStatus === 'verified') {
     newStatus = 'kyc_approved';
   } else if (kycStatus === 'rejected') {
     newStatus = 'kyc_rejected';

@@ -108,3 +108,24 @@ export function getSubscriptionPDA(investor: PublicKey, subscriptionId: number |
     programId
   )[0];
 }
+
+/**
+ * Derives the ExtraAccountMetaList PDA for a specific Token Mint.
+ * Seeds: [b"extra-account-metas", mint_pubkey]
+ */
+export function getExtraAccountMetaListPDA(mint: PublicKey, programId: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('extra-account-metas'), mint.toBuffer()],
+    programId
+  )[0];
+}
+/**
+ * Derives the Mint Lookup Account PDA.
+ * Seeds: [b"mint_lookup", mint_pubkey]
+ */
+export function getMintLookupPDA(mint: PublicKey, programId: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('mint_lookup'), mint.toBuffer()],
+    programId
+  )[0];
+}

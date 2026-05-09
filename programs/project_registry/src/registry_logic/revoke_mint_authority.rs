@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, SetAuthority, Token};
-use spl_token::instruction::AuthorityType;
+use anchor_spl::token_interface::{self, Mint, SetAuthority, TokenInterface};
+use anchor_spl::token_2022::spl_token_2022::instruction::AuthorityType;
 use crate::state::*;
 use crate::RegistryError;
 
@@ -25,15 +25,14 @@ pub struct RevokeMintAuthority<'info> {
         mut,
         constraint = mint.key() == project.mint @ RegistryError::InvalidMint
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     /// The PDA that currently holds mint authority.
-    /// Seeds: ["mint_authority", project_id_bytes]
     #[account(
         seeds = [b"mint_authority", project.project_id.to_le_bytes().as_ref()],
         bump,
     )]
-    pub mint_authority_pda: SystemAccount<'info>,
+    pub mint_authority_pda: UncheckedAccount<'info>,
 
     /// Only super_admin can permanently destroy the Master Key.
     #[account(
@@ -41,7 +40,7 @@ pub struct RevokeMintAuthority<'info> {
     )]
     pub super_admin: Signer<'info>,
 
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -63,7 +62,7 @@ pub fn handle_revoke_mint_authority(ctx: Context<RevokeMintAuthority>) -> Result
     ];
     let signer_seeds = &[pda_seeds];
 
-    token::set_authority(
+    token_interface::set_authority(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             SetAuthority {

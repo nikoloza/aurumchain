@@ -46,7 +46,6 @@ export async function syncKycApprovalAction(input: any) {
       .upsert({
         user_id: profileId,
         status: 'approved',
-        kyc_status: 'approved',
         approved_at: new Date().toISOString(),
         expires_at: new Date(validated.expiryTimestamp * 1000).toISOString(),
         metadata: { 
@@ -62,8 +61,6 @@ export async function syncKycApprovalAction(input: any) {
     await adminSupabase
       .from('profiles')
       .update({ 
-        kyc_verified: true,
-        kyc_status: 'approved',
         crypto_wallet_address: validated.wallet,
         wallet_address: validated.wallet
       })
@@ -75,6 +72,17 @@ export async function syncKycApprovalAction(input: any) {
       .upsert({ 
         user_id: profileId,
         wallet_address: validated.wallet 
+      }, { onConflict: 'user_id' });
+
+    // UPDATE eligibility_states to 'investment_eligible'
+    await adminSupabase
+      .from('eligibility_states')
+      .upsert({
+        user_id: profileId,
+        status: 'investment_eligible',
+        can_invest: true,
+        can_trade: true,
+        can_withdraw: true
       }, { onConflict: 'user_id' });
 
     // 4. Audit Logging
@@ -131,7 +139,7 @@ export async function syncKycRevokeAction(input: any) {
 
     await adminSupabase
       .from('profiles')
-      .update({ kyc_verified: false, kyc_status: 'rejected' })
+      .update({ id: profileId }) // Just a no-op update or just remove it
       .eq('id', profileId);
 
     await createAuditLog({

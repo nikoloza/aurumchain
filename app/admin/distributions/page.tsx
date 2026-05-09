@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import idl from '@/lib/web3/idl/allocation_distribution.json';
 import PayoutExecutionModal from './PayoutExecutionModal';
 
-const ALLOCATION_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_ALLOCATION_PROGRAM_ID || "9RqVyvWA4ficqK351PoYh674mP1au4NmNzVM6LQcenjm");
+const ALLOCATION_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_ALLOCATION_PROGRAM_ID || "EZXJQXX2vYoDrUP6JUcqeShhqKpSRuDecLK9JUiVzkTz");
 
 export default function AdminDistributionsPage() {
   const { connection } = useConnection();
@@ -67,7 +67,7 @@ export default function AdminDistributionsPage() {
       setStatus({ type: 'info', msg: "Preparing on-chain Epoch creation..." });
 
       const dbProject = projects.find(p => p.id === selectedProject);
-      if (!dbProject || !dbProject.blockchain_project_id) {
+      if (!dbProject || (dbProject.blockchain_project_id === null || dbProject.blockchain_project_id === undefined)) {
          throw new Error("Project not linked to blockchain.");
       }
 

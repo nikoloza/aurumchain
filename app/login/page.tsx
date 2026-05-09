@@ -60,10 +60,21 @@ export default function LoginPage() {
           });
         } catch (logError) {
           console.error('Failed to log login event:', logError);
-          // Don't block login flow if logging fails
         }
 
-        router.push("/dashboard");
+        // SMART REDIRECT: Check role and route accordingly
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (roleData?.role === 'admin' || roleData?.role === 'super_admin') {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
+        
         router.refresh();
       }
     } catch (err: any) {

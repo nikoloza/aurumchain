@@ -6,6 +6,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/domains/admin/service';
+import AdminSignOutButton from '@/components/admin/AdminSignOutButton';
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -34,6 +35,7 @@ export default async function AdminPage() {
               ))}
             </div>
           </div>
+          <AdminSignOutButton />
         </div>
 
         {/* Quick Stats */}

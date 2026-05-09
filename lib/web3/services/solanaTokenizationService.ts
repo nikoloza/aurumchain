@@ -11,7 +11,8 @@ import {
   getOrCreateAssociatedTokenAccount, 
   mintTo, 
   getMint,
-  getAssociatedTokenAddressSync
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID
 } from '@solana/spl-token';
 import { BN } from '@coral-xyz/anchor';
 import { 
@@ -20,6 +21,7 @@ import {
   TokenizationResult 
 } from '../../domains/shared/blockchain-interfaces';
 import { getRegistryProgram } from '../clients/anchorClients';
+import { getRegistryPDA, getProjectPDA, getMintLookupPDA } from '../utils/pdaHelpers';
 import { confirmTransactionRobustly } from '../utils/transactionUtils';
 
 /**
@@ -70,12 +72,16 @@ export class SolanaTokenizationService implements ITokenizationService {
       );
 
       const tx = await program.methods
-        .setProjectMint(mintPubkey)
+        .setProjectMint()
         .accounts({
-          control: controlPda,
-          project: projectPda,
+          control: getRegistryPDA(program.programId),
+          project: getProjectPDA(parseInt(input.projectId), program.programId),
+          mint: mintPubkey,
+          mintLookup: getMintLookupPDA(mintPubkey, program.programId),
           admin: this.wallet.publicKey,
-        })
+          token2022Program: TOKEN_2022_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        } as any)
         .rpc();
 
       await this.connection.confirmTransaction(tx, 'confirmed');

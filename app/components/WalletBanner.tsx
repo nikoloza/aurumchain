@@ -13,7 +13,7 @@ const WalletMultiButton = dynamic(
 );
 
 export function WalletBanner() {
-  const { isWalletConnected, isWalletLinked, isKycVerified, linkWallet, isLinking, error, investorTier } = useWalletStatus();
+  const { isWalletConnected, isWalletLinked, isKycVerified, kycStatus, linkWallet, isLinking, error, investorTier } = useWalletStatus();
   const [dismissed, setDismissed] = useState(false);
 
   // Don't show if wallet is already linked or user dismissed
@@ -81,7 +81,12 @@ export function WalletBanner() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3">
-              {!isKycVerified ? (
+              {kycStatus === 'under_review' || (kycStatus === 'approved' && isWalletLinked) ? (
+                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg px-6 py-3 flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                  <span className="text-blue-400 font-bold">Pending Admin On-Chain Sync</span>
+                </div>
+              ) : !isKycVerified && kycStatus === 'not_started' ? (
                 <Link
                   href="/kyc"
                   className="bg-red-500 hover:bg-red-600 text-white font-bold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-red-500/20"
@@ -89,37 +94,44 @@ export function WalletBanner() {
                   Verify Identity (KYC) Required
                 </Link>
               ) : !isWalletConnected ? (
-                <>
-                  {/* Solana Button */}
+                <div className="flex flex-col gap-2">
                   <WalletMultiButton 
                     className="!h-[50px] !px-6 !bg-gradient-to-r !from-gold !to-[#b5952f] !text-navy !font-bold !rounded-lg hover:!scale-105 !transition-transform !shadow-lg !shadow-gold/20 flex flex-shrink-0 items-center justify-center w-auto whitespace-nowrap min-w-[160px]"
                   />
-
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Supports Phantom, Solflare & more Solana wallets</span>
-                  </div>
-                </>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Connect your Solana wallet to continue</p>
+                </div>
+              ) : !isWalletLinked ? (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={linkWallet}
+                    disabled={isLinking}
+                    className="bg-gradient-to-r from-gold to-gold-light text-navy font-bold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLinking ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Verifying Ownership...
+                      </span>
+                    ) : (
+                      'Sign Message to Verify & Link Wallet'
+                    )}
+                  </button>
+                  <p className="text-[10px] text-gold/60 uppercase tracking-widest font-bold animate-pulse">Action Required: Link your wallet to your profile</p>
+                </div>
+              ) : kycStatus === 'approved' ? (
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-6 py-3 flex items-center gap-3">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-green-400 font-bold">KYC Approved - Waiting for Admin Sync</span>
+                </div>
               ) : (
-                <button
-                  onClick={linkWallet}
-                  disabled={isLinking}
-                  className="bg-gradient-to-r from-gold to-gold-light text-navy font-bold px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {isLinking ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Verifying...
-                    </span>
-                  ) : (
-                    'Sign Message to Verify'
-                  )}
-                </button>
+                 <div className="bg-gold/10 border border-gold/30 rounded-lg px-6 py-3 text-gold text-sm font-bold">
+                   Status: {kycStatus === 'not_started' ? 'KYC Required' : 'Processing...'}
+                 </div>
               )}
             </div>
 

@@ -16,11 +16,30 @@ import {
   createCreateMetadataAccountV3Instruction, 
   PROGRAM_ID as METAPLEX_PROGRAM_ID 
 } from '@metaplex-foundation/mpl-token-metadata';
+import { 
+  TOKEN_2022_PROGRAM_ID,
+  ExtensionType,
+  getMintLen,
+  createInitializeTransferHookInstruction,
+  createInitializeMintInstruction as createInitializeMint2022Instruction,
+  createInitializeMetadataPointerInstruction
+} from '@solana/spl-token';
+import { 
+  createInitializeInstruction as createInitializeMetadataInstruction, 
+  pack, 
+  TokenMetadata
+} from '@solana/spl-token-metadata';
+
+const TYPE_SIZE = 2;
+const LENGTH_SIZE = 2;
 
 import { 
   getMetadataPDA, 
-  getMintAuthorityPDA 
+  getMintAuthorityPDA,
+  getExtraAccountMetaListPDA
 } from '../utils/pdaHelpers';
+import { COMPLIANCE_PROGRAM_ID } from '../config/programs';
+import { getComplianceProgram } from '../utils/programDiscoverer';
 import { TokenMath } from '@/lib/utils/tokenMath';
 import { ProjectRegistryRepository } from '../repositories/projectRegistryRepository';
 import { getRegistryProgram } from '../utils/programDiscoverer';
@@ -169,25 +188,97 @@ export class ProjectRegistryService {
       const nextId = (registryConfig.projectCount as BN).toNumber();
 
       // 2. Prepare instructions and identify Mint Authority PDA
-      const lamports = await getMinimumBalanceForRentExemptMint(this.connection);
       const metadataPda = getMetadataPDA(mintAddress);
       const mintAuthorityPda = getMintAuthorityPDA(nextId, this.repository.getProgramId());
+      const extraAccountMetaListPda = getExtraAccountMetaListPDA(mintAddress, COMPLIANCE_PROGRAM_ID);
+
+      // Token-2022: Prepare Metadata
+      const metaData: TokenMetadata = {
+        updateAuthority: this.wallet.publicKey,
+        mint: mintAddress,
+        name: params.name,
+        symbol: params.symbol,
+        uri: params.uri,
+        additionalMetadata: [],
+      };
+
+      // Token-2022: Calculate space for Mint + TransferHook + MetadataPointer + TokenMetadata
+      // Note: getMintLen() throws for variable-length extensions like TokenMetadata, 
+      // so we handle its header manually. SPACE MUST BE EXACT.
+      const extensions = [
+        ExtensionType.TransferHook, 
+        ExtensionType.MetadataPointer,
+      ];
+      // Important: Initial space must EXACTLY match the extensions initialized before InitializeMint
+      // to avoid 'InvalidAccountData'. We'll reallocate for Metadata later.
+      const mintLen = getMintLen(extensions);
+      
+      const metadataLen = pack(metaData).length;
+      // Calculate total lamports for the FINAL size (including metadata + small buffer)
+      const totalLen = mintLen + TYPE_SIZE + LENGTH_SIZE + metadataLen + 64; 
+      const totalLamports = await this.connection.getMinimumBalanceForRentExemption(totalLen);
 
       const createMintAccIx = SystemProgram.createAccount({
         fromPubkey: this.wallet.publicKey,
         newAccountPubkey: mintAddress,
-        space: MINT_SIZE,
-        lamports,
-        programId: TOKEN_PROGRAM_ID,
+        space: mintLen, // Create with minimal space to satisfy InitializeMint
+        lamports: totalLamports, // Fund with full lamports to allow reallocation
+        programId: TOKEN_2022_PROGRAM_ID,
       });
 
-      const initMintIx = createInitializeMintInstruction(
+      // Initialize the Metadata Pointer extension
+      const initMetadataPointerIx = createInitializeMetadataPointerInstruction(
         mintAddress,
-        params.tokenDecimals, // Dynamic decimals (7, 9, etc.)
-        this.wallet.publicKey, // Temporary authority for metadata creation
-        this.wallet.publicKey
+        this.wallet.publicKey, // Admin wallet as authority
+        mintAddress,           // metadata account (the mint itself)
+        TOKEN_2022_PROGRAM_ID
       );
 
+      // Initialize the Transfer Hook extension
+      const initTransferHookIx = createInitializeTransferHookInstruction(
+        mintAddress,
+        this.wallet.publicKey, // Admin wallet as authority
+        COMPLIANCE_PROGRAM_ID, // the hook program
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      // Initialize the Metadata within the mint account
+      // IMPORTANT: In some environments, this must happen BEFORE InitializeMint
+      const initMetadataIx = createInitializeMetadataInstruction({
+        programId: TOKEN_2022_PROGRAM_ID,
+        metadata: mintAddress,
+        updateAuthority: this.wallet.publicKey, // Admin wallet as update authority
+        mint: mintAddress,
+        mintAuthority: this.wallet.publicKey,
+        name: metaData.name,
+        symbol: metaData.symbol,
+        uri: metaData.uri,
+      });
+
+      const initMintIx = createInitializeMint2022Instruction(
+        mintAddress,
+        params.tokenDecimals, 
+        this.wallet.publicKey, 
+        this.wallet.publicKey,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      // Initialize the ExtraAccountMetaList on the compliance program
+      const complianceProgram = getComplianceProgram(this.connection, this.wallet);
+      const initExtraMetaIx = await complianceProgram.methods
+        .initializeExtraAccountMetaList()
+        .accounts({
+          extraAccountMetaList: extraAccountMetaListPda,
+          mint: mintAddress,
+          payer: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .instruction();
+
+      /* 
+      // NOTE: Metaplex V2 CreateMetadataAccountV3 is incompatible with Token-2022 mints using extensions.
+      // This causes 'InstructionKeyMismatch' (153). Bypassing for now; Project name/symbol are still stored 
+      // natively in the ProjectAccount.
       const metadataIx = createCreateMetadataAccountV3Instruction(
         {
           metadata: metadataPda,
@@ -212,6 +303,18 @@ export class ProjectRegistryService {
           },
         }
       );
+
+      metadataIx.keys.push({
+        pubkey: SYSVAR_RENT_PUBKEY,
+        isSigner: false,
+        isWritable: false,
+      });
+      metadataIx.keys.push({
+        pubkey: TOKEN_2022_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      });
+      */
 
       // Map assetType (handles both raw string and already-mapped object)
       const mappedAssetType = 
@@ -245,41 +348,69 @@ export class ProjectRegistryService {
       // 3. Assemble and Send Transaction
       const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('finalized');
       const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 50000, // Increased priority fee for congested Devnet
+        microLamports: 100000, // Increased priority fee
+      });
+      const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000, // Increased CU limit for complex Token-2022 + Metadata + Hook setup
       });
 
-      // 4. AUTOMATED HANDOVER: Transfer Mint Authority to Project PDA
-      const handoverIx = createSetAuthorityInstruction(
+      // 4. AUTOMATED HANDOVER: Transfer ONLY Mint Authority to Project PDA
+      const handoverMintAuthIx = createSetAuthorityInstruction(
         mintAddress,
         this.wallet.publicKey,
         AuthorityType.MintTokens,
         mintAuthorityPda,
-        []
+        [],
+        TOKEN_2022_PROGRAM_ID
       );
 
-      // 5. Build Final Atomic Transaction
-      const transaction = new Transaction().add(
+      // 5. Build Transaction 1: Mint & Metadata Setup
+      const transaction1 = new Transaction().add(
         priorityFeeIx,
+        computeLimitIx,
         createMintAccIx,
-        initMintIx,
-        metadataIx,
-        createProjectIx,
-        setMintIx,
-        handoverIx // Automation happens here
+        initMetadataPointerIx,
+        initTransferHookIx,
+        initMintIx,      // Now happy because space == mintLen
+        initMetadataIx,  // Now happy because mint is initialized (reallocates automatically)
+        initExtraMetaIx
       );
       
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = this.wallet.publicKey;
-      transaction.partialSign(mintKeypair);
+      transaction1.recentBlockhash = blockhash;
+      transaction1.feePayer = this.wallet.publicKey;
+      transaction1.partialSign(mintKeypair);
 
-      const signature = await this.wallet.sendTransaction(transaction, this.connection, {
+      console.log("[createProjectWithMint] Sending Transaction 1 (Mint & Metadata)...");
+      const signature1 = await this.wallet.sendTransaction(transaction1, this.connection, {
         skipPreflight: true,
       });
 
-      // Robust confirmation with polling
-      await confirmTransactionRobustly(this.connection, signature, lastValidBlockHeight, 'confirmed');
+      // Wait for Mint Setup to be confirmed before proceeding to project registration
+      await confirmTransactionRobustly(this.connection, signature1, lastValidBlockHeight, 'confirmed');
 
-      return { signature, projectId: nextId, mintAddress: mintAddress.toString() };
+      // 6. Build Transaction 2: Project Registry & Authority Handover
+      // Re-fetch blockhash for the second transaction to ensure freshness
+      const { blockhash: blockhash2, lastValidBlockHeight: lastValidBlockHeight2 } = await this.connection.getLatestBlockhash('finalized');
+
+      const transaction2 = new Transaction().add(
+        priorityFeeIx,
+        createProjectIx,
+        setMintIx,
+        handoverMintAuthIx
+      );
+
+      transaction2.recentBlockhash = blockhash2;
+      transaction2.feePayer = this.wallet.publicKey;
+
+      console.log("[createProjectWithMint] Sending Transaction 2 (Project Registry & Handover)...");
+      const signature2 = await this.wallet.sendTransaction(transaction2, this.connection, {
+        skipPreflight: true,
+      });
+
+      // Robust confirmation for the second transaction
+      await confirmTransactionRobustly(this.connection, signature2, lastValidBlockHeight2, 'confirmed');
+
+      return { signature: signature2, projectId: nextId, mintAddress: mintAddress.toString() };
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -406,7 +537,8 @@ export class ProjectRegistryService {
       const recipientTokenAccount = getAssociatedTokenAddressSync(
         project.mint,
         recipientWallet,
-        false
+        false,
+        TOKEN_2022_PROGRAM_ID
       );
 
       // 3. SCALE-UP: Self-Healing Authority check
@@ -432,7 +564,7 @@ export class ProjectRegistryService {
         recipientTokenAccount,
         recipientWallet,
         project.mint,
-        TOKEN_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
       transaction.add(createAtaIx);

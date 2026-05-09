@@ -76,7 +76,7 @@ export default async function AdminCompliancePage() {
   // 2. Fetch Profiles with wallets directly (No Joins to prevent 406 errors)
   const { data: usersWithWallets, error: profileErr } = await adminSupabase
     .from('profiles')
-    .select('*')
+    .select('id, email, first_name, last_name, crypto_wallet_address')
     .not('crypto_wallet_address', 'is', null)
     .limit(200);
 
@@ -85,7 +85,7 @@ export default async function AdminCompliancePage() {
   // Fetch ALL kyc_profiles separately
   const { data: allKycProfiles } = await adminSupabase
     .from('kyc_profiles')
-    .select('*');
+    .select('id, user_id, status, metadata, provider_applicant_id');
     
   // Manually join them in memory
   const usersWithKyc = usersWithWallets?.map(u => ({
@@ -110,13 +110,8 @@ export default async function AdminCompliancePage() {
     // Condition B: Has passed off-chain KYC
     const kycProfile = profile.kyc_profiles?.[0];
     const isKycApproved = 
-      profile.kyc_verified === true || 
-      profile.kyc_status === 'approved' || 
-      profile.kyc_status === 'verified' ||
-      kycProfile?.status === 'approved' ||
+      kycProfile?.status === 'approved' || 
       kycProfile?.status === 'verified' ||
-      kycProfile?.kyc_status === 'approved' ||
-      kycProfile?.kyc_status === 'verified' ||
       kycProfile?.status === 'under_review';
 
     return isKycApproved && !isFullyApproved;
@@ -125,7 +120,7 @@ export default async function AdminCompliancePage() {
     return {
       id: kycProfile?.id || `temp-${profile.id}`,
       user_id: profile.id,
-      status: kycProfile?.status || (profile.kyc_verified ? 'approved' : 'pending'),
+      status: kycProfile?.status || 'pending',
       provider_applicant_id: kycProfile?.provider_applicant_id || 'Legacy/Manual',
       user: {
         id: profile.id,

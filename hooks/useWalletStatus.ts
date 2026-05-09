@@ -19,6 +19,7 @@ export interface WalletStatus {
   // Combined status
   isWalletLinked: boolean; // Wallet connected AND saved to Supabase
   isKycVerified: boolean;
+  kycStatus: string;
   investorTier: InvestorTier;
 
   // Actions
@@ -45,6 +46,7 @@ export function useWalletStatus(): WalletStatus {
   const [userId, setUserId] = useState<string | null>(null);
   const [isWalletLinked, setIsWalletLinked] = useState(false);
   const [isKycVerified, setIsKycVerified] = useState(false);
+  const [kycStatus, setKycStatus] = useState('not_started');
   const [investorTier, setInvestorTier] = useState<InvestorTier>('browser');
   const [isLinking, setIsLinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,19 +74,50 @@ export function useWalletStatus(): WalletStatus {
         setIsAuthenticated(true);
         setUserId(user.id);
 
-        // Check if wallet is linked
+        // Check if wallet is linked (Be extremely safe with columns to avoid 406)
         const { data: profile } = await supabase
           .from('profiles')
-          .select('crypto_wallet_address, investor_tier, kyc_verified')
+          .select('id, crypto_wallet_address, investor_tier')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profile) {
-          const walletLinked = !!profile.crypto_wallet_address;
-          setIsWalletLinked(walletLinked);
-          setIsKycVerified(profile.kyc_verified || false);
-          setInvestorTier((profile.investor_tier as InvestorTier) || 'browser');
+        // Check KYC status separately
+        const { data: kycData } = await supabase
+          .from('kyc_profiles')
+          .select('status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        let activeProfile = profile;
+
+        // AUTO-REPAIR: Call repair API if missing
+        if (!activeProfile && user) {
+          try {
+            const repairRes = await fetch("/api/profile/repair", { method: "POST" });
+            const repairData = await repairRes.json();
+            if (repairData.success) {
+              activeProfile = repairData.profile;
+            }
+          } catch (err) {
+            console.error("Failed to auto-repair profile in useWalletStatus:", err);
+          }
         }
+
+        if (activeProfile) {
+          const walletLinked = !!activeProfile.crypto_wallet_address;
+          setIsWalletLinked(walletLinked);
+          setInvestorTier((activeProfile.investor_tier as InvestorTier) || 'browser');
+        }
+
+        const currentKycStatus = kycData?.status || 'not_started';
+        setKycStatus(currentKycStatus);
+        setIsKycVerified(
+          currentKycStatus === 'approved' || 
+          currentKycStatus === 'verified' || 
+          currentKycStatus === 'kyc_approved' || 
+          currentKycStatus === 'investment_eligible'
+        );
+
       } else {
         setIsAuthenticated(false);
         setUserId(null);
@@ -152,7 +185,7 @@ export function useWalletStatus(): WalletStatus {
         .from('kyc_profiles')
         .update({ status: 'under_review' })
         .eq('user_id', userId)
-        .eq('status', 'approved'); // Only if already approved off-chain
+        .in('status', ['approved', 'verified', 'kyc_approved', 'investment_eligible']); // Match any approved/verified status
       
       if (kycError) console.warn("Failed to set kyc status to under_review:", kycError);
 
@@ -213,6 +246,7 @@ export function useWalletStatus(): WalletStatus {
     userId,
     isWalletLinked,
     isKycVerified,
+    kycStatus,
     investorTier,
     linkWallet,
     unlinkWallet,

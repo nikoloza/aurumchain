@@ -27,19 +27,46 @@ export default async function AdminAuditLogsPage() {
     redirect('/dashboard');
   }
 
-  // Fetch audit logs
-  const { data: logs, error } = await adminSupabase
+  // Fetch audit logs (manual join for stability)
+  const { data: rawLogs, error: fetchError } = await adminSupabase
     .from('audit_logs')
-    .select(`
-      *,
-      actor:actor_id (first_name, last_name, email),
-      user:user_id (first_name, last_name, email)
-    `)
+    .select('*')
     .order('timestamp', { ascending: false })
     .limit(200);
 
+  let logs = rawLogs || [];
+  let error = fetchError;
+
+  if (!error && logs.length > 0) {
+    try {
+      // Collect unique IDs
+      const actorIds = [...new Set(logs.map(l => l.actor_id).filter(Boolean))];
+      const userIds = [...new Set(logs.map(l => l.user_id).filter(Boolean))];
+      const allProfileIds = [...new Set([...actorIds, ...userIds])];
+
+      if (allProfileIds.length > 0) {
+        const { data: profiles } = await adminSupabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .in('id', allProfileIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        logs = logs.map(l => ({
+          ...l,
+          actor: l.actor_id ? profileMap.get(l.actor_id) : null,
+          user: l.user_id ? profileMap.get(l.user_id) : null
+        })) as any;
+      }
+    } catch (err) {
+      console.warn('[AdminAuditLogs] Profile hydration failed:', err);
+    }
+  }
+
   if (error) {
-    console.error('[AdminAuditLogs] Error fetching logs:', error);
+    console.error('[AdminAuditLogs] FETCH ERROR:', error.message);
+  } else {
+    console.log('[AdminAuditLogs] Successfully fetched logs:', logs?.length || 0);
   }
 
   return (

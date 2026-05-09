@@ -36,16 +36,24 @@ export default function Header() {
         setUser(user);
         const { data: profile } = await supabase
           .from('profiles')
-          .select('first_name, last_name, kyc_verified')
+          .select('first_name, last_name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
+
+        const { data: kycData } = await supabase
+          .from('kyc_profiles')
+          .select('status')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
         if (profile) {
           setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User');
-          setIsKycVerified(profile.kyc_verified || false);
         } else {
           setUserName('User');
         }
+
+        const isApproved = kycData?.status === 'approved' || kycData?.status === 'verified';
+        setIsKycVerified(isApproved);
       } else {
         setUser(null);
         setUserName('');

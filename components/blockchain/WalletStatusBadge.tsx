@@ -5,6 +5,7 @@ import { useAdminSecurity } from "@/context/AdminSecurityContext";
 import { useWalletEligibility } from "@/hooks/useWalletEligibility";
 import { useWalletLink } from "@/hooks/useWalletLink";
 import { useMemo } from "react";
+import Link from "next/link";
 
 /**
  * WalletStatusBadge
@@ -95,11 +96,11 @@ export function WalletStatusBadge() {
 
   if (!status) return null;
 
-  return (
+  const content = (
     <div 
       title={status.tooltip}
       onClick={() => (status as any).action?.()}
-      className={`group relative flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight border backdrop-blur-sm transition-all animate-in fade-in slide-in-from-top-1 duration-500 cursor-help ${status.className}`}
+      className={`group relative flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight border backdrop-blur-sm transition-all animate-in fade-in slide-in-from-top-1 duration-500 ${status.action ? 'cursor-pointer' : 'cursor-help'} ${status.className}`}
     >
       <span>{status.icon}</span>
       <span>{status.label}</span>
@@ -111,4 +112,14 @@ export function WalletStatusBadge() {
       </div>
     </div>
   );
+
+  if (isAuthorized) {
+    return (
+      <Link href="/admin" className="no-underline">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

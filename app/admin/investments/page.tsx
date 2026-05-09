@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, Connection } from '@solana/web3.js';
+import { PublicKey, Connection, SystemProgram, ComputeBudgetProgram, Transaction } from '@solana/web3.js';
 import { BN, Program, AnchorProvider } from '@coral-xyz/anchor';
 import Link from 'next/link';
 import { InvestmentRepository } from '@/lib/web3/repositories/investmentRepository';
@@ -10,7 +10,7 @@ import { ProjectRegistryService } from '@/lib/web3/services/projectRegistryServi
 import { createDefaultConnection } from '@/lib/web3/config/rpc';
 import { getRegistryPDA, getProjectPDA, getMintAuthorityPDA, getSubscriptionPDA, getComplianceControlPDA } from '@/lib/web3/utils/pdaHelpers';
 import { getComplianceProgram } from '@/lib/web3/utils/programDiscoverer';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 
 export default function AdminInvestmentsPage() {
   const { connection } = useConnection();
@@ -284,7 +284,9 @@ export default function AdminInvestmentsPage() {
         throw new Error("This project has no SPL Token Mint linked yet. Please create a mint first.");
       }
 
-      // Get real decimals from the mint, fallback to Supabase value, then 9
+      const registryId = new PublicKey(process.env.NEXT_PUBLIC_PROJECT_REGISTRY_PROGRAM_ID || "");
+      
+      const tokenProgramId = TOKEN_2022_PROGRAM_ID;
       const mintInfo = await connection.getParsedAccountInfo(projectData.mint);
       const decimals = (mintInfo.value?.data as any)?.parsed?.info?.decimals ?? projectData.token_decimals ?? 9;
 
@@ -297,8 +299,12 @@ export default function AdminInvestmentsPage() {
       const inputBytes = Buffer.from(txHashInput);
       txHashBytes.set(inputBytes.slice(0, 64));
 
-      const registryId = new PublicKey(process.env.NEXT_PUBLIC_PROJECT_REGISTRY_PROGRAM_ID || "");
-      const investorTokenAccount = await getAssociatedTokenAddress(projectData.mint, sub.account.investor);
+      const investorTokenAccount = await getAssociatedTokenAddress(
+        projectData.mint, 
+        sub.account.investor,
+        false,
+        tokenProgramId
+      );
 
       console.log("Finalizing with accounts:", {
         subscription: getSubscriptionPDA(sub.account.investor, sub.account.subscriptionId, repo['program'].programId).toBase58(),
@@ -310,7 +316,7 @@ export default function AdminInvestmentsPage() {
         mint: projectData.mint.toBase58(),
         investorTokenAccount: investorTokenAccount.toBase58(),
         mintAuthorityPda: getMintAuthorityPDA(projectId, registryId).toBase58(),
-        tokenProgram: TOKEN_PROGRAM_ID.toBase58()
+        tokenProgram: tokenProgramId.toBase58()
       });
 
       const { createAssociatedTokenAccountIdempotentInstruction, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token');
@@ -319,7 +325,7 @@ export default function AdminInvestmentsPage() {
         investorTokenAccount,
         sub.account.investor,
         projectData.mint,
-        TOKEN_PROGRAM_ID,
+        tokenProgramId,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
 
@@ -335,12 +341,17 @@ export default function AdminInvestmentsPage() {
           mint: projectData.mint,
           investorTokenAccount: investorTokenAccount,
           mintAuthorityPda: getMintAuthorityPDA(projectId, registryId),
-          tokenProgram: TOKEN_PROGRAM_ID
+          tokenProgram: tokenProgramId,
+          systemProgram: SystemProgram.programId
         } as any)
         .instruction();
 
-      const { Transaction } = await import('@solana/web3.js');
-      const transaction = new Transaction().add(createAtaIx, finalizeIx);
+      const transaction = new Transaction().add(
+        ComputeBudgetProgram.setComputeUnitLimit({ units: 800_000 }),
+        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50_000 }),
+        createAtaIx, 
+        finalizeIx
+      );
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = wallet.publicKey;

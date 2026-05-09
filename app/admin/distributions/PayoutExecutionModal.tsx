@@ -5,7 +5,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, ComputeBudgetProgram, SystemProgram } from '@solana/web3.js';
 import { BN, Program } from '@coral-xyz/anchor';
 import { createClient } from '@/lib/supabase/client';
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountIdempotentInstruction } from '@solana/spl-token';
+import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountIdempotentInstruction } from '@solana/spl-token';
 
 interface InvestorData {
   wallet: string;
@@ -197,9 +197,21 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
 
       const mint = onChainProject.mint;
       const usdcMint = onChainProject.acceptedStablecoin;
+      
+      // Enforce Token-2022 for project mint, Detect for USDC
+      const tokenProgramId = TOKEN_2022_PROGRAM_ID;
+      
+      const usdcMintInfo = await connection.getParsedAccountInfo(usdcMint);
+      const usdcTokenProgramId = usdcMintInfo.value?.owner || TOKEN_PROGRAM_ID;
+
       const treasuryWallet = onChainProject.treasuryWallet;
-      const treasuryVault = await getAssociatedTokenAddress(usdcMint, treasuryWallet, true);
-      const registryProgramId = new PublicKey(process.env.NEXT_PUBLIC_PROJECT_REGISTRY_PROGRAM_ID || "Dkrnk6B8MuiieXQzqhicbsPtGp7TY4HMZRNDJJFhu4R7");
+      const treasuryVault = await getAssociatedTokenAddress(
+        usdcMint, 
+        treasuryWallet, 
+        true,
+        usdcTokenProgramId
+      );
+      const registryProgramId = new PublicKey(process.env.NEXT_PUBLIC_PROJECT_REGISTRY_PROGRAM_ID || "DZBcioGMWiriWXejSRYo3kjVJtS9VLe5RvwdUhr5HxJN");
 
       // PDAs
       const [projectAccountPda] = PublicKey.findProgramAddressSync(
@@ -224,8 +236,8 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
         const chunk = walletsToProcess.slice(i, i + BATCH_SIZE);
         const transaction = new Transaction();
         
-        // Boost compute budget for batch
-        transaction.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
+        // Add Compute Budget instructions
+        transaction.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
         transaction.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50_000 }));
 
         const chunkRecords: any[] = [];
@@ -234,8 +246,18 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
           const investorPublicKey = new PublicKey(investorWalletStr);
           const investor = investors.find(inv => inv.wallet === investorWalletStr)!;
           
-          const investorTokenAccount = await getAssociatedTokenAddress(mint, investorPublicKey);
-          const investorPaymentAccount = await getAssociatedTokenAddress(usdcMint, investorPublicKey);
+          const investorTokenAccount = await getAssociatedTokenAddress(
+            mint, 
+            investorPublicKey,
+            false,
+            tokenProgramId
+          );
+          const investorPaymentAccount = await getAssociatedTokenAddress(
+            usdcMint, 
+            investorPublicKey,
+            false,
+            usdcTokenProgramId
+          );
 
           // 1. ATA Creation (Idempotent)
           transaction.add(createAssociatedTokenAccountIdempotentInstruction(
@@ -243,7 +265,7 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
             investorPaymentAccount,
             investorPublicKey,
             usdcMint,
-            TOKEN_PROGRAM_ID,
+            usdcTokenProgramId,
             ASSOCIATED_TOKEN_PROGRAM_ID
           ));
 
@@ -267,7 +289,8 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
               admin: wallet.publicKey,
               investor: investorPublicKey,
               payer: wallet.publicKey,
-              tokenProgram: TOKEN_PROGRAM_ID,
+              paymentMint: usdcMint,
+              tokenProgram: usdcTokenProgramId,
               systemProgram: SystemProgram.programId,
             } as any)
             .instruction();

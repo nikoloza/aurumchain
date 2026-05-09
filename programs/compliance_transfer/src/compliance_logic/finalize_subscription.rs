@@ -37,6 +37,7 @@ pub struct FinalizeSubscription<'info> {
     pub investor_token_account: UncheckedAccount<'info>,
     pub mint_authority_pda: UncheckedAccount<'info>,
     pub token_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 pub fn handle_finalize_subscription(
@@ -93,6 +94,7 @@ pub fn handle_finalize_subscription(
             AccountMeta::new_readonly(ctx.accounts.mint_authority_pda.key(), false),
             AccountMeta::new_readonly(ctx.accounts.authority.key(), true),
             AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
         ],
         data: ix_data,
     };
@@ -107,6 +109,7 @@ pub fn handle_finalize_subscription(
             ctx.accounts.mint_authority_pda.to_account_info(),
             ctx.accounts.authority.to_account_info(),
             ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
             ctx.accounts.project_registry_program.to_account_info(),
         ],
         &[],

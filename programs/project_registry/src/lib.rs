@@ -6,7 +6,7 @@ mod state;
 use crate::registry_logic::*;
 use crate::state::*;
 
-declare_id!("Dkrnk6B8MuiieXQzqhicbsPtGp7TY4HMZRNDJJFhu4R7");
+declare_id!("DZBcioGMWiriWXejSRYo3kjVJtS9VLe5RvwdUhr5HxJN");
 
 #[program]
 pub mod project_registry {
@@ -24,8 +24,8 @@ pub mod project_registry {
         handle_create_project(ctx, params)
     }
 
-    pub fn set_project_mint(ctx: Context<SetProjectMint>, mint_key: Pubkey) -> Result<()> {
-        handle_set_project_mint(ctx, mint_key)
+    pub fn set_project_mint(ctx: Context<SetProjectMint>) -> Result<()> {
+        handle_set_project_mint(ctx)
     }
 
     pub fn revoke_mint_authority(ctx: Context<RevokeMintAuthority>) -> Result<()> {
@@ -66,6 +66,15 @@ pub mod project_registry {
 
     pub fn calibrate_registry(ctx: Context<CalibrateRegistry>, new_count: u64) -> Result<()> {
         handle_calibrate_registry(ctx, new_count)
+    }
+
+    pub fn burn_tokens(
+        ctx: Context<BurnTokens>,
+        amount: u64,
+        reason_code: u8,
+        audit_hash: String,
+    ) -> Result<()> {
+        handle_burn_tokens(ctx, amount, reason_code, audit_hash)
     }
 
     /// Mint tokens directly to an investor's wallet (Direct-to-Wallet delivery).
@@ -115,4 +124,6 @@ pub enum RegistryError {
     RoundLimitExceeded,
     #[msg("The lock-up end date can only be extended, not reduced.")]
     LockupCannotBeReduced,
+    #[msg("The provided mint must be owned by the Token-2022 program.")]
+    InvalidTokenProgram,
 }

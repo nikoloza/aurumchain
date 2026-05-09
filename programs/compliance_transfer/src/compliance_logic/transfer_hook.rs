@@ -1,0 +1,176 @@
+use anchor_lang::prelude::*;
+use crate::state::*;
+use crate::ComplianceError;
+use spl_transfer_hook_interface::instruction::ExecuteInstruction;
+use spl_tlv_account_resolution::state::ExtraAccountMetaList;
+use spl_tlv_account_resolution::account::ExtraAccountMeta;
+use spl_tlv_account_resolution::seeds::Seed;
+use anchor_spl::token_interface::Mint;
+
+pub fn handle_initialize_extra_account_meta_list(
+    ctx: Context<InitializeExtraAccountMetaList>,
+) -> Result<()> {
+    let account_metas = vec![
+        // Index 5: Control Account (Constant PDA)
+        ExtraAccountMeta::new_with_seeds(
+            &[Seed::Literal { bytes: b"compliance_control".to_vec() }],
+            false, // is_signer
+            false, // is_writable
+        )?,
+        // Index 6: Sender Eligibility PDA
+        ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal { bytes: b"eligibility".to_vec() },
+                Seed::AccountKey { index: 0 }, // Source (Owner)
+            ],
+            false,
+            false,
+        )?,
+        // Index 7: Receiver Eligibility PDA
+        ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal { bytes: b"eligibility".to_vec() },
+                Seed::AccountKey { index: 2 }, // Destination (Owner)
+            ],
+            false,
+            false,
+        )?,
+        // Index 8: Mint-to-Project Lookup PDA
+        ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal { bytes: b"mint_lookup".to_vec() },
+                Seed::AccountKey { index: 1 }, // Mint
+            ],
+            false,
+            false,
+        )?,
+    ];
+
+    // Initialize the ExtraAccountMetaList account
+    let account = &ctx.accounts.extra_account_meta_list;
+    let mut data = account.try_borrow_mut_data()?;
+    ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &account_metas)?;
+
+    Ok(())
+}
+
+pub fn handle_transfer_hook(ctx: Context<TransferHook>, _amount: u64) -> Result<()> {
+    let clock = Clock::get()?;
+    let control = &ctx.accounts.control;
+    let bypass = control.kyc_bypass;
+
+    // Load eligibility accounts
+    let sender = InvestorEligibilityAccount::load_checked(&ctx.accounts.sender_eligibility)?;
+    let receiver = InvestorEligibilityAccount::load_checked(&ctx.accounts.receiver_eligibility)?;
+
+    // 1. Global Pause check
+    if control.transfers_paused {
+        return err!(ComplianceError::GlobalTransfersPaused);
+    }
+
+    // 2. Compliance Logic (Only if not bypassed)
+    if !bypass {
+        // --- SENDER CHECKS ---
+        if sender.aml_status == AmlStatus::Blocked {
+            return err!(ComplianceError::SenderAmlBlocked);
+        }
+        if sender.kyc_status != KycStatus::Approved || !sender.transfer_allowed {
+            return err!(ComplianceError::SenderNotApproved);
+        }
+        if sender.expiry_timestamp > 0 && clock.unix_timestamp >= sender.expiry_timestamp {
+            return err!(ComplianceError::SenderKycExpired);
+        }
+
+        // --- RECEIVER CHECKS ---
+        if receiver.aml_status == AmlStatus::Blocked {
+            return err!(ComplianceError::ReceiverAmlBlocked);
+        }
+        if receiver.kyc_status != KycStatus::Approved || !receiver.transfer_allowed {
+            return err!(ComplianceError::ReceiverNotApproved);
+        }
+        if receiver.expiry_timestamp > 0 && clock.unix_timestamp >= receiver.expiry_timestamp {
+            return err!(ComplianceError::ReceiverKycExpired);
+        }
+
+        // --- LOCK-UP CHECK (Automated) ---
+        // Loaded via Index 8 (Mint-to-Project Lookup)
+        if let Some(lookup_info) = ctx.remaining_accounts.get(3) { // 5 base + 3 extra = Index 8
+             let data = lookup_info.data.borrow();
+             if data.len() >= 8 + 8 + 32 + 8 { // Disc + ID + PDA + Lockup
+                 // lockup_end_ts is at offset 48 (8 + 8 + 32)
+                 let lockup_end_ts = i64::from_le_bytes(data[48..56].try_into().unwrap());
+                 if clock.unix_timestamp < lockup_end_ts {
+                     return err!(ComplianceError::LockupPeriodActive);
+                 }
+             }
+        }
+    }
+
+    // Note: Lock-up check requires project_id and lockup_end_ts which are in the Project Registry.
+    // In a Transfer Hook, we'd need to pass the Registry Project Account as an extra account.
+    // For simplicity, we assume KYC/AML is the primary restriction here.
+
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct InitializeExtraAccountMetaList<'info> {
+    #[account(
+        init,
+        seeds = [b"extra-account-metas", mint.key().as_ref()],
+        bump,
+        payer = payer,
+        space = ExtraAccountMetaList::size_of(4)? // Increased for MintLookup
+    )]
+    /// CHECK: ExtraAccountMetaList account
+    pub extra_account_meta_list: UncheckedAccount<'info>,
+    
+    pub mint: InterfaceAccount<'info, Mint>,
+    
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct TransferHook<'info> {
+    #[account(
+        token::mint = mint,
+        token::authority = owner,
+    )]
+    pub source_token: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+    
+    pub mint: InterfaceAccount<'info, Mint>,
+    
+    #[account(
+        token::mint = mint,
+    )]
+    pub destination_token: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+    
+    /// CHECK: source token account owner, can be SystemProgram or PDA or multisig wallet
+    pub owner: UncheckedAccount<'info>,
+    
+    /// CHECK: ExtraAccountMetaList account
+    #[account(
+        seeds = [b"extra-account-metas", mint.key().as_ref()],
+        bump,
+    )]
+    pub extra_account_meta_list: UncheckedAccount<'info>,
+
+    // Extra Accounts (indexed 5, 6, 7, 8 in the meta list)
+    #[account(
+        seeds = [b"compliance_control"],
+        bump = control.bump,
+    )]
+    pub control: Account<'info, ComplianceControl>,
+
+    /// CHECK: Sender Eligibility
+    pub sender_eligibility: UncheckedAccount<'info>,
+
+    /// CHECK: Receiver Eligibility
+    pub receiver_eligibility: UncheckedAccount<'info>,
+
+    /// CHECK: Mint-to-Project Lookup (Index 8)
+    pub mint_lookup: UncheckedAccount<'info>,
+}

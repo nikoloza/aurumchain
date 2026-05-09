@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const { projectId, epochId, profitPerToken, txHash, dbProjectId, name, tokensEligible, totalAmount } = await req.json();
 
-    if (!projectId || epochId === undefined || !profitPerToken || !dbProjectId) {
+    if ((projectId === undefined || projectId === null) || epochId === undefined || !profitPerToken || !dbProjectId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 

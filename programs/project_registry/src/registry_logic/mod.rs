@@ -10,6 +10,7 @@ mod set_emergency_pause;
 mod calibrate_registry;
 mod issue_tokens;   // Step 1.5 — SPL mint_to CPI
 mod reset_round;    // Step 1.7 — round counter reset
+mod burn_tokens_logic;
 
 // Permanent Modular Fix: Pull all types (including hidden Anchor types)
 // into the registry_logic namespace using glob re-exports.
@@ -26,3 +27,4 @@ pub use set_emergency_pause::*;
 pub use calibrate_registry::*;
 pub use issue_tokens::*;
 pub use reset_round::*;
+pub use burn_tokens_logic::*;
