@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
     const logsToInsert = [];
     let skippedCount = 0;
 
-    // 5. Process each subscription
+    // 6. Process each subscription
     for (const sub of onChainSubs) {
-      const acc = sub.account;
+      const acc = sub.account as any;
       const subId = acc.subscriptionId.toString();
       
       if (existingSubIds.has(subId)) {
