@@ -54,21 +54,30 @@ pub fn handle_initialize_extra_account_meta_list(
     Ok(())
 }
 
-pub fn handle_transfer_hook(ctx: Context<TransferHook>, _amount: u64) -> Result<()> {
+pub fn handle_transfer_hook(accounts: &TransferHook, _amount: u64) -> Result<()> {
     let clock = Clock::get()?;
-    let control = &ctx.accounts.control;
+    let control = &accounts.control;
     let bypass = control.kyc_bypass;
 
     // Load eligibility accounts
-    let sender = InvestorEligibilityAccount::load_checked(&ctx.accounts.sender_eligibility)?;
-    let receiver = InvestorEligibilityAccount::load_checked(&ctx.accounts.receiver_eligibility)?;
+    let sender = InvestorEligibilityAccount::load_checked(&accounts.sender_eligibility)?;
+    let receiver = InvestorEligibilityAccount::load_checked(&accounts.receiver_eligibility)?;
 
     // 1. Global Pause check
     if control.transfers_paused {
         return err!(ComplianceError::GlobalTransfersPaused);
     }
 
-    // 2. Compliance Logic (Only if not bypassed)
+    // 2. MANDATORY LOCK-UP CHECK (Always enforced, even if KYC is bypassed)
+    let lockup_end_ts = accounts.mint_lookup.lockup_end_ts;
+    
+    // If current time < lockup end time, block transfer
+    // UNLESS the sender has an explicit lockup_bypass flag (admin/special)
+    if clock.unix_timestamp < lockup_end_ts && !sender.lockup_bypass {
+        return err!(ComplianceError::LockupPeriodActive);
+    }
+
+    // 3. Compliance Logic (KYC/AML) - Skippable via global bypass for testing
     if !bypass {
         // --- SENDER CHECKS ---
         if sender.aml_status == AmlStatus::Blocked {
@@ -91,24 +100,7 @@ pub fn handle_transfer_hook(ctx: Context<TransferHook>, _amount: u64) -> Result<
         if receiver.expiry_timestamp > 0 && clock.unix_timestamp >= receiver.expiry_timestamp {
             return err!(ComplianceError::ReceiverKycExpired);
         }
-
-        // --- LOCK-UP CHECK (Automated) ---
-        // Loaded via Index 8 (Mint-to-Project Lookup)
-        if let Some(lookup_info) = ctx.remaining_accounts.get(3) { // 5 base + 3 extra = Index 8
-             let data = lookup_info.data.borrow();
-             if data.len() >= 8 + 8 + 32 + 8 { // Disc + ID + PDA + Lockup
-                 // lockup_end_ts is at offset 48 (8 + 8 + 32)
-                 let lockup_end_ts = i64::from_le_bytes(data[48..56].try_into().unwrap());
-                 if clock.unix_timestamp < lockup_end_ts {
-                     return err!(ComplianceError::LockupPeriodActive);
-                 }
-             }
-        }
     }
-
-    // Note: Lock-up check requires project_id and lockup_end_ts which are in the Project Registry.
-    // In a Transfer Hook, we'd need to pass the Registry Project Account as an extra account.
-    // For simplicity, we assume KYC/AML is the primary restriction here.
 
     Ok(())
 }
@@ -120,7 +112,7 @@ pub struct InitializeExtraAccountMetaList<'info> {
         seeds = [b"extra-account-metas", mint.key().as_ref()],
         bump,
         payer = payer,
-        space = ExtraAccountMetaList::size_of(4)? // Increased for MintLookup
+        space = ExtraAccountMetaList::size_of(4)? 
     )]
     /// CHECK: ExtraAccountMetaList account
     pub extra_account_meta_list: UncheckedAccount<'info>,
@@ -148,7 +140,7 @@ pub struct TransferHook<'info> {
     )]
     pub destination_token: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
     
-    /// CHECK: source token account owner, can be SystemProgram or PDA or multisig wallet
+    /// CHECK: source token account owner
     pub owner: UncheckedAccount<'info>,
     
     /// CHECK: ExtraAccountMetaList account
@@ -171,6 +163,6 @@ pub struct TransferHook<'info> {
     /// CHECK: Receiver Eligibility
     pub receiver_eligibility: UncheckedAccount<'info>,
 
-    /// CHECK: Mint-to-Project Lookup (Index 8)
-    pub mint_lookup: UncheckedAccount<'info>,
+    /// Mint-to-Project Lookup (Index 8)
+    pub mint_lookup: Account<'info, MintToProjectLookup>,
 }

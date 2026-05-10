@@ -8,6 +8,7 @@ mod subscribe_investment;
 mod finalize_subscription;
 mod toggle_lockup_bypass;
 mod transfer_hook;
+mod mint_compliance;
 
 pub use initialize_compliance::*;
 pub use record_verified_wallet::*;
@@ -19,6 +20,7 @@ pub use subscribe_investment::*;
 pub use finalize_subscription::*;
 pub use toggle_lockup_bypass::*;
 pub use transfer_hook::*;
+pub use mint_compliance::*;
 
 use anchor_lang::prelude::*;
 use crate::state::{KycStatus, AmlStatus};

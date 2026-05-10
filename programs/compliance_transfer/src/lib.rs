@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use std::collections::BTreeSet;
 
 mod state;
 mod compliance_logic;
@@ -87,7 +88,6 @@ pub mod compliance_transfer {
     }
 
     /// Initialize the extra account meta list for the transfer hook.
-    /// This is called once per mint to set up the PDA.
     pub fn initialize_extra_account_meta_list(
         ctx: Context<InitializeExtraAccountMetaList>,
     ) -> Result<()> {
@@ -95,32 +95,52 @@ pub mod compliance_transfer {
     }
 
     /// The transfer hook execution instruction.
-    /// Token-2022 calls this with discriminator: [105, 37, 101, 197, 75, 251, 102, 26]
-    pub fn transfer_hook(ctx: Context<TransferHook>, _amount: u64) -> Result<()> {
-        handle_transfer_hook(ctx, _amount)
+    pub fn transfer_hook(ctx: Context<TransferHook>, amount: u64) -> Result<()> {
+        handle_transfer_hook(&ctx.accounts, amount)
     }
 
-    /// MANUAL DISCRIMINATOR DISPATCH
-    /// This allows the program to respond to the SPL Transfer Hook interface
-    /// even if the Anchor #[interface] macro is not available in your environment.
+    /// Sync compliance settings for a specific mint from the Project Registry
+    pub fn sync_mint_compliance(
+        ctx: Context<SyncMintCompliance>,
+    ) -> Result<()> {
+        handle_sync_mint_compliance(ctx)
+    }
+
+    /// SAFETY DISPATCH
+    /// Handles SPL Transfer Hook discriminators manually to bypass attribute errors.
     pub fn fallback<'info>(
-        _program_id: &Pubkey,
-        _accounts: &'info [AccountInfo<'info>],
+        program_id: &Pubkey,
+        accounts: &'info [AccountInfo<'info>],
         data: &[u8],
     ) -> Result<()> {
-        // SPL Transfer Hook 'execute' discriminator
-        if data.len() >= 8 && data[..8] == [105, 37, 101, 197, 75, 251, 102, 26] {
-             let _amount = u64::from_le_bytes(
-                 data[8..16].try_into().map_err(|_| ProgramError::InvalidInstructionData)?
-             );
+        let disc = &data[..8.min(data.len())];
+
+        // SPL Execute Discriminator: [105, 37, 101, 197, 75, 251, 102, 26]
+        if disc == [105, 37, 101, 197, 75, 251, 102, 26] {
+             let amount = u64::from_le_bytes(data[8..16].try_into().map_err(|_| ProgramError::InvalidInstructionData)?);
+             let mut remaining_accounts = accounts;
              
-             // Manually create the context and call the handler
-             // Note: In a production environment, you'd use a custom entrypoint for maximum efficiency,
-             // but this fallback allows Anchor to handle the account validation if called correctly.
-             // For now, we'll assume the instruction is called via the standard Anchor route if possible,
-             // or handle the logic directly here if needed.
+             let mut bumps = TransferHookBumps::default();
+             let mut reallocs = BTreeSet::new();
+             
+             // Use Anchor's built-in validation
+             let accounts_struct = TransferHook::try_accounts(program_id, &mut remaining_accounts, &[], &mut bumps, &mut reallocs)?;
+             return handle_transfer_hook(&accounts_struct, amount);
         }
-        Ok(())
+
+        // SPL Initialize Extra Account Meta List Discriminator: [43, 34, 13, 49, 167, 88, 235, 235]
+        if disc == [43, 34, 13, 49, 167, 88, 235, 235] {
+             let mut remaining_accounts = accounts;
+             let mut bumps = InitializeExtraAccountMetaListBumps::default();
+             let mut reallocs = BTreeSet::new();
+             
+             let _ = InitializeExtraAccountMetaList::try_accounts(program_id, &mut remaining_accounts, &[], &mut bumps, &mut reallocs)?;
+             // For initialization, we can just call the handler logic directly
+             // Since it's a simple setup, we'll keep it straightforward
+        }
+
+        msg!("Unhandled instruction discriminator: {:?}", disc);
+        Err(ProgramError::InvalidInstructionData.into())
     }
 }
 
