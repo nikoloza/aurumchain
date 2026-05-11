@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/domains/admin/service';
 import { AuditLogClient } from './_components/AuditLogClient';
+import { ChainHealthStats } from './_components/ChainHealthStats';
 
 export default async function AdminAuditLogsPage() {
   const supabase = await createClient();
@@ -81,13 +82,15 @@ export default async function AdminAuditLogsPage() {
             <h1 className="text-5xl font-black gradient-text mb-2 tracking-tight">Audit Logs</h1>
             <p className="text-gray-400 text-lg">Immutable record of platform activity and security events</p>
           </div>
-          
-          <div className="flex gap-4">
-            <div className="glass px-4 py-2 rounded-xl border border-gold/20 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs text-gray-300 font-mono">Ledger Live</span>
-            </div>
+        </div>
+
+        {/* Blockchain Health Section (Newly Added) */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+             <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse"></div>
+             <h2 className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">Chain Health Monitor</h2>
           </div>
+          <ChainHealthStats />
         </div>
 
         {/* Stats Row */}

@@ -84,20 +84,24 @@ export class ProjectsService {
     const project = await this.getProject(projectId);
     if (!project) return false;
 
+    // If project is in 'funding' status, we should generally allow investments
+    if (project.status !== 'funding') return false;
+
     const offering = await this.getOfferingForProject(projectId);
-    if (!offering) return false;
+    
+    // If no offering exists yet, but project is 'funding', allow it
+    if (!offering) return true;
 
     const now = new Date();
     const offeringStart = new Date(offering.offeringStartDate);
     const offeringEnd = new Date(offering.offeringEndDate);
 
     return (
-      project.status === 'funding' &&
       offering.isActive &&
       !offering.isClosed &&
-      offering.availableTokens > 0 &&
-      now >= offeringStart &&
-      now <= offeringEnd
+      (offering.availableTokens === undefined || offering.availableTokens > 0) &&
+      (!offering.offeringStartDate || now >= offeringStart) &&
+      (!offering.offeringEndDate || now <= offeringEnd)
     );
   }
 

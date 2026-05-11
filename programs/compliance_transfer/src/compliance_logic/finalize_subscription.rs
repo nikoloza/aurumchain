@@ -12,7 +12,9 @@ pub struct FinalizeSubscription<'info> {
         mut,
         seeds = [b"subscription", subscription.investor.as_ref(), subscription.subscription_id.to_le_bytes().as_ref()],
         bump = subscription.bump,
-        constraint = subscription.status == SubscriptionStatus::Pending @ ComplianceError::AlreadySettled,
+        realloc = InvestmentSubscriptionAccount::SIZE,
+        realloc::payer = authority,
+        realloc::zero = false,
     )]
     pub subscription: Account<'info, InvestmentSubscriptionAccount>,
 
@@ -20,6 +22,7 @@ pub struct FinalizeSubscription<'info> {
     pub control: Account<'info, ComplianceControl>,
 
     #[account(
+        mut,
         constraint = (
             authority.key() == control.authority ||
             authority.key() == control.super_admin

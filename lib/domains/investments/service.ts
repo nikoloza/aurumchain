@@ -48,11 +48,13 @@ export class InvestmentsService {
         amount: input.amount,
         tokens_purchased: input.tokensPurchased,
         token_price_at_purchase: input.amount / input.tokensPurchased,
-        status: input.blockchainSignature ? 'completed' : 'pending',
-        transaction_hash: input.blockchainSignature,
+        status: input.blockchainSignature ? 'approved' : 'pending',
+        transaction_hash: undefined, // Deprecated
+        minted_tx_hash: null, // Will be filled during admin approval
+        finalized_tx_hash: input.blockchainSignature, // Initial payment signature
         investor_wallet: input.investorWallet,
         invested_at: new Date().toISOString(),
-        completed_at: input.blockchainSignature ? new Date().toISOString() : null,
+        approved_at: input.blockchainSignature ? new Date().toISOString() : null,
       })
       .select()
       .single();
@@ -98,8 +100,8 @@ export class InvestmentsService {
     const { data, error } = await supabase
       .from('investments')
       .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
+        status: 'approved',
+        approved_at: new Date().toISOString(),
       })
       .eq('id', investmentId)
       .select()

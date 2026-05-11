@@ -92,7 +92,8 @@ export default function AdminInvestmentsPage() {
           dbStatus: dbInv.status,
           amountUsdc: Number(dbInv.amount),
           tokensExpected: Number(dbInv.tokens_purchased),
-          txHash: dbInv.transaction_hash,
+          txHash: dbInv.minted_tx_hash,
+          finalizedTxHash: dbInv.finalized_tx_hash,
           date: dbInv.created_at,
           projectId: dbInv.project_id,
           projectName: dbInv.projects?.name,
@@ -194,8 +195,8 @@ export default function AdminInvestmentsPage() {
         }
         
         if (dbInv) {
-          if (dbInv.transaction_hash && dbInv.transaction_hash.length > 20) {
-            autoTxHash = dbInv.transaction_hash;
+          if (dbInv.minted_tx_hash && dbInv.minted_tx_hash.length > 20) {
+            autoTxHash = dbInv.minted_tx_hash;
           }
           if (dbInv.tokens_purchased) {
             autoTokenAmount = dbInv.tokens_purchased.toString();
@@ -358,6 +359,28 @@ export default function AdminInvestmentsPage() {
 
       const tx = await wallet.sendTransaction(transaction, connection);
 
+      // --- AUTOMATION: Sync Results to Supabase ---
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        
+        // Update DB record
+        await supabase
+          .from('investments')
+          .update({
+            status: 'approved',
+            minted_tx_hash: tx, // The signature of the issuance TX
+            finalized_tx_hash: txHashInput, // The signature of the payment TX
+            updated_at: new Date().toISOString(),
+            approved_at: new Date().toISOString()
+          })
+          .eq('offering_id', sub.account.subscriptionId.toString());
+          
+        console.log("✅ Supabase Sync Successful for Sig:", tx);
+      } catch (dbErr) {
+        console.error("❌ Supabase Sync Failed, but Blockchain Success:", dbErr);
+      }
+
       setStatus({ type: 'success', msg: `Investment Finalized! ${tokenAmountInput} tokens issued. Sig: ${tx.slice(0, 10)}...` });
       fetchData();
     } catch (err: any) {
@@ -478,7 +501,12 @@ export default function AdminInvestmentsPage() {
                           <span>Expected Tokens: {inv.tokensExpected.toLocaleString()} {inv.tokenSymbol}</span>
                           {inv.txHash && (
                             <span className="text-amber-600/60 mt-1">
-                              Tx: <a href={`https://solscan.io/tx/${inv.txHash}?cluster=devnet`} target="_blank" className="hover:text-amber-400 underline">{inv.txHash}</a>
+                              Mint Hash: <a href={`https://solscan.io/tx/${inv.txHash}?cluster=devnet`} target="_blank" className="hover:text-amber-400 underline">{inv.txHash.slice(0, 20)}...</a>
+                            </span>
+                          )}
+                          {inv.finalizedTxHash && (
+                            <span className="text-green-600/60 mt-1">
+                              Finalized: <a href={`https://solscan.io/tx/${inv.finalizedTxHash}?cluster=devnet`} target="_blank" className="hover:text-green-400 underline">{inv.finalizedTxHash.slice(0, 20)}...</a>
                             </span>
                           )}
                         </div>

@@ -235,7 +235,8 @@ export type Database = {
           status_legacy: Database["public"]["Enums"]["investment_status"]
           token_price_at_purchase: number
           tokens_purchased: number
-          transaction_hash: string | null
+          minted_tx_hash: string | null
+          finalized_tx_hash: string | null
           updated_at: string | null
           user_id: string
         }
@@ -253,7 +254,8 @@ export type Database = {
           status_legacy?: Database["public"]["Enums"]["investment_status"]
           token_price_at_purchase: number
           tokens_purchased: number
-          transaction_hash?: string | null
+          minted_tx_hash?: string | null
+          finalized_tx_hash?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -271,7 +273,8 @@ export type Database = {
           status_legacy?: Database["public"]["Enums"]["investment_status"]
           token_price_at_purchase?: number
           tokens_purchased?: number
-          transaction_hash?: string | null
+          minted_tx_hash?: string | null
+          finalized_tx_hash?: string | null
           updated_at?: string | null
           user_id?: string
         }

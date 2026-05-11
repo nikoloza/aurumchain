@@ -60,7 +60,8 @@ export default function InvestmentsPage() {
           ? Math.min(100, Math.floor((project.current_funding / project.funding_goal) * 100)) 
           : 0,
         mint: project?.mint_address || onChain.mint,
-        txHashes: txHashes
+        txHashes: txHashes,
+        investments: group.investments // Added this to fix the undefined .map() error
       };
     });
   }, [dbInvestments, projects]);
@@ -297,18 +298,39 @@ export default function InvestmentsPage() {
 
               {/* Transactions */}
               <div className="pt-2">
-                <div className="text-xs text-gray-400 mb-2">Project Transactions</div>
-                <div className="flex flex-col gap-1 max-h-24 overflow-y-auto pr-2 custom-scrollbar">
-                  {investment.txHashes.map((hash: string, idx: number) => (
-                    <div key={idx} className="text-xs font-mono bg-navy-dark px-2 py-1.5 rounded flex justify-between items-center border border-white/5">
-                      <span className="text-gray-300 truncate mr-2" title={hash}>
-                        {hash.length > 20 ? `${hash.slice(0, 8)}...${hash.slice(-8)}` : hash}
-                      </span>
-                      <a href={`https://solscan.io/tx/${hash}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="text-gold hover:text-gold-light">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
+                <div className="text-xs text-gray-400 mb-2">Blockchain Proofs</div>
+                <div className="flex flex-col gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                  {investment.investments?.map((inv: any, idx: number) => (
+                    <div key={idx} className="space-y-1">
+                      {/* Mint Hash */}
+                      <div className="text-[10px] font-mono bg-navy-dark px-2 py-1.5 rounded flex justify-between items-center border border-white/5">
+                        <span className="text-gray-400 mr-2 uppercase tracking-tighter">Minted:</span>
+                        <span className="text-gray-300 truncate flex-1" title={inv.minted_tx_hash}>
+                          {inv.minted_tx_hash ? `${inv.minted_tx_hash.slice(0, 8)}...${inv.minted_tx_hash.slice(-8)}` : "Pending"}
+                        </span>
+                        {inv.minted_tx_hash && (
+                          <a href={`https://solscan.io/tx/${inv.minted_tx_hash}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="text-gold hover:text-gold-light ml-2">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        )}
+                      </div>
+                      
+                      {/* Finalize Hash */}
+                      {inv.finalized_tx_hash && (
+                        <div className="text-[10px] font-mono bg-gold/5 px-2 py-1.5 rounded flex justify-between items-center border border-gold/10">
+                          <span className="text-gold/60 mr-2 uppercase tracking-tighter font-bold">Settled:</span>
+                          <span className="text-gold/90 truncate flex-1" title={inv.finalized_tx_hash}>
+                            {inv.finalized_tx_hash.slice(0, 8)}...{inv.finalized_tx_hash.slice(-8)}
+                          </span>
+                          <a href={`https://solscan.io/tx/${inv.finalized_tx_hash}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="text-gold hover:text-gold-light ml-2">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

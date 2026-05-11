@@ -122,12 +122,12 @@ export function useDashboardData() {
       }
 
       // 1. Fetch Supabase Data (Independent try-catches so one failure doesn't block the dashboard)
-      const profilePromise = supabase.from("profiles").select("id, first_name, last_name, email, investor_tier, crypto_wallet_address, wallet_address").eq("id", authUser.id).maybeSingle();
+      const profilePromise = supabase.from("profiles").select("id, first_name, last_name, email, investor_tier, crypto_wallet_address, wallet_address, kyc_verified, gold_tokens, balance").eq("id", authUser.id).maybeSingle();
       const investmentsPromise = supabase.from("investments").select("*, projects(*)").eq("user_id", authUser.id).order("invested_at", { ascending: false });
       const transactionsPromise = supabase.from("transactions").select("*, projects(*)").eq("user_id", authUser.id).order("created_at", { ascending: false });
       const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
       const kycPromise = supabase.from("kyc_profiles").select("status").eq("user_id", authUser.id).maybeSingle();
-      const eligibilityPromise = supabase.from("eligibility_states").select("status").eq("user_id", authUser.id).maybeSingle();
+      const eligibilityPromise = supabase.from("eligibility_states").select("status, can_invest").eq("user_id", authUser.id).maybeSingle();
 
       const [
         profileRes,
@@ -173,13 +173,13 @@ export function useDashboardData() {
       if (profileRes.error) console.warn("[useDashboardData] Profile fetch error:", profileRes.error);
       if (kycRes.error && kycRes.error.code !== 'PGRST116') console.warn("[useDashboardData] KYC fetch error:", kycRes.error);
 
-      const currentKycStatus = kycRes.data?.status || kycRes.data?.kyc_status || (profile?.kyc_verified ? 'approved' : 'not_started');
+      const currentKycStatus = (kycRes.data as any)?.status || (kycRes.data as any)?.kyc_status || (profile?.kyc_verified ? 'approved' : 'not_started');
       
       // FINAL SYNC: If DB says 'investment_eligible' but blockchain check failed, 
       // we trust the DB for UI purposes to prevent "Verify KYC" flash if on-chain sync is just slow.
       // Note: We ONLY trust 'investment_eligible' AND the 'can_invest' flag being true.
-      const isDbEligible = eligibilityRes.data?.status === 'investment_eligible';
-      const hasInvestmentPermission = eligibilityRes.data?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true;
+      const isDbEligible = (eligibilityRes.data as any)?.status === 'investment_eligible';
+      const hasInvestmentPermission = (eligibilityRes.data as any)?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true;
       
       if (!blockchainVerified && isDbEligible && hasInvestmentPermission) {
         console.log("[useDashboardData] Trusting DB 'investment_eligible' status as blockchain fallback.");
@@ -212,7 +212,7 @@ export function useDashboardData() {
           
           // Fetch all subscription accounts for this investor
           // WRAP in a timeout/retry or just fail gracefully for 429
-          let userSubs = [];
+          let userSubs: any[] = [];
           try {
              userSubs = await program.account.investmentSubscriptionAccount.all([
               {
@@ -240,7 +240,7 @@ export function useDashboardData() {
             
             // TRY TO FIND REAL HASH: Cross-reference with DB OR scan the blockchain
             const dbMatch = dbInvestments.find(inv => inv.offering_id === subId);
-            let realHash = dbMatch?.transaction_hash || subId;
+            let realHash = dbMatch?.minted_tx_hash || subId;
             
             // If the hash looks like a SubID (all numbers) and is NOT a real signature,
             // we can try a quick on-chain lookup for this user.
@@ -275,6 +275,7 @@ export function useDashboardData() {
               invested_at: new Date(acc.createdAt.toNumber() * 1000).toISOString(),
               projects: project || { name: `Project #${blockchainId}` },
               is_on_chain: true,
+              finalized_tx_hash: acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : dbMatch?.finalized_tx_hash,
               lockup_end: project?.lockup_end_date || project?.expected_completion_date || null
             };
             

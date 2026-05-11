@@ -116,7 +116,7 @@
       "accounts": [
         { "name": "subscription", "isMut": true, "isSigner": false },
         { "name": "control", "isMut": false, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true },
+        { "name": "authority", "isMut": true, "isSigner": true },
         { "name": "projectRegistryProgram", "isMut": false, "isSigner": false },
         { "name": "registryControl", "isMut": false, "isSigner": false },
         { "name": "registryProject", "isMut": true, "isSigner": false },

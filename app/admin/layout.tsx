@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/domains/admin/service';
 import AdminGuard from '@/components/admin/AdminGuard';
+import { AdminSecurityProvider } from '@/context/AdminSecurityContext';
 
 export default async function AdminLayout({
   children,
@@ -23,8 +24,10 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminGuard>
-      {children}
-    </AdminGuard>
+    <AdminSecurityProvider>
+      <AdminGuard>
+        {children}
+      </AdminGuard>
+    </AdminSecurityProvider>
   );
 }
