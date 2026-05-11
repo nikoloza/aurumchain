@@ -250,9 +250,9 @@ export function ReconciliationDashboard({ initialProjects }: { initialProjects: 
                       {(res.missingLedgerWallets.length > 0 || res.orphanedWallets.some(w => w.suggestedUser)) && (
                         <div className="pt-4 border-t border-white/5 space-y-2">
                           <p className="text-[10px] font-black text-gold uppercase tracking-tighter">Identified Solutions</p>
-                          {res.missingLedgerWallets.slice(0, 2).map((m: any) => (
+                          {res.missingLedgerWallets.slice(0, 5).map((m: any) => (
                             <button 
-                              key={m.wallet}
+                              key={m.address} // Changed from m.wallet to m.address for uniqueness
                               onClick={() => handleSyncLedger(m, res.projectId)}
                               className="w-full flex items-center justify-between p-2 bg-gold/10 rounded-lg border border-gold/20 hover:bg-gold/20 transition-all group"
                             >
@@ -260,9 +260,9 @@ export function ReconciliationDashboard({ initialProjects }: { initialProjects: 
                               <span className="text-[10px] font-black text-gold">+{m.tokens.toLocaleString()}</span>
                             </button>
                           ))}
-                          {res.orphanedWallets.filter(w => w.suggestedUser).slice(0, 2).map((w: any) => (
+                          {res.orphanedWallets.filter(w => w.suggestedUser).slice(0, 5).map((w: any) => (
                             <button 
-                              key={w.wallet}
+                              key={w.address} // Changed from w.wallet to w.address
                               onClick={() => handleSyncLedger({ 
                                 userId: w.suggestedUser.id, 
                                 email: w.suggestedUser.email,
@@ -303,7 +303,7 @@ export function ReconciliationDashboard({ initialProjects }: { initialProjects: 
                   <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                     {/* Orphaned Wallets (Unknown) */}
                     {res.orphanedWallets.map((entry, idx) => (
-                      <div key={`${entry.address}-${idx}`} className="flex items-center justify-between p-3 bg-red-500/5 rounded-xl border border-red-500/10">
+                      <div key={entry.address} className="flex items-center justify-between p-3 bg-red-500/5 rounded-xl border border-red-500/10">
                         <div className="truncate w-40">
                           <p className="text-[10px] font-bold text-white">{entry.tokens.toLocaleString()} Tokens</p>
                           <p className="text-[8px] font-mono text-gray-500 truncate">{entry.wallet}</p>
@@ -341,7 +341,7 @@ export function ReconciliationDashboard({ initialProjects }: { initialProjects: 
 
                     {/* Missing Ledger (Known User but no investment record) */}
                     {res.missingLedgerWallets.map((m: any, idx: number) => (
-                      <div key={`${m.address}-${idx}`} className="flex items-center justify-between p-3 bg-gold/5 rounded-xl border border-gold/10">
+                      <div key={m.address} className="flex items-center justify-between p-3 bg-gold/5 rounded-xl border border-gold/10">
                         <div className="truncate w-40">
                           <div className="flex items-center justify-between mb-1">
                             <p className="text-[10px] font-bold text-white truncate">{m.email}</p>

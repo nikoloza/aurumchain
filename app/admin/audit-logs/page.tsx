@@ -82,6 +82,15 @@ export default async function AdminAuditLogsPage() {
             <h1 className="text-5xl font-black gradient-text mb-2 tracking-tight">Audit Logs</h1>
             <p className="text-gray-400 text-lg">Immutable record of platform activity and security events</p>
           </div>
+
+          <div className="flex gap-4">
+            <a 
+              href="/admin/reconciliation" 
+              className="px-6 py-3 bg-gold text-navy font-black uppercase tracking-widest text-xs rounded-xl hover:bg-white transition-all shadow-glow-gold flex items-center gap-2"
+            >
+              <span>🔍</span> Run Reconciliation
+            </a>
+          </div>
         </div>
 
         {/* Blockchain Health Section (Newly Added) */}

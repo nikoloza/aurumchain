@@ -43,13 +43,25 @@ export async function GET(request: NextRequest) {
     }
 
     // 1. Fetch DB Total (Normalized Status Check)
-    const { data: investments } = await adminSupabase
+    const { data: investments, error: dbError } = await adminSupabase
       .from('investments')
-      .select('id, tokens_purchased, status, status_legacy, profiles(email, crypto_wallet_address)')
+      .select('id, tokens_purchased, status, status_legacy, user_id')
       .eq('project_id', projectId);
 
+    if (dbError) console.error(`[RECONCILIATION] DB Query Error for project ${projectId}:`, dbError.message);
+
+    // Fetch Profile Map for Ghost Check
+    const userIds = Array.from(new Set(investments?.map(i => i.user_id) || []));
+    const { data: profileList } = await adminSupabase
+      .from('profiles')
+      .select('id, email, crypto_wallet_address, wallet_address')
+      .in('id', userIds);
+    const profileMap = new Map(profileList?.map(p => [p.id, p]) || []);
+
     const dbTotal = investments?.reduce((sum, i) => {
-      const isVerified = i.status === 'approved' || i.status_legacy === 'completed';
+      // Allow all valid synchronized statuses
+      const isVerified = ['approved', 'completed', 'settled', 'allocated'].includes(i.status || '') || 
+                         ['approved', 'completed', 'settled', 'allocated'].includes(i.status_legacy || '');
       return isVerified ? sum + Number(i.tokens_purchased || 0) : sum;
     }, 0) || 0;
 
@@ -85,6 +97,7 @@ export async function GET(request: NextRequest) {
           
           let amountInvested = 0;
           let tokensIssued = 0;
+          const offeringId = data.readBigUInt64LE(8).toString(); // Get the unique ID from on-chain
 
           // 1. Amount Invested (Always at 56)
           if (data.length >= 64) amountInvested = Number(data.readBigUInt64LE(56)) / 1_000_000;
@@ -130,9 +143,10 @@ export async function GET(request: NextRequest) {
           
           onChainWallets.push({
             owner,
-            amount: amountInvested / 1_000_000, // Convert from 6 decimal USDC
+            amount: amountInvested / 1_000_000, 
             tokens: tokensIssued,
-            address: sub.pubkey.toBase58() // The unique subscription account address
+            offeringId, // Pass the ID along
+            address: sub.pubkey.toBase58() 
           });
         }
       }
@@ -183,6 +197,7 @@ export async function GET(request: NextRequest) {
             tokens: entry.tokens,
             amount: entry.amount,
             address: entry.address,
+            offeringId: entry.offeringId,
             suggestedUser: txData ? {
               id: txData.user_id,
               email: (txData as any).profiles?.email || 'Unknown'
@@ -196,10 +211,11 @@ export async function GET(request: NextRequest) {
             .select('id, status, status_legacy')
             .eq('project_id', projectId)
             .eq('user_id', knownUser.id)
-            .eq('tokens_purchased', entry.tokens)
+            .eq('offering_id', entry.offeringId)
             .maybeSingle();
             
-          const isVerified = inv?.status === 'approved' || inv?.status_legacy === 'completed';
+          const isVerified = ['approved', 'completed', 'settled', 'allocated'].includes(inv?.status || '') || 
+                             ['approved', 'completed', 'settled', 'allocated'].includes(inv?.status_legacy || '');
           if (!inv || !isVerified) {
             missingLedgerWallets.push({ 
               wallet: entry.owner, 
@@ -230,11 +246,12 @@ export async function GET(request: NextRequest) {
       const identifiedOnChainAddresses = new Set(onChainWallets.map(w => w.address));
 
       // Find DB records that DON'T exist on-chain
-      for (const inv of (dbInvestments || []) as any[]) {
-        const profile = Array.isArray(inv.profiles) ? inv.profiles[0] : inv.profiles;
+      for (const inv of (investments || []) as any[]) {
+        const profile = profileMap.get(inv.user_id);
+        const wallet = profile?.crypto_wallet_address || profile?.wallet_address;
         
         const match = onChainWallets.find(w => 
-          w.owner === profile?.crypto_wallet_address && 
+          w.owner?.toLowerCase() === wallet?.toLowerCase() && 
           Math.abs(w.tokens - Number(inv.tokens_purchased)) < 0.01
         );
         if (!match) {
