@@ -114,13 +114,13 @@ export async function POST(req: Request) {
               .from('investments')
               .select('id, minted_tx_hash')
               .eq('offering_id', offeringId)
+              .eq('project_id', p.id) // Added this safeguard to prevent cross-project collisions
               .maybeSingle();
 
             const investmentData: any = {
               offering_id: offeringId,
               user_id: profile.id,
               project_id: p.id,
-              investor_wallet: investorWallet,
               amount: usdInvested,
               tokens_purchased: tokensAllocated,
               token_price_at_purchase: p.token_price || 0,
@@ -135,13 +135,15 @@ export async function POST(req: Request) {
               if (!existing.minted_tx_hash && signature && signature !== 'manual-trigger' && signature !== 'reconcile-all') {
                 investmentData.minted_tx_hash = signature;
               }
-              await supabase.from('investments').update(investmentData).eq('id', existing.id);
+              const { error: updateError } = await supabase.from('investments').update(investmentData).eq('id', existing.id);
+              if (updateError) console.error(`[INDEXER] Error updating investment ${existing.id}:`, updateError.message);
             } else {
               console.log(`[INDEXER] Creating new investment record for Sub: ${offeringId}`);
               if (signature && signature !== 'manual-trigger' && signature !== 'reconcile-all') {
                 investmentData.minted_tx_hash = signature;
               }
-              await supabase.from('investments').insert(investmentData);
+              const { error: insertError } = await supabase.from('investments').insert(investmentData);
+              if (insertError) console.error(`[INDEXER] Error inserting investment for Sub ${offeringId}:`, insertError.message);
             }
           } else {
             console.warn(`[INDEXER] No profile found for wallet: ${investorWallet} - Skipping user-linked investment update`);
