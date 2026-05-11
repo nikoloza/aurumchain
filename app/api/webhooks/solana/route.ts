@@ -32,7 +32,14 @@ export async function POST(req: Request) {
       
       console.log(`[INDEXER] Found ${projects?.length} projects and ${profiles?.length} profiles in DB`);
       
-      const allSubs = await connection.getProgramAccounts(new PublicKey(process.env.NEXT_PUBLIC_COMPLIANCE_PROGRAM_ID!));
+      const allSubs = await connection.getProgramAccounts(
+        new PublicKey(process.env.NEXT_PUBLIC_COMPLIANCE_PROGRAM_ID!),
+        {
+          filters: [
+            { dataSize: 194 } // InvestmentSubscriptionAccount size
+          ]
+        }
+      );
 
       for (const p of (projects || [])) {
         if (p.blockchain_project_id === null) continue;
@@ -67,6 +74,35 @@ export async function POST(req: Request) {
           
           console.log(`[INDEXER] Synchronizing Sub ${offeringId}: ${investorWallet} | Project ${p.name}`);
 
+          // --- 1. SYNC SUBSCRIPTIONS TABLE (Global Ledger) ---
+          // Status Map: 0: Pending, 1: Settled, 2: Allocated, 3: Refunded
+          const statusByte = data[96];
+          const statusMap: Record<number, string> = {
+            0: 'pending',
+            1: 'settled',
+            2: 'allocated',
+            3: 'refunded'
+          };
+          const subStatus = statusMap[statusByte] || 'pending';
+          const settledAtRaw = data.readBigUInt64LE(169);
+          const settledAt = settledAtRaw > 0n ? new Date(Number(settledAtRaw) * 1000).toISOString() : null;
+
+          const subscriptionData = {
+            subscription_id: offeringId,
+            investor_wallet: investorWallet,
+            project_id: p.blockchain_project_id,
+            investment_amount: usdInvested,
+            payment_asset: new PublicKey(data.slice(64, 96)).toBase58(),
+            status: subStatus,
+            settlement_tx_hash: paymentHash.length > 20 ? paymentHash : null,
+            allocated_token_amount: tokensAllocated,
+            settled_at: settledAt
+          };
+
+          console.log(`[INDEXER] Updating Subscription Table for ID: ${offeringId}`);
+          await supabase.from('subscriptions').upsert(subscriptionData, { onConflict: 'subscription_id' });
+
+          // --- 2. SYNC INVESTMENTS TABLE (User Linked) ---
           const profile = profiles?.find((pr: any) => 
             (pr.crypto_wallet_address && pr.crypto_wallet_address.toLowerCase() === investorWallet.toLowerCase()) ||
             (pr.wallet_address && pr.wallet_address.toLowerCase() === investorWallet.toLowerCase())
@@ -84,6 +120,7 @@ export async function POST(req: Request) {
               offering_id: offeringId,
               user_id: profile.id,
               project_id: p.id,
+              investor_wallet: investorWallet,
               amount: usdInvested,
               tokens_purchased: tokensAllocated,
               token_price_at_purchase: p.token_price || 0,
@@ -107,7 +144,7 @@ export async function POST(req: Request) {
               await supabase.from('investments').insert(investmentData);
             }
           } else {
-            console.warn(`[INDEXER] No profile found for wallet: ${investorWallet}`);
+            console.warn(`[INDEXER] No profile found for wallet: ${investorWallet} - Skipping user-linked investment update`);
           }
         }
       }
