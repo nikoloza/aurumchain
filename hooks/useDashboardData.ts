@@ -275,6 +275,7 @@ export function useDashboardData() {
               invested_at: new Date(acc.createdAt.toNumber() * 1000).toISOString(),
               projects: project || { name: `Project #${blockchainId}` },
               is_on_chain: true,
+              minted_tx_hash: dbMatch?.minted_tx_hash || null, // Preserve DB hash or let Signature Finder fill it
               finalized_tx_hash: acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : dbMatch?.finalized_tx_hash,
               lockup_end: project?.lockup_end_date || project?.expected_completion_date || null
             };
@@ -378,9 +379,13 @@ export function useDashboardData() {
 
               if (matchingTx) {
                 matchingTx.id = sigInfo.signature;
+                matchingTx.blockchain_hash = sigInfo.signature;
+                matchingTx.minted_tx_hash = sigInfo.signature; // Fix for UI "Pending" issue
+
                 const matchingInv = allInvestments.find(inv => inv.subId === matchingTx.subId);
                 if (matchingInv) {
                   matchingInv.id = sigInfo.signature;
+                  matchingInv.minted_tx_hash = sigInfo.signature; // Fix for UI "Pending" issue
                 }
                 usedSigs.add(sigInfo.signature);
                 console.log(`[useDashboardData] Linked sig ${sigInfo.signature.slice(0,8)}... to ${matchingTx.description} (Preferred: Minting Hash)`);
