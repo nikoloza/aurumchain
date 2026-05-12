@@ -53,7 +53,9 @@ export default function AdminInvestmentsPage() {
         repo.fetchAll(),
         registryService.fetchAllProjects(),
         supabase.from('projects').select('id, blockchain_project_id, name, images, token_symbol, token_price'),
-        supabase.from('investments').select('*, projects!inner(id, blockchain_project_id, name, images, token_symbol, token_price), profiles!inner(id, crypto_wallet_address)').order('created_at', { ascending: false })
+        supabase.from('investments')
+          .select('id, amount, status, tokens_purchased, invested_at, minted_tx_hash, finalized_tx_hash, offering_id, project_id, user_id, projects!inner(id, blockchain_project_id, name, images, token_symbol, token_price), profiles!inner(id, crypto_wallet_address, first_name, last_name)')
+          .order('invested_at', { ascending: false })
       ]);
 
       // Map projects by ID for quick lookup
@@ -92,14 +94,16 @@ export default function AdminInvestmentsPage() {
           dbStatus: dbInv.status,
           amountUsdc: Number(dbInv.amount),
           tokensExpected: Number(dbInv.tokens_purchased),
-          txHash: dbInv.minted_tx_hash,
-          finalizedTxHash: dbInv.finalized_tx_hash,
-          date: dbInv.created_at,
+          minted_tx_hash: dbInv.minted_tx_hash,
+          finalized_tx_hash: dbInv.finalized_tx_hash,
+          date: dbInv.invested_at,
           projectId: dbInv.project_id,
+          userId: dbInv.user_id,
           projectName: dbInv.projects?.name,
           logo: dbInv.projects?.images?.[0] || null,
           tokenSymbol: dbInv.projects?.token_symbol || 'TOKEN',
           investorWallet: dbInv.profiles?.crypto_wallet_address || (onChainSub ? onChainSub.account.investor.toBase58() : 'Unknown Wallet'),
+          investorName: dbInv.profiles ? `${dbInv.profiles.first_name || ''} ${dbInv.profiles.last_name || ''}`.trim() || 'Anonymous' : 'Anonymous',
           onChainSub: onChainSub || null
         });
       });
@@ -126,13 +130,16 @@ export default function AdminInvestmentsPage() {
             dbStatus: isOnChainPending ? 'pending' : 'approved',
             amountUsdc: amount,
             tokensExpected: tokensExp,
-            txHash: null,
+            minted_tx_hash: null,
+            finalized_tx_hash: null,
             date: new Date().toISOString(),
             projectId: pidStr,
+            userId: null, // Unknown since it's on-chain only
             projectName: projectData?.dbName || projectData?.name || `Project #${pidStr}`,
             logo: projectData?.images?.[0] || null,
             tokenSymbol: projectData?.tokenSymbol || 'TOKEN',
             investorWallet: sub.account.investor.toBase58(),
+            investorName: 'Anonymous (On-Chain)',
             onChainSub: sub
           });
         }
@@ -158,7 +165,7 @@ export default function AdminInvestmentsPage() {
     fetchData();
   }, [repo]);
 
-  const handleFinalize = async (sub: any) => {
+  const handleFinalize = async (sub: any, invDbId?: string) => {
     if (!repo || !wallet.publicKey || !connection) return;
     
     const projectId = sub.account.projectId;
@@ -178,14 +185,14 @@ export default function AdminInvestmentsPage() {
       if (projectRecord) {
         let { data: dbInv } = await supabase
           .from('investments')
-          .select('transaction_hash, tokens_purchased')
+          .select('minted_tx_hash, finalized_tx_hash, tokens_purchased')
           .eq('offering_id', sub.account.subscriptionId.toString())
           .maybeSingle(); // Avoid 406 error if not found
         
         if (!dbInv && projectRecord.id) {
           const { data: fallbackInv } = await supabase
             .from('investments')
-            .select('transaction_hash, tokens_purchased')
+            .select('minted_tx_hash, finalized_tx_hash, tokens_purchased')
             .eq('amount', amountUsdc)
             .eq('project_id', projectRecord.id)
             .order('created_at', { ascending: false })
@@ -195,8 +202,8 @@ export default function AdminInvestmentsPage() {
         }
         
         if (dbInv) {
-          if (dbInv.minted_tx_hash && dbInv.minted_tx_hash.length > 20) {
-            autoTxHash = dbInv.minted_tx_hash;
+          if (dbInv.finalized_tx_hash && dbInv.finalized_tx_hash.length > 20) {
+            autoTxHash = dbInv.finalized_tx_hash;
           }
           if (dbInv.tokens_purchased) {
             autoTokenAmount = dbInv.tokens_purchased.toString();
@@ -359,26 +366,56 @@ export default function AdminInvestmentsPage() {
 
       const tx = await wallet.sendTransaction(transaction, connection);
 
-      // --- AUTOMATION: Sync Results to Supabase ---
+      // Poll for the transaction via HTTP (no WebSocket / signatureSubscribe)
+      // Avoids "Received JSON-RPC error calling signatureSubscribe" on public RPCs
+      let approvedAt = new Date().toISOString(); // fallback if polling times out
       try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        
-        // Update DB record
-        await supabase
-          .from('investments')
-          .update({
-            status: 'approved',
-            minted_tx_hash: tx, // The signature of the issuance TX
-            finalized_tx_hash: txHashInput, // The signature of the payment TX
-            updated_at: new Date().toISOString(),
-            approved_at: new Date().toISOString()
-          })
-          .eq('offering_id', sub.account.subscriptionId.toString());
-          
-        console.log("✅ Supabase Sync Successful for Sig:", tx);
+        let txInfo = null;
+        for (let attempt = 1; attempt <= 20; attempt++) {
+          await new Promise(r => setTimeout(r, 1500)); // wait 1.5s between polls
+          txInfo = await connection.getTransaction(tx, { maxSupportedTransactionVersion: 0 });
+          if (txInfo) {
+            console.log(`[Admin] Tx confirmed after ${attempt} poll(s)`);
+            break;
+          }
+        }
+        if (txInfo?.blockTime) {
+          approvedAt = new Date(txInfo.blockTime * 1000).toISOString();
+          console.log(`[Admin] ⛓️  Blockchain approval timestamp: ${approvedAt}`);
+        } else {
+          console.warn('[Admin] Tx not found after polling, using local timestamp fallback');
+        }
+      } catch (pollErr) {
+        console.warn('[Admin] Polling failed, using local timestamp fallback:', pollErr);
+      }
+
+      try {
+        // ✅ RULE: Only write minted_tx_hash here.
+        // finalized_tx_hash was set at investment creation (when investor paid USDC)
+        // and must NEVER be overwritten after that point.
+        //
+        // Use server-side API route with SUPABASE_SERVICE_ROLE_KEY to bypass RLS.
+        // Direct browser client updates were silently blocked for other users' rows.
+        const response = await fetch('/api/admin/investments/finalize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invDbId,                                          // Supabase UUID — primary key
+            offeringId: sub.account.subscriptionId.toString(), // fallback
+            mintedTxHash: tx,                                 // finalizeSubscription tx sig
+            approvedAt,                                       // exact blockchain blockTime
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error(`[Admin] ❌ Server finalize failed: ${result.error}`);
+        } else {
+          console.log(`[Admin] ✅ minted_tx_hash saved via server | rows: ${result.rowsUpdated} | sig: ${tx.slice(0, 12)}...`);
+        }
       } catch (dbErr) {
-        console.error("❌ Supabase Sync Failed, but Blockchain Success:", dbErr);
+        console.error('❌ Finalize API call failed:', dbErr);
       }
 
       setStatus({ type: 'success', msg: `Investment Finalized! ${tokenAmountInput} tokens issued. Sig: ${tx.slice(0, 10)}...` });
@@ -479,55 +516,151 @@ export default function AdminInvestmentsPage() {
               const isPending = inv.dbStatus === 'pending';
               const isApproved = inv.dbStatus === 'approved';
               const isRejected = inv.dbStatus === 'rejected';
+
+              // 🕵️ Duplicate Detection
+              const hasPotentialDuplicate = isPending && unifiedInvestments.some(other => 
+                other.id !== inv.id && 
+                other.dbStatus === 'pending' && 
+                other.userId === inv.userId && 
+                other.amountUsdc === inv.amountUsdc &&
+                other.projectId === inv.projectId
+              );
               
               return (
                 <div key={inv.id} className={`glass rounded-2xl border transition-all overflow-hidden ${isPending ? 'border-gold/30' : isApproved ? 'border-green-500/30' : 'border-red-500/30 opacity-60'}`}>
-                  <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex gap-6 items-center">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${isPending ? 'bg-gold/20 text-gold' : isApproved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                  <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="flex gap-6 items-start flex-1">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl overflow-hidden shrink-0 ${isPending ? 'bg-gold/20 text-gold' : isApproved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                         {inv.logo ? <img src={inv.logo} alt="Logo" className="w-full h-full object-cover" /> : (isPending ? "⏳" : isApproved ? "✅" : "❌")}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <div className="text-xl font-black text-white group-hover:text-amber-400 transition-colors">
-                            {inv.projectName} <span className="text-sm font-medium text-gray-500">({inv.tokenSymbol})</span>
-                          </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold text-white truncate">
+                            {inv.investorName}
+                          </h3>
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isPending ? 'bg-gold/20 text-gold' : isApproved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                             {inv.dbStatus}
                           </span>
+                          {hasPotentialDuplicate && (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest bg-red-500/20 text-red-400 flex items-center gap-1">
+                              ⚠️ Potential Duplicate
+                            </span>
+                          )}
                         </div>
-                        <div className="flex flex-col text-[10px] text-gray-500 font-medium">
-                          <span>Investor Wallet: {inv.investorWallet}</span>
-                          <span>Expected Tokens: {inv.tokensExpected.toLocaleString()} {inv.tokenSymbol}</span>
-                          {inv.txHash && (
-                            <span className="text-amber-600/60 mt-1">
-                              Mint Hash: <a href={`https://solscan.io/tx/${inv.txHash}?cluster=devnet`} target="_blank" className="hover:text-amber-400 underline">{inv.txHash.slice(0, 20)}...</a>
-                            </span>
-                          )}
-                          {inv.finalizedTxHash && (
-                            <span className="text-green-600/60 mt-1">
-                              Finalized: <a href={`https://solscan.io/tx/${inv.finalizedTxHash}?cluster=devnet`} target="_blank" className="hover:text-green-400 underline">{inv.finalizedTxHash.slice(0, 20)}...</a>
-                            </span>
-                          )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Investor Details</p>
+                            <p className="text-sm text-gray-300 font-mono flex items-center gap-2">
+                              {inv.investorWallet.slice(0, 8)}...{inv.investorWallet.slice(-8)}
+                              <button 
+                                onClick={() => navigator.clipboard.writeText(inv.investorWallet)}
+                                className="text-gray-500 hover:text-gold transition-colors text-[10px]"
+                                title="Copy Address"
+                              >
+                                📋
+                              </button>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {inv.projectName} ({inv.tokenSymbol})
+                            </p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Payment & Issuance</p>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-2">
+                                {inv.finalized_tx_hash ? (
+                                  <>
+                                    <a 
+                                      href={`https://solscan.io/tx/${inv.finalized_tx_hash}?cluster=devnet`} 
+                                      target="_blank" 
+                                      className="text-[11px] text-green-400 hover:text-green-300 flex items-center gap-2 transition-colors group/tx font-mono bg-green-500/5 px-2 py-1 rounded border border-green-500/10"
+                                    >
+                                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                      <span className="font-bold opacity-90 text-white/70">Settlement:</span>
+                                      <span>{inv.finalized_tx_hash.slice(0, 12)}...{inv.finalized_tx_hash.slice(-8)}</span>
+                                    </a>
+                                    <button 
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(inv.finalized_tx_hash);
+                                        setStatus({ type: 'success', msg: 'Settlement Hash copied!' });
+                                        setTimeout(() => setStatus(null), 2000);
+                                      }}
+                                      className="text-gray-500 hover:text-gold transition-colors text-[10px]"
+                                      title="Copy Hash"
+                                    >
+                                      📋
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-[11px] text-gray-600 flex items-center gap-2 px-2 py-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-700"></span>
+                                    <span className="font-bold opacity-70">Settlement:</span>
+                                    <span>Pending</span>
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                {inv.minted_tx_hash ? (
+                                  <>
+                                    <a 
+                                      href={`https://solscan.io/tx/${inv.minted_tx_hash}?cluster=devnet`} 
+                                      target="_blank" 
+                                      className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors group/tx font-mono bg-blue-500/5 px-2 py-1 rounded border border-blue-500/10"
+                                    >
+                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
+                                      <span className="font-bold opacity-90 text-white/70">Mint Hash:</span>
+                                      <span>{inv.minted_tx_hash.slice(0, 12)}...{inv.minted_tx_hash.slice(-8)}</span>
+                                    </a>
+                                    <button 
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(inv.minted_tx_hash);
+                                        setStatus({ type: 'success', msg: 'Mint Hash copied!' });
+                                        setTimeout(() => setStatus(null), 2000);
+                                      }}
+                                      className="text-gray-500 hover:text-gold transition-colors text-[10px]"
+                                      title="Copy Hash"
+                                    >
+                                      📋
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-[11px] text-gray-600 flex items-center gap-2 px-2 py-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-700"></span>
+                                    <span className="font-bold opacity-70">Mint Hash:</span>
+                                    <span>Pending</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-12">
+                    <div className="flex items-center gap-8 shrink-0">
                       <div className="text-right">
                         <div className="text-2xl font-black text-white">
-                          {inv.amountUsdc.toLocaleString()} USDC
+                          ${inv.amountUsdc.toLocaleString()}
                         </div>
-                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(inv.date).toLocaleDateString()}</div>
+                        <div className="text-xs text-gold font-medium">
+                          {inv.tokensExpected.toLocaleString()} {inv.tokenSymbol}
+                        </div>
+                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-1">
+                          {new Date(inv.date).toLocaleString()}
+                        </div>
                       </div>
 
                       {isPending && sub && (
                         <button
-                          onClick={() => handleFinalize(sub)}
+                          onClick={() => handleFinalize(sub, inv.id)}
                           disabled={submitting !== null}
-                          className="px-8 py-3 rounded-xl bg-gold text-navy font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100"
+                          className="px-6 py-3 rounded-xl bg-gold text-navy font-black uppercase text-xs tracking-widest hover:bg-gold-light hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all disabled:opacity-50 disabled:scale-100"
                         >
-                          {submitting === sub.publicKey.toBase58() ? "Verifying..." : "Verify & Issue"}
+                          {submitting === sub.publicKey.toBase58() ? "Processing..." : "Verify & Issue"}
                         </button>
                       )}
                     </div>
@@ -541,15 +674,27 @@ export default function AdminInvestmentsPage() {
 
       <style jsx>{`
         .glass {
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass:hover {
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(212, 175, 55, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
         }
         .gradient-text {
-          background: linear-gradient(to right, #D4AF37, #F5E0A3, #B8860B);
+          background: linear-gradient(135deg, #D4AF37 0%, #F5E0A3 50%, #B8860B 100%);
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
+        }
+        .status-badge {
+          font-family: 'Inter', sans-serif;
+          letter-spacing: 0.1em;
+          text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
       `}</style>
     </div>

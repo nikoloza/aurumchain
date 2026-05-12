@@ -2,7 +2,7 @@
  * Investments service - handles investment creation and management
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import type { Investment, CreateInvestmentInput, PortfolioPosition } from './models';
 import { ComplianceService } from '../compliance/service';
 import { ProjectsService } from '../projects/service';
@@ -25,34 +25,31 @@ export class InvestmentsService {
       throw new Error('This project is not currently accepting investments.');
     }
 
-    // Get offering
+    // Get offering (optional for some projects)
     const offering = await ProjectsService.getOfferingForProject(input.projectId);
-    if (!offering) {
-      throw new Error('No active offering found for this project.');
-    }
-
-    // Check token availability
-    if (offering.availableTokens < input.tokensPurchased) {
+    
+    // Check token availability if offering exists
+    if (offering && offering.availableTokens < input.tokensPurchased) {
       throw new Error('Not enough tokens available for this investment amount.');
     }
 
     const supabase = await createClient();
+    const adminSupabase = createAdminClient();
 
-    // Create investment
-    const { data, error } = await supabase
+    // Create investment using admin client to bypass RLS
+    const { data, error } = await adminSupabase
       .from('investments')
       .insert({
         user_id: input.userId,
         project_id: input.projectId,
-        offering_id: input.offeringId,
+        offering_id: input.offeringId || input.blockchainSubscriptionId, // Use blockchain ID as fallback to prevent duplicates
         amount: input.amount,
         tokens_purchased: input.tokensPurchased,
-        token_price_at_purchase: input.amount / input.tokensPurchased,
+        token_price_at_purchase: (input.amount && input.tokensPurchased) ? input.amount / input.tokensPurchased : 0,
         status: input.blockchainSignature ? 'approved' : 'pending',
         transaction_hash: undefined, // Deprecated
         minted_tx_hash: null, // Will be filled during admin approval
         finalized_tx_hash: input.blockchainSignature, // Initial payment signature
-        investor_wallet: input.investorWallet,
         invested_at: new Date().toISOString(),
         approved_at: input.blockchainSignature ? new Date().toISOString() : null,
       })

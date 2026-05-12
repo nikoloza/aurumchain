@@ -52,6 +52,12 @@ pub fn handle_finalize_subscription(
     let clock = Clock::get()?;
     let subscription = &mut ctx.accounts.subscription;
 
+    // 🛑 SECURITY GUARD: Prevent double-finalization/minting
+    require!(
+        subscription.status != SubscriptionStatus::Allocated, 
+        ComplianceError::AlreadySettled
+    );
+
     // ── Read Registry Project & Calculate Token Amount ───────────────────────
     let final_token_amount: u64;
     {

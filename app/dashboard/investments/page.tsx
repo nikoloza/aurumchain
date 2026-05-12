@@ -19,7 +19,7 @@ export default function InvestmentsPage() {
           investments: [],
           totalAmount: 0,
           totalTokens: 0,
-          latestDate: inv.invested_at || inv.created_at,
+          latestDate: inv.invested_at,
           latestLockup: inv.lockup_end || null
         };
       }
@@ -27,10 +27,10 @@ export default function InvestmentsPage() {
       acc[pId].totalAmount += Number(inv.amount || 0);
       acc[pId].totalTokens += Number(inv.tokens_purchased || 0);
       
-      const invDate = new Date(inv.invested_at || inv.created_at);
+      const invDate = new Date(inv.invested_at);
       const latestDate = new Date(acc[pId].latestDate);
       if (invDate > latestDate) {
-        acc[pId].latestDate = inv.invested_at || inv.created_at;
+        acc[pId].latestDate = inv.invested_at;
       }
       
       return acc;

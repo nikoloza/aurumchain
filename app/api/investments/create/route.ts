@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
       investorWallet,
     });
 
+    // ─── STAGE 1 ──────────────────────────────────────────────────────────────
+    console.log(
+      `[STAGE 1 ✅] Investment row created | offering: ${investment.offering_id}` +
+      ` | user: ${user.id.slice(0, 8)}...` +
+      ` | amount: $${amount} USDC` +
+      ` | finalized_tx_hash: ${blockchainSignature ? blockchainSignature.slice(0, 12) + '...' : 'MISSING ⚠️'}`
+    );
+
     return NextResponse.json({
       success: true,
       investment,
