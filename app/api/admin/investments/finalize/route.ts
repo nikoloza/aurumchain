@@ -81,6 +81,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // NEW: Also update the transactions table so the hash shows up in the Activity feed
+    try {
+      const txUpdatePayload = {
+        blockchain_hash: mintedTxHash,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+      };
+
+      if (invDbId) {
+        await adminSupabase
+          .from('transactions')
+          .update(txUpdatePayload)
+          .eq('investment_id', invDbId);
+      } else if (offeringId) {
+        // Find the investment ID first if we only have offeringId
+        const { data: inv } = await adminSupabase
+          .from('investments')
+          .select('id')
+          .eq('offering_id', String(offeringId))
+          .maybeSingle();
+        
+        if (inv) {
+          await adminSupabase
+            .from('transactions')
+            .update(txUpdatePayload)
+            .eq('investment_id', inv.id);
+        }
+      }
+    } catch (txErr) {
+      console.warn('[API/finalize] Failed to update transaction record:', txErr);
+      // Don't fail the whole request if transaction update fails
+    }
+
     return NextResponse.json({ success: true, rowsUpdated });
 
   } catch (err: any) {

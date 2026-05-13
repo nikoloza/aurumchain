@@ -12,6 +12,10 @@ export default function TransactionsPage() {
   const [activeTab, setActiveTab] = useState<"activity" | "payouts">("activity");
 
   useEffect(() => {
+    console.log(`[TransactionsPage] Loaded ${dbTransactions.length} transactions. Loading: ${loading}`);
+  }, [dbTransactions, loading]);
+
+  useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "payouts") {
       setActiveTab("payouts");
@@ -336,9 +340,9 @@ export default function TransactionsPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-white">
-                              {transaction.id.slice(0, 10)}...
+                              {transaction.id.length > 40 ? `${transaction.id.slice(0, 10)}...` : transaction.id.slice(0, 8)}
                             </span>
-                            {transaction.id.length > 30 && (
+                            {transaction.id.length > 40 && (
                               <a 
                                 href={`https://solscan.io/tx/${transaction.id}?cluster=devnet`}
                                 target="_blank"

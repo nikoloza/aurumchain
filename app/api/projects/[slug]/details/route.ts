@@ -153,9 +153,12 @@ export async function GET(
             minInvestmentUsdc: safeNum(chainData.minInvestmentUsdc, 6),
             maxInvestmentUsdc: safeNum(chainData.maxInvestmentUsdc, 6),
             tokenPriceUsdc: safeNum(chainData.tokenPriceUsdc, 6),
+            acceptedStablecoin: chainData.acceptedStablecoin?.toString() || '',
+            treasuryWallet: chainData.treasuryWallet?.toString() || '',
             mint: chainData.mint?.toString() || '',
             subscriptionEnd: safeNum(chainData.subscriptionEnd),
             isActive: chainData.status?.active !== undefined,
+            isPaused: !!chainData.isPaused,
           };
           console.log(`[API/projects/${slug}/details] On-chain data fetched successfully.`);
         } else {

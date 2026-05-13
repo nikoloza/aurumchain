@@ -42,79 +42,19 @@ export default function PayoutsTab() {
           .from('payout_records')
           .select(`
             *,
-            projects(id, name, token_symbol),
+            projects(id, name, token_symbol, blockchain_project_id, token_price),
             payout_cycles(name, profit_per_token)
           `)
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
-        let mergedRecords: any[] = dbRecords || [];
-        
-        if (publicKey) {
-          try {
-            const accounts = await connection.getProgramAccounts(
-              new PublicKey("EZXJQXX2vYoDrUP6JUcqeShhqKpSRuDecLK9JUiVzkTz")
-            );
-            
-            const userPayoutAccounts = accounts.filter(p => {
-              const data = p.account.data;
-              if (data.length !== 89) return false;
-              const investor = new PublicKey(data.slice(40, 72)).toBase58();
-              return investor === publicKey.toBase58();
-            });
-
-            const epochPubkeys = userPayoutAccounts.map(p => new PublicKey(p.account.data.slice(8, 40)));
-            const epochAccounts = await connection.getMultipleAccountsInfo(epochPubkeys);
-            
-            userPayoutAccounts.forEach((p: any, idx: number) => {
-              const data = p.account.data;
-              const epochInfo = epochAccounts[idx];
-              if (!epochInfo) return;
-
-              const blockchainProjectId = Number(epochInfo.data.readBigUInt64LE(8));
-              const profitPerTokenBase = Number(epochInfo.data.readBigUInt64LE(24)) / 1_000_000; 
-              const amountPaid = Number(data.readBigUInt64LE(72)) / 1_000_000;
-              const timestamp = Number(data.readBigInt64LE(80));
-              
-              const snapshotTokens = profitPerTokenBase > 0 ? amountPaid / profitPerTokenBase : 0;
-
-              const dbMatch = dbRecords?.find(r => 
-                (Math.abs(Number(r.amount_due) - amountPaid) < 0.01)
-              );
-
-              if (!dbMatch) {
-                const project = onChainInvestments?.find(inv => 
-                  inv.projects?.blockchain_project_id?.toString() === blockchainProjectId.toString()
-                )?.projects;
-
-                mergedRecords.push({
-                  id: p.pubkey.toBase58(),
-                  is_on_chain: true,
-                  project_id: project?.id,
-                  projects: project || { name: `Project #${blockchainProjectId}`, token_symbol: "???" },
-                  amount_due: amountPaid,
-                  tokens_held: snapshotTokens, 
-                  paid_at: new Date(timestamp * 1000).toISOString(),
-                  tx_hash: "VERIFIED_ON_CHAIN",
-                  payout_cycles: { name: `Epoch #${blockchainProjectId}` }
-                });
-              }
-            });
-          } catch (e) {
-            console.error("[Payouts] Exhaustive Scan Error:", e);
-          }
+        if (!dbRecords) {
+          setLoading(false);
+          return;
         }
 
-        const uniqueMap = new Map();
-        mergedRecords.forEach(r => {
-          const key = `${r.project_id}_${r.amount_due}_${new Date(r.paid_at).getTime() / 1000}`;
-          if (!uniqueMap.has(key) || !r.is_on_chain) {
-            uniqueMap.set(key, r);
-          }
-        });
-        const finalUniqueRecords = Array.from(uniqueMap.values());
-
-        const enrichedRecords = finalUniqueRecords.map(record => {
+        // Enrich records with profit metrics
+        const enrichedRecords = dbRecords.map(record => {
           const totalInvestedForProject = onChainInvestments
             ?.filter(inv => 
               inv.project_id === record.project_id || 
@@ -127,15 +67,15 @@ export default function PayoutsTab() {
           return { 
             ...record, 
             totalInvestedForProject, 
-            epochWiseNetProfit 
+            epochWiseNetProfit,
+            // Fallback for missing cycle names
+            payout_cycles: record.payout_cycles || { name: `Epoch #${record.project_id.slice(0,4)}` }
           };
         });
 
-        if (enrichedRecords) {
-          setPayouts(enrichedRecords);
-          const total = enrichedRecords.reduce((acc, r) => acc + (Number(r.amount_due) || 0), 0);
-          setTotalEarned(total);
-        }
+        setPayouts(enrichedRecords);
+        const total = enrichedRecords.reduce((acc, r) => acc + (Number(r.amount_due) || 0), 0);
+        setTotalEarned(total);
         
       } catch (err) {
         console.error("Error fetching distributions:", err);

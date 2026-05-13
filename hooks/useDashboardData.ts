@@ -80,13 +80,6 @@ export function useDashboardData() {
         if (currentProfile && (currentProfile.crypto_wallet_address !== walletAddr || currentProfile.wallet_address !== walletAddr)) {
           console.log(`[useDashboardData] Unifying wallet ${walletAddr} across all columns...`);
           
-          // 1. Update Profiles (Both columns)
-          await supabase.from('profiles').update({ 
-            crypto_wallet_address: walletAddr,
-            wallet_address: walletAddr 
-          }).eq('id', authUser.id);
-
-          // 1. Update Profiles (Both columns)
           await supabase.from('profiles').update({ 
             crypto_wallet_address: walletAddr,
             wallet_address: walletAddr 
@@ -121,10 +114,20 @@ export function useDashboardData() {
         }
       }
 
-      // 1. Fetch Supabase Data (Independent try-catches so one failure doesn't block the dashboard)
+      // 1. Fetch Supabase Data
       const profilePromise = supabase.from("profiles").select("id, first_name, last_name, email, investor_tier, crypto_wallet_address, wallet_address, kyc_verified, gold_tokens, balance").eq("id", authUser.id).maybeSingle();
       const investmentsPromise = supabase.from("investments").select("*, projects(*)").eq("user_id", authUser.id).order("invested_at", { ascending: false });
-      const transactionsPromise = supabase.from("transactions").select("*, projects(*)").eq("user_id", authUser.id).order("created_at", { ascending: false });
+      
+      const transactionsPromise = supabase.from("transactions")
+        .select(`*, projects(id, name, slug)`)
+        .eq("user_id", authUser.id)
+        .order("created_at", { ascending: false });
+
+      const payoutsPromise = supabase.from("payout_records")
+        .select(`*, projects(id, name, slug)`)
+        .eq("user_id", authUser.id)
+        .order("created_at", { ascending: false });
+
       const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
       const kycPromise = supabase.from("kyc_profiles").select("status").eq("user_id", authUser.id).maybeSingle();
       const eligibilityPromise = supabase.from("eligibility_states").select("status, can_invest").eq("user_id", authUser.id).maybeSingle();
@@ -133,6 +136,7 @@ export function useDashboardData() {
         profileRes,
         investmentsRes,
         transactionsRes,
+        payoutsRes,
         projectsRes,
         kycRes,
         eligibilityRes,
@@ -140,6 +144,7 @@ export function useDashboardData() {
         profilePromise,
         investmentsPromise,
         transactionsPromise,
+        payoutsPromise,
         projectsPromise,
         kycPromise,
         eligibilityPromise
@@ -147,125 +152,121 @@ export function useDashboardData() {
 
       let profile = profileRes.data;
       
-      // AUTO-REPAIR: If user is logged in but has no profile record, call the repair API
+      // AUTO-REPAIR
       if (!profile && authUser) {
-        console.log("[useDashboardData] Profile missing, calling repair API...");
         try {
           const repairRes = await fetch("/api/profile/repair", { method: "POST" });
           const repairData = await repairRes.json();
-          
-          if (repairData.success) {
-            console.log("[useDashboardData] Profile repaired successfully.");
-            profile = repairData.profile;
-          } else {
-            console.error("[useDashboardData] Repair API reported failure:", repairData.error);
-          }
-        } catch (err) {
-          console.error("[useDashboardData] Failed to call repair API:", err);
-        }
+          if (repairData.success) profile = repairData.profile;
+        } catch (err) { console.error("[useDashboardData] Repair failed:", err); }
       }
 
-      const dbWallet = profile; // Use profile as fallback for wallet data
+      const dbWallet = profile;
       const dbInvestments = investmentsRes.data || [];
       const dbTransactions = transactionsRes.data || [];
+      const dbPayouts = payoutsRes.data || [];
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
-
-      if (profileRes.error) console.warn("[useDashboardData] Profile fetch error:", profileRes.error);
-      if (kycRes.error && kycRes.error.code !== 'PGRST116') console.warn("[useDashboardData] KYC fetch error:", kycRes.error);
-
       const currentKycStatus = (kycRes.data as any)?.status || (kycRes.data as any)?.kyc_status || (profile?.kyc_verified ? 'approved' : 'not_started');
       
       // FINAL SYNC: If DB says 'investment_eligible' but blockchain check failed, 
       // we trust the DB for UI purposes to prevent "Verify KYC" flash if on-chain sync is just slow.
-      // Note: We ONLY trust 'investment_eligible' AND the 'can_invest' flag being true.
       const isDbEligible = (eligibilityRes.data as any)?.status === 'investment_eligible';
       const hasInvestmentPermission = (eligibilityRes.data as any)?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true;
       
       if (!blockchainVerified && isDbEligible && hasInvestmentPermission) {
-        console.log("[useDashboardData] Trusting DB 'investment_eligible' status as blockchain fallback.");
         blockchainVerified = true; 
       }
 
-      console.log("[useDashboardData] Finalizing with:", {
-        hasProfile: !!profile,
-        blockchainVerified,
-        kycStatus: currentKycStatus
-      });
-
-      // 3. ON-CHAIN DATA RECOVERY & MERGING
-      // Start with DB records as the baseline so the UI never looks empty
+      // 3. AGGREGATE ACTIVITY FEED (Merging multiple sources)
       const allInvestments: any[] = dbInvestments.map(inv => ({
         ...inv,
-        is_on_chain: false // Will be updated if found on-chain
+        is_on_chain: false
       }));
       
-      // Start with DB transactions
-      const allTransactions = dbTransactions.map(tx => ({
-        ...tx,
-        id: tx.blockchain_hash || tx.id
-      }));
+      // Start with DB transactions as baseline
+      const transactionMap = new Map();
+
+      // 1. Add records from transactions table
+      dbTransactions.forEach(tx => {
+        const id = tx.blockchain_hash || tx.id;
+        transactionMap.set(id, {
+          ...tx,
+          id,
+          date: tx.created_at || tx.initiated_at
+        });
+      });
+
+      // 2. Add records from investments table (if not already present)
+      dbInvestments.forEach(inv => {
+        const id = inv.minted_tx_hash || inv.finalized_tx_hash || inv.id;
+        if (!transactionMap.has(id)) {
+          transactionMap.set(id, {
+            id,
+            type: 'investment',
+            amount: inv.amount,
+            status: inv.status === 'approved' ? 'completed' : 'pending',
+            created_at: inv.invested_at || inv.created_at,
+            projects: inv.projects,
+            description: `Investment in ${inv.projects?.name || 'Project'}`,
+            date: inv.invested_at || inv.created_at
+          });
+        }
+      });
+
+      // 3. Add records from payout_records table
+      dbPayouts.forEach(payout => {
+        const id = payout.tx_hash || payout.id;
+        if (!transactionMap.has(id)) {
+          transactionMap.set(id, {
+            id,
+            type: 'dividend',
+            amount: payout.amount_due,
+            status: payout.status === 'paid' ? 'completed' : 'pending',
+            created_at: payout.paid_at || payout.created_at,
+            projects: payout.projects,
+            description: `Dividend from ${payout.projects?.name || 'Project'}`,
+            date: payout.paid_at || payout.created_at
+          });
+        }
+      });
+
+      const allTransactions = Array.from(transactionMap.values());
 
       if (wallet.publicKey) {
         try {
-          console.log("[useDashboardData] Fetching 100% on-chain investment data...");
           const program = getComplianceProgram(connection, wallet);
-          
-          // Fetch all subscription accounts for this investor
-          // WRAP in a timeout/retry or just fail gracefully for 429
           let userSubs: any[] = [];
           try {
              userSubs = await program.account.investmentSubscriptionAccount.all([
               {
                 memcmp: {
-                  offset: 8 + 8, // subscriptionId(8) + investor(32) -> wait, investor is at offset 16
+                  offset: 16, // investor is at offset 16 (8 disc + 8 subId)
                   bytes: wallet.publicKey.toBase58()
                 }
               }
             ]);
           } catch (rpcErr: any) {
-            if (rpcErr.message?.includes('429')) {
-              console.warn("[useDashboardData] On-chain subscription fetch rate-limited (429). Showing DB-only data.");
-            } else {
-              throw rpcErr;
-            }
+            console.warn("[useDashboardData] On-chain subscription fetch failed:", rpcErr.message);
           }
           
-          console.log(`[useDashboardData] Found ${userSubs.length} on-chain subscriptions.`);
-
           userSubs.forEach((sub: any) => {
             const acc = sub.account;
             const subId = acc.subscriptionId.toString();
             const blockchainId = acc.projectId.toString();
             const project = projects.find((p: any) => p.blockchain_project_id?.toString() === blockchainId);
             
-            // TRY TO FIND REAL HASH: Cross-reference with DB OR scan the blockchain
             const dbMatch = dbInvestments.find(inv => inv.offering_id === subId);
-            let realHash = dbMatch?.minted_tx_hash || subId;
-            
-            // If the hash looks like a SubID (all numbers) and is NOT a real signature,
-            // we can try a quick on-chain lookup for this user.
-            // (Note: To avoid 429s, we only do this for the first few or if missing)
+            let realHash = dbMatch?.minted_tx_hash || dbMatch?.finalized_tx_hash || (acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : null);
             
             const amount = Number(acc.investmentAmount.toString()) / 1_000_000;
             const currentPrice = Number(project?.token_price || 0.18);
-            
-            // MATH: Calculate what the user SHOULD have received based on the current price
-            // We use this as a fallback if the on-chain 'allocatedTokenAmount' looks like a decimal error
-            const expectedTokens = amount / currentPrice;
-            
-            // SCALE: Convert raw blockchain tokens to UI units
             const rawTokens = Number(acc.allocatedTokenAmount.toString()) / 1_000_000; 
-            
-            // DECISION: If the raw tokens are wildly different from expected (more than 10% off),
-            // show the expected amount to the user for a better UX.
-            const tokenQty = (Math.abs(rawTokens - expectedTokens) / expectedTokens > 0.1) 
-              ? expectedTokens 
-              : rawTokens;
-            
+            const expectedTokens = amount / currentPrice;
+            const tokenQty = (Math.abs(rawTokens - expectedTokens) / expectedTokens > 0.1) ? expectedTokens : rawTokens;
             const priceAtPurchase = tokenQty > 0 ? (amount / tokenQty) : currentPrice;
 
             const invData = {
-              id: realHash,
+              id: realHash || subId,
               subId: subId,
               project_id: project?.id || blockchainId,
               amount: amount,
@@ -275,35 +276,29 @@ export function useDashboardData() {
               invested_at: new Date(acc.createdAt.toNumber() * 1000).toISOString(),
               projects: project || { name: `Project #${blockchainId}` },
               is_on_chain: true,
-              minted_tx_hash: dbMatch?.minted_tx_hash || null, // Preserve DB hash
+              minted_tx_hash: dbMatch?.minted_tx_hash || null,
               finalized_tx_hash: dbMatch?.finalized_tx_hash || (acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : null),
-              lockup_end: project?.lockup_end_date || project?.expected_completion_date || null
             };
             
-            // DEDUPLICATION & MERGING: Find existing DB record or add new
             const existingIndex = allInvestments.findIndex(inv => inv.subId === subId || inv.offering_id === subId);
-            
             if (existingIndex >= 0) {
-              // HEAL existing record with blockchain truth
-              allInvestments[existingIndex] = { 
-                ...allInvestments[existingIndex], 
-                ...invData,
-                is_on_chain: true 
-              };
+              allInvestments[existingIndex] = { ...allInvestments[existingIndex], ...invData };
             } else {
-              // Add fresh blockchain record
               allInvestments.push(invData);
               
               // Only push to transactions if it's a NEW blockchain-only record
-              // (Existing DB transactions are already in allTransactions)
-              const txExists = allTransactions.some(tx => tx.subId === subId || tx.blockchain_hash === invData.id);
+              const txExists = allTransactions.some(tx => 
+                (tx.subId && tx.subId === subId) || 
+                (tx.blockchain_hash && invData.finalized_tx_hash && tx.blockchain_hash === invData.finalized_tx_hash)
+              );
+
               if (!txExists) {
                 allTransactions.push({
-                  id: invData.id,
-                  subId: invData.subId,
+                  id: invData.finalized_tx_hash || `sub_${subId}`,
+                  subId: subId,
                   type: 'investment',
                   amount: invData.amount,
-                  status: invData.status,
+                  status: (invData.status === 'settled' || invData.status === 'allocated') ? 'completed' : 'pending',
                   created_at: invData.invested_at,
                   projects: invData.projects,
                   description: `Blockchain Subscription #${subId}`
@@ -312,86 +307,10 @@ export function useDashboardData() {
             }
           });
 
-          // 3a. SIGNATURE FINDER: Find the real Solana signatures for all investments
-          // Sort transactions by date first so newest signatures match newest investments
-          allTransactions.sort((a, b) => new Date(b.created_at || b.initiated_at).getTime() - new Date(a.created_at || a.initiated_at).getTime());
-
-          const needsHash = allTransactions.filter(tx => tx.type === 'investment' && tx.id.length < 30);
-          if (needsHash.length > 0) {
-            console.log(`[useDashboardData] Scanning blockchain for ${needsHash.length} missing signatures...`);
-            const sigs = await connection.getSignaturesForAddress(wallet.publicKey, { limit: 20 });
-            
-            // Track used signatures to avoid 1:N mapping
-            const usedSigs = new Set<string>();
-            const usdcMint = process.env.NEXT_PUBLIC_USDC_MINT || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-            for (const sigInfo of sigs) {
-              const tx = await connection.getParsedTransaction(sigInfo.signature, { maxSupportedTransactionVersion: 0 });
-              if (!tx || !tx.meta) continue;
-              
-              // 1. Extract balance increases (both USDC and Project Tokens)
-              const usdcIncreases: { owner: string, amount: number }[] = [];
-              const tokenIncreases: { owner: string, mint: string, amount: number }[] = [];
-              const postBalances = tx.meta.postTokenBalances || [];
-              const preBalances = tx.meta.preTokenBalances || [];
-              
-              postBalances.forEach(post => {
-                if (!post.owner) return;
-                const pre = preBalances.find(p => p.accountIndex === post.accountIndex);
-                const delta = (post.uiTokenAmount.uiAmount || 0) - (pre?.uiTokenAmount.uiAmount || 0);
-                
-                if (delta > 0) {
-                  if (post.mint === usdcMint) {
-                    usdcIncreases.push({ owner: post.owner, amount: delta });
-                  } else {
-                    tokenIncreases.push({ owner: post.owner, mint: post.mint, amount: delta });
-                  }
-                }
-              });
-
-              // 2. Find the BEST matching transaction that still needs a hash
-              const matchingTx = allTransactions.find(atx => {
-                if (atx.type !== 'investment' || atx.id.length >= 30) return false;
-                
-                const tw = atx.projects?.onChain?.treasuryWallet || atx.projects?.treasury_wallet;
-                const targetTreasury = typeof tw === 'string' ? tw : tw?.toBase58?.() || tw?.toString?.();
-                
-                const pmint = atx.projects?.onChain?.mint || atx.projects?.mint;
-                const targetMint = typeof pmint === 'string' ? pmint : pmint?.toBase58?.() || pmint?.toString?.();
-
-                // PRIORITY: Minting Hash (Did user receive tokens for this project?)
-                const receivedTokens = tokenIncreases.some(inc => 
-                  inc.owner === wallet.publicKey?.toBase58() && 
-                  inc.mint === targetMint &&
-                  (atx.tokens_purchased ? Math.abs(inc.amount - atx.tokens_purchased) < 0.1 : true)
-                );
-
-                if (receivedTokens) return true;
-
-                // FALLBACK: Payment Hash (USDC transfer to treasury)
-                const paidUsdc = usdcIncreases.some(inc => 
-                  inc.owner === targetTreasury && 
-                  Math.abs(inc.amount - atx.amount) < 0.01
-                );
-                
-                return paidUsdc && !usedSigs.has(sigInfo.signature);
-              });
-
-              if (matchingTx) {
-                matchingTx.id = sigInfo.signature;
-                matchingTx.blockchain_hash = sigInfo.signature;
-                matchingTx.minted_tx_hash = sigInfo.signature; // Fix for UI "Pending" issue
-
-                const matchingInv = allInvestments.find(inv => inv.subId === matchingTx.subId);
-                if (matchingInv) {
-                  matchingInv.id = sigInfo.signature;
-                  matchingInv.minted_tx_hash = sigInfo.signature; // Fix for UI "Pending" issue
-                }
-                usedSigs.add(sigInfo.signature);
-                console.log(`[useDashboardData] Linked sig ${sigInfo.signature.slice(0,8)}... to ${matchingTx.description} (Preferred: Minting Hash)`);
-              }
-            }
-          }
+          // SIGNATURE FINDER REMOVED to prevent 429 errors.
+          // The background indexer handles syncing these hashes to the database.
+          
+          // Also fetch project token balances for "Gold Tokens" stat
 
           // Also fetch project token balances for "Gold Tokens" stat
           // 3. Combined Token Balances Check
@@ -425,14 +344,39 @@ export function useDashboardData() {
       }
 
       // 3. Final Reconciliation
-      const totalInvested = allInvestments.reduce((sum, inv) => sum + Number(inv.amount), 0);
-      const totalReturns = 0; 
-      const usdBalance = Number(dbWallet?.balance || 0);
-      const portfolioValue = totalInvested; 
+      let totalInvested = 0;
+      let totalReturns = 0;
+      let portfolioValue = 0;
+      let activeProjectsCount = 0;
 
-      allTransactions.sort(
-        (a, b) => new Date(b.created_at || b.initiated_at).getTime() - new Date(a.created_at || a.initiated_at).getTime()
-      );
+      try {
+        const summaryRes = await fetch("/api/portfolio/summary");
+        if (summaryRes.ok) {
+          const summary = await summaryRes.json();
+          totalInvested = summary.totalInvested;
+          totalReturns = summary.totalReturn;
+          portfolioValue = summary.totalValue;
+          activeProjectsCount = summary.activePositions;
+        } else {
+          // Fallback to local calculation if API fails
+          totalInvested = allInvestments.reduce((sum, inv) => sum + Number(inv.amount), 0);
+          portfolioValue = totalInvested;
+          activeProjectsCount = allInvestments.filter((inv) => inv.projects?.status === "active").length;
+        }
+      } catch (apiErr) {
+        console.error("[useDashboardData] Failed to fetch portfolio summary API:", apiErr);
+        totalInvested = allInvestments.reduce((sum, inv) => sum + Number(inv.amount), 0);
+        portfolioValue = totalInvested;
+        activeProjectsCount = allInvestments.filter((inv) => inv.projects?.status === "active").length;
+      }
+
+      const usdBalance = Number(dbWallet?.balance || 0);
+
+      allTransactions.sort((a, b) => {
+        const dateA = new Date(a.date || a.created_at || a.initiated_at || a.paid_at || 0).getTime();
+        const dateB = new Date(b.date || b.created_at || b.initiated_at || b.paid_at || 0).getTime();
+        return dateB - dateA;
+      });
 
       // Determine final verification status by combining DB and Blockchain
       const isDbVerified = (eligibilityRes.data?.status === 'investment_eligible' && (eligibilityRes.data?.can_invest === true || (eligibilityRes.data as any)?.canInvest === true));

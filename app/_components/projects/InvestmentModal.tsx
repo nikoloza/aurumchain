@@ -33,11 +33,13 @@ export function InvestmentModal({ isOpen, onClose, project }: InvestmentModalPro
   const [amount, setAmount] = useState(''); // This is now total USDC
   const [tokenQuantity, setTokenQuantity] = useState(''); // This is number of tokens
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [isEligible, setIsEligible] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   
-  // Reset state when modal is opened
+  // Reset state and check eligibility when modal is opened
   useEffect(() => {
     if (isOpen) {
       setSuccess(false);
@@ -45,8 +47,46 @@ export function InvestmentModal({ isOpen, onClose, project }: InvestmentModalPro
       setAmount('');
       setTokenQuantity('');
       setError(null);
+      checkEligibility();
     }
-  }, [isOpen]);
+  }, [isOpen, publicKey]);
+
+  async function checkEligibility() {
+    if (!publicKey || !connection) return;
+    
+    setIsValidating(true);
+    try {
+      const { getComplianceProgram } = await import('@/lib/web3/clients/anchorClients');
+      const { ComplianceRepository } = await import('@/lib/web3/repositories/complianceRepository');
+      
+      const program = getComplianceProgram(connection);
+      const repository = new ComplianceRepository(program);
+      
+      const acc = await repository.fetchEligibilityAccount(publicKey);
+      
+      if (!acc) {
+        setIsEligible(false);
+        setError("Your on-chain eligibility account is not initialized. Please ensure your KYC is approved and synced.");
+      } else {
+        const isApproved = acc.kycStatus?.approved !== undefined || 
+                          acc.kycStatus === 1 || 
+                          Object.keys(acc.kycStatus || {})[0]?.toLowerCase() === 'approved';
+        
+        if (!isApproved) {
+          setIsEligible(false);
+          setError("Your on-chain status is not 'Approved'. Please contact support.");
+        } else {
+          setIsEligible(true);
+        }
+      }
+    } catch (err) {
+      console.error("[InvestmentModal] Eligibility check failed:", err);
+      // Fallback: don't block if check fails, but let the tx fail if needed
+      setIsEligible(true); 
+    } finally {
+      setIsValidating(false);
+    }
+  }
 
   const investmentService = useMemo(() => {
     if (!connection) return null;
@@ -100,6 +140,11 @@ export function InvestmentModal({ isOpen, onClose, project }: InvestmentModalPro
 
     if (!publicKey) {
       setError('Please connect your wallet first.');
+      return;
+    }
+
+    if (isEligible === false) {
+      setError('You are not eligible to invest on-chain. Please complete KYC.');
       return;
     }
 
@@ -278,10 +323,18 @@ export function InvestmentModal({ isOpen, onClose, project }: InvestmentModalPro
 
               <button
                 type="submit"
-                disabled={isSubmitting || !publicKey || !amount}
+                disabled={isSubmitting || isValidating || !publicKey || !amount || isEligible === false}
                 className="w-full bg-gradient-to-r from-gold to-gold-light hover:from-gold-light hover:to-gold text-navy font-bold py-4 rounded-xl transition-all duration-300 shadow-xl shadow-gold/20 hover:shadow-gold/40 disabled:opacity-30 disabled:cursor-not-allowed group"
               >
-                {isSubmitting ? (
+                {isValidating ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <svg className="animate-spin h-5 w-5 text-navy" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying Eligibility...
+                  </span>
+                ) : isSubmitting ? (
                   <span className="flex items-center justify-center gap-3">
                     <svg className="animate-spin h-5 w-5 text-navy" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -291,6 +344,8 @@ export function InvestmentModal({ isOpen, onClose, project }: InvestmentModalPro
                   </span>
                 ) : !publicKey ? (
                   'Connect Wallet to Invest'
+                ) : isEligible === false ? (
+                  'Not Eligible to Invest'
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     Confirm Investment
