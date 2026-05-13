@@ -302,10 +302,16 @@ export default function AdminInvestmentsPage() {
       const amountFloat = parseFloat(tokenAmountInput);
       const amountBN = new BN(Math.floor(amountFloat * Math.pow(10, decimals)));
 
-      // Convert txHash to [u8; 64]
+      // Convert txHash string (base58) to binary bytes [u8; 64]
       const txHashBytes = new Uint8Array(64);
-      const inputBytes = Buffer.from(txHashInput);
-      txHashBytes.set(inputBytes.slice(0, 64));
+      try {
+        const decoded = bs58.decode(txHashInput);
+        txHashBytes.set(decoded.slice(0, 64));
+      } catch (e) {
+        // Fallback for non-base58 inputs (like legacy 64-char hex strings)
+        const inputBytes = Buffer.from(txHashInput);
+        txHashBytes.set(inputBytes.slice(0, 64));
+      }
 
       const investorTokenAccount = await getAssociatedTokenAddress(
         projectData.mint, 
@@ -579,7 +585,7 @@ export default function AdminInvestmentsPage() {
                                       className="text-[11px] text-green-400 hover:text-green-300 flex items-center gap-2 transition-colors group/tx font-mono bg-green-500/5 px-2 py-1 rounded border border-green-500/10"
                                     >
                                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                      <span className="font-bold opacity-90 text-white/70">Settlement:</span>
+                                      <span className="font-bold opacity-90 text-white/70">Settled:</span>
                                       <span>{inv.finalized_tx_hash.slice(0, 12)}...{inv.finalized_tx_hash.slice(-8)}</span>
                                     </a>
                                     <button 
@@ -597,7 +603,7 @@ export default function AdminInvestmentsPage() {
                                 ) : (
                                   <span className="text-[11px] text-gray-600 flex items-center gap-2 px-2 py-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-gray-700"></span>
-                                    <span className="font-bold opacity-70">Settlement:</span>
+                                    <span className="font-bold opacity-70">Settled:</span>
                                     <span>Pending</span>
                                   </span>
                                 )}

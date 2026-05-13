@@ -181,7 +181,7 @@ function ProjectCard({
       style={{ animationDelay: `${index * 120}ms` }}
     >
       {/* Image / Header */}
-      <div className="relative h-56 bg-gradient-to-br from-gold/20 via-gold/10 to-gold-dark/20 flex items-center justify-center overflow-hidden">
+      <Link href={`/projects/${project.slug}`} className="block relative h-56 bg-gradient-to-br from-gold/20 via-gold/10 to-gold-dark/20 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-navy/40 backdrop-blur-sm" />
         {project.images && project.images[0] ? (
           <img
@@ -227,13 +227,15 @@ function ProjectCard({
             </span>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Body */}
       <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors">
-          {project.name}
-        </h3>
+        <Link href={`/projects/${project.slug}`}>
+          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors cursor-pointer hover:underline underline-offset-4">
+            {project.name}
+          </h3>
+        </Link>
         <p className="text-gray-400 text-sm mb-1 flex items-center gap-2">
           <svg className="w-4 h-4 text-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

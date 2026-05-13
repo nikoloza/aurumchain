@@ -9,35 +9,35 @@ import type { InvestmentStatus } from '../shared/types';
 // Investment model
 export const investmentSchema = z.object({
   id: uuidSchema,
-  userId: uuidSchema,
-  projectId: uuidSchema,
-  offeringId: uuidSchema.optional(),
+  user_id: uuidSchema,
+  project_id: uuidSchema,
+  offering_id: uuidSchema.optional(),
 
   // Investment amounts
   amount: moneySchema,
-  tokensPurchased: tokenAmountSchema,
-  tokenPriceAtPurchase: moneySchema,
+  tokens_purchased: tokenAmountSchema,
+  token_price_at_purchase: moneySchema,
 
   // Status
-  status: z.enum(['pending', 'completed', 'cancelled', 'refunded'] as const) as z.ZodType<InvestmentStatus>,
+  status: z.enum(['pending', 'approved', 'completed', 'cancelled', 'refunded'] as const) as z.ZodType<InvestmentStatus>,
 
   // Blockchain tracking
-  transactionHash: z.string().optional(),
-  blockchainSubscriptionId: z.string().optional(), // On-chain numeric ID
-  investorWallet: z.string().optional(),           // Public key of investor
-  blockNumber: z.bigint().optional(),
+  transaction_hash: z.string().optional(),
+  blockchain_subscription_id: z.string().optional(), // On-chain numeric ID
+  investor_wallet: z.string().optional(),           // Public key of investor
+  block_number: z.bigint().optional(),
   confirmed: z.boolean().default(false),
 
 
   // Timestamps
-  investedAt: z.date(),
-  completedAt: z.date().optional(),
-  cancelledAt: z.date().optional(),
-  refundedAt: z.date().optional(),
+  invested_at: z.date(),
+  completed_at: z.date().optional(),
+  cancelled_at: z.date().optional(),
+  refunded_at: z.date().optional(),
 
   metadata: z.record(z.string(), z.unknown()).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 
 export type Investment = z.infer<typeof investmentSchema>;
@@ -45,27 +45,27 @@ export type Investment = z.infer<typeof investmentSchema>;
 // Portfolio position - aggregated view of user's holdings in a project
 export const portfolioPositionSchema = z.object({
   id: uuidSchema,
-  userId: uuidSchema,
-  projectId: uuidSchema,
+  user_id: uuidSchema,
+  project_id: uuidSchema,
 
   // Holdings
-  totalTokens: tokenAmountSchema,
-  totalInvested: moneySchema,
-  averageTokenPrice: moneySchema,
+  total_tokens: tokenAmountSchema,
+  total_invested: moneySchema,
+  average_token_price: moneySchema,
 
   // Earnings
-  totalDividendsReceived: moneySchema.default(0),
-  totalDividendsPending: moneySchema.default(0),
-  totalReturn: moneySchema.default(0),
-  returnPercentage: z.number().default(0),
+  total_dividends_received: moneySchema.default(0),
+  total_dividends_pending: moneySchema.default(0),
+  total_return: moneySchema.default(0),
+  return_percentage: z.number().default(0),
 
   // Status
-  isActive: z.boolean().default(true),
-  closedAt: z.date().optional(),
+  is_active: z.boolean().default(true),
+  closed_at: z.date().optional(),
 
   metadata: z.record(z.string(), z.unknown()).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 
 export type PortfolioPosition = z.infer<typeof portfolioPositionSchema>;

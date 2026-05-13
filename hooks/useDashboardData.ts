@@ -275,8 +275,8 @@ export function useDashboardData() {
               invested_at: new Date(acc.createdAt.toNumber() * 1000).toISOString(),
               projects: project || { name: `Project #${blockchainId}` },
               is_on_chain: true,
-              minted_tx_hash: dbMatch?.minted_tx_hash || null, // Preserve DB hash or let Signature Finder fill it
-              finalized_tx_hash: acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : dbMatch?.finalized_tx_hash,
+              minted_tx_hash: dbMatch?.minted_tx_hash || null, // Preserve DB hash
+              finalized_tx_hash: dbMatch?.finalized_tx_hash || (acc.settlementTxHash ? bs58.encode(acc.settlementTxHash) : null),
               lockup_end: project?.lockup_end_date || project?.expected_completion_date || null
             };
             

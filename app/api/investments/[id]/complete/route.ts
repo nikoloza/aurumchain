@@ -38,13 +38,13 @@ export async function POST(
 
     // 2. TRIGGER ON-CHAIN SETTLEMENT (AC-BC-406)
     let solanaSignature = null;
-    if (investment.blockchainSubscriptionId && investment.investorWallet) {
+    if (investment.blockchain_subscription_id && investment.investor_wallet) {
       try {
         console.log(`[API] Triggering on-chain settlement for investment ${investmentId}...`);
         solanaSignature = await AdminBlockchainService.settleInvestment({
-          subscriptionId: parseInt(investment.blockchainSubscriptionId),
-          investor: investment.investorWallet,
-          allocatedTokenAmount: Number(investment.tokensPurchased),
+          subscriptionId: parseInt(investment.blockchain_subscription_id),
+          investor: investment.investor_wallet,
+          allocatedTokenAmount: Number(investment.tokens_purchased),
           paymentTxHash: investmentId, // Using DB ID as reference if no real hash exists
         });
         console.log(`[API] Settlement successful: ${solanaSignature}`);

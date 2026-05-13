@@ -302,9 +302,9 @@ export default function InvestmentsPage() {
                 <div className="flex flex-col gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                   {investment.investments?.map((inv: any, idx: number) => (
                     <div key={idx} className="space-y-1">
-                      {/* Mint Hash */}
+                      {/* Mint Hash (The transaction that issued the tokens) */}
                       <div className="text-[10px] font-mono bg-navy-dark px-2 py-1.5 rounded flex justify-between items-center border border-white/5">
-                        <span className="text-gray-400 mr-2 uppercase tracking-tighter">Minted:</span>
+                        <span className="text-gray-400 mr-2 uppercase tracking-tighter">Mint Hash:</span>
                         <span className="text-gray-300 truncate flex-1" title={inv.minted_tx_hash}>
                           {inv.minted_tx_hash ? `${inv.minted_tx_hash.slice(0, 8)}...${inv.minted_tx_hash.slice(-8)}` : "Pending"}
                         </span>
@@ -317,7 +317,7 @@ export default function InvestmentsPage() {
                         )}
                       </div>
                       
-                      {/* Finalize Hash */}
+                      {/* Settled Hash (The initial USDC transfer) */}
                       {inv.finalized_tx_hash && (
                         <div className="text-[10px] font-mono bg-gold/5 px-2 py-1.5 rounded flex justify-between items-center border border-gold/10">
                           <span className="text-gold/60 mr-2 uppercase tracking-tighter font-bold">Settled:</span>
