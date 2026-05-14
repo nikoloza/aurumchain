@@ -42,6 +42,21 @@ export class AdminService {
   }
 
   /**
+   * Get all admin user IDs
+   */
+  static async getAllAdmins(): Promise<string[]> {
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .in('role', ['admin', 'compliance_officer', 'super_admin'])
+      .is('revoked_at', null);
+
+    return (data || []).map(r => r.user_id);
+  }
+
+  /**
    * Get all roles for a user
    */
   static async getUserRoles(userId: string): Promise<UserRoleModel[]> {
