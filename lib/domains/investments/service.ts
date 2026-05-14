@@ -111,7 +111,7 @@ export class InvestmentsService {
     // Audit log
     await createAuditLog({
       eventType: 'investment_completed',
-      userId: investment.userId,
+      userId: investment.user_id,
       actorId: actorId,
       actorRole: 'admin',
       description: `Investment ${investmentId} completed`,

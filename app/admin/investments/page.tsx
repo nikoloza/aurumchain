@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, SystemProgram, ComputeBudgetProgram, Transaction } from '@solana/web3.js';
 import { BN, Program, AnchorProvider } from '@coral-xyz/anchor';
+import bs58 from 'bs58';
 import Link from 'next/link';
 import { InvestmentRepository } from '@/lib/web3/repositories/investmentRepository';
 import { ProjectRegistryService } from '@/lib/web3/services/projectRegistryService';
