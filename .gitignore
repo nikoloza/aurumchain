@@ -71,6 +71,7 @@ __tests__/
 **/id.json
 **/*.json
 !**/idl.json
+!lib/web3/idl/*.json
 !package.json
 !tsconfig.json
 !package-lock.json
