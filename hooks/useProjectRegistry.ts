@@ -3,7 +3,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { ProjectRegistryService } from '@/lib/web3/services/projectRegistryService';
 import { getProjectPDA } from '@/lib/web3/utils/pdaHelpers';
 
-import { PROJECT_REGISTRY_PROGRAM_ID } from '@/lib/web3/utils/programDiscoverer';
+import { PROJECT_REGISTRY_PROGRAM_ID } from '@/lib/web3/config/programs';
 
 /**
  * useProjectRegistry

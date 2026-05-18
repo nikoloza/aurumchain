@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import PayoutsTab from "./PayoutsTab";
 
-export default function TransactionsPage() {
+function TransactionsPageContent() {
   const { transactions: dbTransactions, loading } = useDashboardData();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -415,5 +415,17 @@ export default function TransactionsPage() {
         <PayoutsTab />
       )}
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-white text-xl animate-pulse">Loading transaction workspace...</div>
+      </div>
+    }>
+      <TransactionsPageContent />
+    </Suspense>
   );
 }

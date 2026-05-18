@@ -17,7 +17,6 @@ export interface EnrichedProject extends Project {
   token_symbol?: string | null;
   metadata_uri?: string | null;
   lockup_end_date?: string | null;
-  distribution_mode?: number | null; // Added to root (missing from base Project)
   onChain?: {
     symbol: string;
     uri: string;

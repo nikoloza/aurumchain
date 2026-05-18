@@ -896,6 +896,7 @@ export type Database = {
           round_limit_tokens: number | null
           current_round_issued: number | null
           distribution_cadence: number | null
+          distribution_mode: number | null
           token_decimals: number | null
           is_paused: boolean | null
           is_active: boolean | null
@@ -936,6 +937,7 @@ export type Database = {
           round_limit_tokens?: number | null
           current_round_issued?: number | null
           distribution_cadence?: number | null
+          distribution_mode?: number | null
           token_decimals?: number | null
           is_paused?: boolean | null
           is_active?: boolean | null
@@ -976,6 +978,7 @@ export type Database = {
           round_limit_tokens?: number | null
           current_round_issued?: number | null
           distribution_cadence?: number | null
+          distribution_mode?: number | null
           token_decimals?: number | null
           is_paused?: boolean | null
           is_active?: boolean | null

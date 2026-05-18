@@ -1,7 +1,39 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { createDefaultConnection } from "../config/rpc";
 import bs58 from "bs58";
+
+/**
+ * Custom NodeWallet implementation to bypass Next.js ESM build issues
+ * where '@coral-xyz/anchor' does not export a 'Wallet' class statically.
+ */
+class NodeWallet {
+  constructor(public payer: Keypair) {}
+
+  async signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T> {
+    if (tx instanceof Transaction) {
+      tx.partialSign(this.payer);
+    } else {
+      tx.sign([this.payer]);
+    }
+    return tx;
+  }
+
+  async signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> {
+    return txs.map((t) => {
+      if (t instanceof Transaction) {
+        t.partialSign(this.payer);
+      } else {
+        t.sign([this.payer]);
+      }
+      return t;
+    });
+  }
+
+  get publicKey() {
+    return this.payer.publicKey;
+  }
+}
 
 /**
  * ServerAnchorProvider factory
@@ -27,9 +59,9 @@ export function getServerAnchorProvider(): anchor.AnchorProvider {
   }
 
   const keypair = Keypair.fromSecretKey(secretKey);
-  const wallet = new anchor.Wallet(keypair);
+  const wallet = new NodeWallet(keypair);
 
-  return new anchor.AnchorProvider(connection, wallet, {
+  return new anchor.AnchorProvider(connection, wallet as any, {
     commitment: "confirmed",
     preflightCommitment: "confirmed",
   });
