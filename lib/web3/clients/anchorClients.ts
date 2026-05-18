@@ -2,9 +2,9 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
 
 // Directly import JSON IDLs
-import projectRegistryIdl from '../idl/project_registry.json';
-import complianceTransferIdl from '../idl/compliance_transfer.json';
-import distributionIdl from '../idl/allocation_distribution.json';
+import projectRegistryIdl from '@/lib/web3/idl/project_registry.json';
+import complianceTransferIdl from '@/lib/web3/idl/compliance_transfer.json';
+import distributionIdl from '@/lib/web3/idl/allocation_distribution.json';
 
 import { PROJECT_REGISTRY_PROGRAM_ID, COMPLIANCE_PROGRAM_ID, ALLOCATION_DISTRIBUTION_PROGRAM_ID } from '../config/programs';
 
