@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Connection, PublicKey } from '@solana/web3.js';
 import bs58 from 'bs58';
+import { BorshCoder, EventParser } from '@coral-xyz/anchor';
+import secondaryMarketIdl from '@/lib/web3/idl/secondary_market.json';
 
 // Use Service Role Key to bypass RLS for administrative indexing
 const supabase = createClient(
@@ -10,6 +12,13 @@ const supabase = createClient(
 );
 
 const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com');
+
+const SECONDARY_MARKET_PROGRAM_ID = new PublicKey(
+  process.env.NEXT_PUBLIC_SECONDARY_MARKET_PROGRAM_ID || '8sQeYFf2kDEM33n3ZjnwEsMqwriR6eFNhjtAg7J5Lo6c'
+);
+
+const marketCoder = new BorshCoder(secondaryMarketIdl as any);
+const marketEventParser = new EventParser(SECONDARY_MARKET_PROGRAM_ID, marketCoder);
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +49,9 @@ export async function POST(req: Request) {
       }
       if (programName === 'Distribution' || programName === 'All') {
         results.payouts = await syncPayouts();
+      }
+      if (programName === 'SecondaryMarket' || programName === 'All') {
+        results.secondaryMarket = await syncSecondaryMarket(signature);
       }
 
       return NextResponse.json({ success: true, message: 'Global Sync Complete', results });
@@ -401,4 +413,306 @@ async function syncPayouts() {
   }
 
   return { epochsUpdated, recordsUpdated };
+}
+
+async function syncSecondaryMarket(signature?: string) {
+  console.log(`[INDEXER] Syncing Secondary Market... signature: ${signature || 'none'}`);
+  const { data: projects } = await supabase.from('projects').select('*');
+  const { data: profiles } = await supabase.from('profiles').select('*');
+
+  let updated = 0;
+
+  // 1. Process Event Logs if signature is provided
+  if (signature) {
+    try {
+      const txInfo = await connection.getParsedTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: 'confirmed'
+      });
+
+      if (txInfo && txInfo.meta?.logMessages) {
+        const events = marketEventParser.parseLogs(txInfo.meta.logMessages);
+        for (const event of events) {
+          const eventData: any = event.data;
+          console.log(`[INDEXER] [SecondaryMarket] Parsed event: ${event.name}`, eventData);
+
+          if (event.name === 'OrderCreated') {
+            const sellerWallet = eventData.seller.toBase58();
+            const mintAddress = eventData.projectMint.toBase58();
+            
+            const profile = profiles?.find((p: any) => 
+              p.wallet_address?.toLowerCase() === sellerWallet.toLowerCase() ||
+              p.crypto_wallet_address?.toLowerCase() === sellerWallet.toLowerCase()
+            );
+            
+            // Match project based on mint or fallbacks
+            const project = projects?.find((p: any) => 
+              (p.blockchain_mint_address && p.blockchain_mint_address.toLowerCase() === mintAddress.toLowerCase()) || 
+              (p.mint_address && p.mint_address.toLowerCase() === mintAddress.toLowerCase())
+            );
+
+            if (profile && project) {
+              const decimals = project.token_decimals || 6;
+              const tokenAmount = Number(eventData.amount) / Math.pow(10, decimals);
+              const pricePerToken = Number(eventData.pricePerToken) / 1_000_000;
+
+              // Read sequence from blockchain account
+              let sequence = 0n;
+              try {
+                const accInfo = await connection.getAccountInfo(eventData.orderId);
+                if (accInfo) {
+                  sequence = accInfo.data.readBigUInt64LE(96);
+                }
+              } catch (e) {}
+
+              await supabase.from('secondary_listings').upsert({
+                sell_order_pda: eventData.orderId.toBase58(),
+                investor_id: profile.id,
+                project_id: project.id,
+                token_amount: tokenAmount,
+                token_listing_price: pricePerToken,
+                sold: 0,
+                remaining: tokenAmount,
+                creation_tx: signature,
+                sequence: Number(sequence),
+                status: 'active',
+                created_at: new Date(Number(eventData.timestamp) * 1000).toISOString(),
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'sell_order_pda' });
+              
+              updated++;
+            }
+          }
+
+          if (event.name === 'OrderCancelled') {
+            const orderPda = eventData.orderId.toBase58();
+            await supabase.from('secondary_listings')
+              .update({
+                status: 'cancelled',
+                cancelled_tx: signature,
+                cancelled_at: new Date(Number(eventData.timestamp) * 1000).toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('sell_order_pda', orderPda);
+            
+            updated++;
+          }
+
+          if (event.name === 'OrderFilled') {
+            const orderPda = eventData.orderId.toBase58();
+            const buyerWallet = eventData.buyer.toBase58();
+            
+            const buyerProfile = profiles?.find((p: any) => 
+              p.wallet_address?.toLowerCase() === buyerWallet.toLowerCase() ||
+              p.crypto_wallet_address?.toLowerCase() === buyerWallet.toLowerCase()
+            );
+
+            // Fetch listing record
+            const { data: listing } = await supabase.from('secondary_listings')
+              .select('*')
+              .eq('sell_order_pda', orderPda)
+              .maybeSingle();
+
+            if (listing && buyerProfile) {
+              const project = projects?.find((p: any) => p.id === listing.project_id);
+              const decimals = project?.token_decimals || 6;
+              const fillAmount = Number(eventData.amountFilled) / Math.pow(10, decimals);
+              const price = Number(eventData.pricePerToken) / 1_000_000;
+              const totalCost = fillAmount * price;
+
+              // Insert Trade Record
+              await supabase.from('secondary_trades').insert({
+                listing_id: listing.id,
+                project_id: listing.project_id,
+                seller_id: listing.investor_id,
+                buyer_id: buyerProfile.id,
+                token_amount: fillAmount,
+                paid_amount: totalCost,
+                trade_tx: signature,
+                created_at: new Date(Number(eventData.timestamp) * 1000).toISOString()
+              });
+
+              // Update listing balances
+              const newSold = Number(listing.sold) + fillAmount;
+              const newRemaining = Math.max(0, Number(listing.remaining) - fillAmount);
+              const newStatus = newRemaining === 0 ? 'filled' : 'active';
+
+              await supabase.from('secondary_listings')
+                .update({
+                  sold: newSold,
+                  remaining: newRemaining,
+                  status: newStatus,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', listing.id);
+
+              updated++;
+            }
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error(`[INDEXER] Error parsing tx logs for signature ${signature}:`, e.message);
+    }
+  }
+
+  // 2. Bulk State Reconciliation (Fallback / RECONCILE_ALL)
+  try {
+    const allOrders = await connection.getProgramAccounts(SECONDARY_MARKET_PROGRAM_ID, {
+      filters: [{ dataSize: 113 }]
+    });
+
+    const activePdasOnChain = new Set<string>();
+
+    for (const acc of allOrders) {
+      const orderPda = acc.pubkey.toBase58();
+      activePdasOnChain.add(orderPda);
+
+      const data = acc.account.data;
+      const sellerWallet = new PublicKey(data.slice(8, 40)).toBase58();
+      const mintAddress = new PublicKey(data.slice(40, 72)).toBase58();
+      const originalQuantityRaw = data.readBigUInt64LE(72);
+      const remainingQuantityRaw = data.readBigUInt64LE(80);
+      const pricePerTokenRaw = data.readBigUInt64LE(88);
+      const sequence = data.readBigUInt64LE(96);
+      const createdAtRaw = data.readBigUInt64LE(104);
+
+      const profile = profiles?.find((p: any) => 
+        p.wallet_address?.toLowerCase() === sellerWallet.toLowerCase() ||
+        p.crypto_wallet_address?.toLowerCase() === sellerWallet.toLowerCase()
+      );
+      const project = projects?.find((p: any) => 
+        (p.blockchain_mint_address && p.blockchain_mint_address.toLowerCase() === mintAddress.toLowerCase()) || 
+        (p.mint_address && p.mint_address.toLowerCase() === mintAddress.toLowerCase())
+      );
+
+      if (profile && project) {
+        const decimals = project.token_decimals || 6;
+        const originalQuantity = Number(originalQuantityRaw) / Math.pow(10, decimals);
+        const remainingQuantity = Number(remainingQuantityRaw) / Math.pow(10, decimals);
+        const pricePerToken = Number(pricePerTokenRaw) / 1_000_000;
+        const sold = originalQuantity - remainingQuantity;
+
+        // Fetch existing record
+        const { data: existing } = await supabase.from('secondary_listings')
+          .select('*')
+          .eq('sell_order_pda', orderPda)
+          .maybeSingle();
+
+        // If listing is not yet recorded, we reconstruct creation_tx from signatures history
+        let creationTx = 'reconciled';
+        if (!existing) {
+          try {
+            const sigs = await connection.getSignaturesForAddress(acc.pubkey, { limit: 10 });
+            if (sigs.length > 0) {
+              creationTx = sigs[sigs.length - 1].signature;
+            }
+          } catch (e) {}
+        }
+
+        await supabase.from('secondary_listings').upsert({
+          sell_order_pda: orderPda,
+          investor_id: profile.id,
+          project_id: project.id,
+          token_amount: originalQuantity,
+          token_listing_price: pricePerToken,
+          sold: sold,
+          remaining: remainingQuantity,
+          creation_tx: existing?.creation_tx || creationTx,
+          sequence: Number(sequence),
+          status: remainingQuantity === 0 ? 'filled' : 'active',
+          created_at: existing?.created_at || new Date(Number(createdAtRaw) * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'sell_order_pda' });
+
+        updated++;
+      }
+    }
+
+    // 3. Resolve Closed/Missing Listings in Database
+    const { data: dbActiveListings } = await supabase.from('secondary_listings')
+      .select('*')
+      .eq('status', 'active');
+
+    for (const listing of (dbActiveListings || [])) {
+      if (!activePdasOnChain.has(listing.sell_order_pda)) {
+        console.log(`[INDEXER] Listing PDA ${listing.sell_order_pda} closed on-chain. Resolving final state...`);
+        
+        const project = projects?.find((p: any) => p.id === listing.project_id);
+
+        try {
+          const sigs = await connection.getSignaturesForAddress(new PublicKey(listing.sell_order_pda), { limit: 10 });
+          if (sigs.length > 0) {
+            let statusResolved = false;
+            for (const sigInfo of sigs) {
+              const tx = await connection.getParsedTransaction(sigInfo.signature, {
+                maxSupportedTransactionVersion: 0,
+                commitment: 'confirmed'
+              });
+              if (tx && tx.meta?.logMessages) {
+                const events = marketEventParser.parseLogs(tx.meta.logMessages);
+                for (const event of events) {
+                  if (event.name === 'OrderCancelled') {
+                    await supabase.from('secondary_listings')
+                      .update({
+                        status: 'cancelled',
+                        cancelled_tx: sigInfo.signature,
+                        cancelled_at: new Date(Number(event.data.timestamp) * 1000).toISOString(),
+                        updated_at: new Date().toISOString()
+                      })
+                      .eq('id', listing.id);
+                    statusResolved = true;
+                    break;
+                  }
+                  if (event.name === 'OrderFilled') {
+                    const fillAmount = Number(event.data.amountFilled) / Math.pow(10, project?.token_decimals || 6);
+                    const newSold = Math.min(listing.token_amount, Number(listing.sold) + fillAmount);
+                    const newRemaining = Math.max(0, Number(listing.remaining) - fillAmount);
+                    
+                    await supabase.from('secondary_listings')
+                      .update({
+                        sold: newSold,
+                        remaining: newRemaining,
+                        status: newRemaining === 0 ? 'filled' : 'active',
+                        updated_at: new Date().toISOString()
+                      })
+                      .eq('id', listing.id);
+                    statusResolved = true;
+                    break;
+                  }
+                }
+              }
+              if (statusResolved) break;
+            }
+
+            if (!statusResolved) {
+              await supabase.from('secondary_listings')
+                .update({
+                  status: 'cancelled',
+                  cancelled_tx: sigs[0].signature,
+                  cancelled_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', listing.id);
+            }
+          } else {
+            const finalStatus = Number(listing.sold) > 0 ? 'filled' : 'cancelled';
+            await supabase.from('secondary_listings')
+              .update({
+                status: finalStatus,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', listing.id);
+          }
+        } catch (e: any) {
+          console.error(`[INDEXER] Error resolving closed listing ${listing.sell_order_pda}:`, e.message);
+        }
+      }
+    }
+
+  } catch (e: any) {
+    console.error(`[INDEXER] Error in bulk sync fallback:`, e.message);
+  }
+
+  return { updated };
 }

@@ -29,3 +29,9 @@ export const ALLOCATION_DISTRIBUTION_PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_ALLOCATION_DISTRIBUTION_PROGRAM_ID || 
   'EZXJQXX2vYoDrUP6JUcqeShhqKpSRuDecLK9JUiVzkTz'
 );
+
+// Secondary Market Program ID
+export const SECONDARY_MARKET_PROGRAM_ID = new PublicKey(
+  process.env.NEXT_PUBLIC_SECONDARY_MARKET_PROGRAM_ID || 
+  '8sQeYFf2kDEM33n3ZjnwEsMqwriR6eFNhjtAg7J5Lo6c'
+);

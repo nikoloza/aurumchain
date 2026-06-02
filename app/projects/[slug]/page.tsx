@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { InvestmentModal } from "../../_components/projects/InvestmentModal";
+import { BuyListingModal } from "../../_components/marketplace/BuyListingModal";
 
 // --- Types ---
 interface ProjectDetails {
@@ -46,6 +47,12 @@ export default function ProjectPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [secondaryListings, setSecondaryListings] = useState<any[]>([]);
+  const [loadingListings, setLoadingListings] = useState(false);
+  const [selectedListing, setSelectedListing] = useState<any | null>(null);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -65,6 +72,57 @@ export default function ProjectPage() {
 
     fetchData();
   }, [slug]);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (err) {
+        console.error("[ProjectPage] Error fetching user:", err);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const isLockupPassed = useMemo(() => {
+    if (!data?.project) return false;
+    const proj = data.project;
+    if (proj.status !== 'active') return false;
+    if (!proj.lockup_end_date) return false;
+    return new Date(proj.lockup_end_date).getTime() < Date.now();
+  }, [data?.project]);
+
+  const fetchSecondaryListings = async () => {
+    if (!isLockupPassed || !data?.project?.id) return;
+    setLoadingListings(true);
+    try {
+      const res = await fetch(`/api/secondary-market/listings?projectId=${data.project.id}&status=active`);
+      if (res.ok) {
+        const json = await res.json();
+        setSecondaryListings(json);
+      }
+    } catch (err) {
+      console.error("[ProjectPage] Error fetching secondary listings:", err);
+    } finally {
+      setLoadingListings(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLockupPassed && data?.project?.id) {
+      fetchSecondaryListings();
+    }
+  }, [isLockupPassed, data?.project?.id]);
+
+  const filteredListings = useMemo(() => {
+    if (!currentUserId) return secondaryListings;
+    return secondaryListings.filter(l => l.investor_id !== currentUserId);
+  }, [secondaryListings, currentUserId]);
 
   if (loading) {
     return (
@@ -195,10 +253,10 @@ export default function ProjectPage() {
                     <span className="text-gray-400">Total Supply Cap</span>
                     <span className="text-white font-bold">{formatTokens(supplyCap)} {onChain?.symbol}</span>
                   </div>
-                  {project.expected_completion_date && (
+                  {project.lockup_end_date && (
                     <div className="flex justify-between">
                       <span className="text-gray-400">Lockup End</span>
-                      <span className="text-white font-bold">{new Date(project.expected_completion_date).toLocaleDateString()}</span>
+                      <span className="text-white font-bold">{new Date(project.lockup_end_date).toLocaleDateString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xs pt-2">
@@ -272,65 +330,148 @@ export default function ProjectPage() {
             </div>
           </div>
 
-          {/* Recent Purchases Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-              <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              Recent Token Purchases
-            </h3>
-            <div className="glass rounded-2xl border border-gold/10 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-navy-dark/50 text-gray-400 uppercase text-xs border-b border-gold/10">
-                    <tr>
-                      <th className="px-6 py-4 font-medium">Time</th>
-                      <th className="px-6 py-4 font-medium">Investor</th>
-                      <th className="px-6 py-4 font-medium">Amount</th>
-                      <th className="px-6 py-4 font-medium">Tokens</th>
-                      <th className="px-6 py-4 font-medium">Transaction</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gold/5">
-                    {recentPurchases.length > 0 ? recentPurchases.map((tx, idx) => (
-                      <tr key={idx} className="hover:bg-gold/5 transition-colors">
-                        <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                          {new Date(tx.invested_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          <span className="block text-[10px]">{new Date(tx.invested_at).toLocaleDateString()}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-white font-medium">
-                            {tx.user ? [tx.user.first_name, tx.user.last_name].filter(Boolean).join(' ') : "Anonymous"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-green-400 font-bold">
-                          {formatCurrency(tx.amount)}
-                        </td>
-                        <td className="px-6 py-4 text-white">
-                          {formatTokens(tx.tokens_purchased)} {onChain?.symbol}
-                        </td>
-                        <td className="px-6 py-4">
-                          {tx.finalized_tx_hash ? (
-                            <a 
-                              href={`https://solscan.io/tx/${tx.finalized_tx_hash}?cluster=devnet`}
-                              target="_blank"
-                              className="text-gold hover:underline font-mono text-xs"
-                            >
-                              {truncateAddress(tx.finalized_tx_hash)}
-                            </a>
-                          ) : (
-                            <span className="text-gray-500 italic text-xs">Pending</span>
-                          )}
-                        </td>
-                      </tr>
-                    )) : (
+          {/* Recent Purchases Section & Secondary Listings */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Recent Purchases */}
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                Recent Token Purchases
+              </h3>
+              <div className="glass rounded-2xl border border-gold/10 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-navy-dark/50 text-gray-400 uppercase text-xs border-b border-gold/10">
                       <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">No recent purchases found.</td>
+                        <th className="px-6 py-4 font-medium">Time</th>
+                        <th className="px-6 py-4 font-medium">Investor</th>
+                        <th className="px-6 py-4 font-medium">Amount</th>
+                        <th className="px-6 py-4 font-medium">Tokens</th>
+                        <th className="px-6 py-4 font-medium">Transaction</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gold/5">
+                      {recentPurchases.length > 0 ? recentPurchases.map((tx, idx) => (
+                        <tr key={idx} className="hover:bg-gold/5 transition-colors">
+                          <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
+                            {new Date(tx.invested_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <span className="block text-[10px]">{new Date(tx.invested_at).toLocaleDateString()}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-white font-medium">
+                              {tx.user ? [tx.user.first_name, tx.user.last_name].filter(Boolean).join(' ') : "Anonymous"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-green-400 font-bold">
+                            {formatCurrency(tx.amount)}
+                          </td>
+                          <td className="px-6 py-4 text-white">
+                            {formatTokens(tx.tokens_purchased)} {onChain?.symbol}
+                          </td>
+                          <td className="px-6 py-4">
+                            {tx.finalized_tx_hash ? (
+                              <a 
+                                href={`https://solscan.io/tx/${tx.finalized_tx_hash}?cluster=devnet`}
+                                target="_blank"
+                                className="text-gold hover:underline font-mono text-xs"
+                              >
+                                {truncateAddress(tx.finalized_tx_hash)}
+                              </a>
+                            ) : (
+                              <span className="text-gray-500 italic text-xs">Pending</span>
+                            )}
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-500">No recent purchases found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
+
+            {/* Secondary Market Listings */}
+            {isLockupPassed && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Secondary Market Listings
+                </h3>
+                <div className="glass rounded-2xl border border-gold/10 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-navy-dark/50 text-gray-400 uppercase text-xs border-b border-gold/10">
+                        <tr>
+                          <th className="px-6 py-4 font-medium">Seller</th>
+                          <th className="px-6 py-4 font-medium">Available Amount</th>
+                          <th className="px-6 py-4 font-medium">Price (USDC)</th>
+                          <th className="px-6 py-4 font-medium">Total Value</th>
+                          <th className="px-6 py-4 font-medium text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gold/5">
+                        {filteredListings.length > 0 ? filteredListings.map((listing: any) => {
+                          const sellerAddr = listing.profiles?.wallet_address || listing.profiles?.crypto_wallet_address || '';
+                          const totalVal = Number(listing.remaining) * Number(listing.token_listing_price);
+                          return (
+                            <tr key={listing.id} className="hover:bg-gold/5 transition-colors group animate-fade-in">
+                              <td className="px-6 py-4 font-mono text-xs text-white">
+                                {sellerAddr ? `${sellerAddr.slice(0, 8)}...${sellerAddr.slice(-8)}` : 'Unknown'}
+                                {listing.investor_id === currentUserId && (
+                                  <span className="ml-2 px-1.5 py-0.5 rounded bg-gold/15 text-gold text-[9px] font-bold uppercase tracking-wider">
+                                    Your Listing
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-white font-bold">
+                                {formatTokens(listing.remaining)} {onChain?.symbol || 'Tokens'}
+                              </td>
+                              <td className="px-6 py-4 text-gold font-bold">
+                                ${Number(listing.token_listing_price).toFixed(2)}
+                              </td>
+                              <td className="px-6 py-4 text-gray-400">
+                                ${totalVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  onClick={() => {
+                                    setSelectedListing({
+                                      ...listing,
+                                      projects: {
+                                        ...listing.projects,
+                                        blockchain_project_id: project.blockchain_project_id,
+                                        blockchain_mint_address: project.blockchain_mint_address || project.mint_address,
+                                        accepted_stablecoin: project.accepted_stablecoin,
+                                        token_decimals: project.token_decimals
+                                      }
+                                    });
+                                    setIsBuyModalOpen(true);
+                                  }}
+                                  className="px-4 py-2 bg-gradient-to-r from-gold to-gold-light text-navy font-bold text-xs rounded-lg hover:scale-105 transition-all shadow-md shadow-gold/10"
+                                >
+                                  Buy
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        }) : (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                              No active listings from other sellers on the secondary market.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
@@ -470,6 +611,30 @@ export default function ProjectPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           project={project}
+        />
+      )}
+
+      {/* Buy Listing Modal */}
+      {isBuyModalOpen && selectedListing && (
+        <BuyListingModal
+          isOpen={isBuyModalOpen}
+          onClose={() => setIsBuyModalOpen(false)}
+          listing={selectedListing}
+          onSuccess={() => {
+            fetchSecondaryListings();
+            const reloadDetails = async () => {
+              try {
+                const res = await fetch(`/api/projects/${slug}/details`);
+                if (res.ok) {
+                  const json = await res.json();
+                  setData(json);
+                }
+              } catch (err) {
+                console.error(err);
+              }
+            };
+            reloadDetails();
+          }}
         />
       )}
     </div>

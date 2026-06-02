@@ -1,12 +1,61 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { createClient } from "@/lib/supabase/client";
+import { ListTokenModal } from "@/app/_components/portfolio/ListTokenModal";
 
 export default function PortfolioPage() {
-  const { stats, investments: dbInvestments, projects, loading } = useDashboardData();
+  const { stats, investments: dbInvestments, projects, loading, refresh } = useDashboardData();
   const [timeframe, setTimeframe] = useState<"1D" | "1W" | "1M" | "3M" | "1Y" | "ALL">("1M");
+
+  const [positions, setPositions] = useState<any[]>([]);
+  const [loadingPositions, setLoadingPositions] = useState(true);
+  const [selectedPosition, setSelectedPosition] = useState<any | null>(null);
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
+
+  const fetchPositions = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('portfolio_positions')
+        .select(`
+          *,
+          projects:project_id (
+            id,
+            name,
+            slug,
+            location,
+            country,
+            status,
+            token_symbol,
+            token_decimals,
+            blockchain_project_id,
+            mint_address,
+            images,
+            lockup_end_date
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPositions(data || []);
+    } catch (err) {
+      console.error("Error fetching positions:", err);
+    } finally {
+      setLoadingPositions(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPositions();
+  }, []);
 
   const portfolioStats = useMemo(() => ({
     totalValue: stats.portfolioValue,
@@ -19,25 +68,27 @@ export default function PortfolioPage() {
   }), [stats, projects]);
 
   const projectBreakdown = useMemo(() => {
-    return dbInvestments.map((inv: any, index: number) => {
-      const project = projects.find((p: any) => p.id === inv.project_id);
+    return positions.map((pos: any, index: number) => {
+      const project = pos.projects;
       const allocation = portfolioStats.totalValue > 0 
-        ? (Number(inv.amount) / portfolioStats.totalValue) * 100 
+        ? (Number(pos.total_invested) / portfolioStats.totalValue) * 100 
         : 0;
 
       return {
-        id: inv.id,
-        projectId: inv.project_id,
+        id: pos.id,
+        projectId: pos.project_id,
         name: project?.name || "Unknown Project",
         location: project?.location || "Global",
         allocation: Number(allocation.toFixed(1)),
-        value: Number(inv.amount),
-        returns: 0, // Placeholder
-        returnPercentage: 0, // Placeholder
+        value: Number(pos.total_invested),
+        returns: Number(pos.total_dividends_received || 0),
+        returnPercentage: pos.total_invested > 0 ? ((Number(pos.total_dividends_received || 0) / Number(pos.total_invested)) * 100).toFixed(1) : "0.0",
         status: project?.status || "active",
+        total_tokens: Number(pos.total_tokens),
+        projects: project,
       };
     }).sort((a: any, b: any) => b.value - a.value);
-  }, [dbInvestments, projects, portfolioStats.totalValue]);
+  }, [positions, portfolioStats.totalValue]);
 
   const performanceMetrics = [
     {
@@ -79,7 +130,7 @@ export default function PortfolioPage() {
     }
   };
 
-  if (loading) {
+  if (loading || loadingPositions) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-white text-xl">Loading portfolio analytics...</div>
@@ -168,7 +219,7 @@ export default function PortfolioPage() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <svg className="w-16 h-16 text-gold/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <h3 className="text-lg font-bold text-white mb-2">Portfolio Chart</h3>
               <p className="text-sm text-gray-400">Interactive chart showing portfolio growth over {timeframe}</p>
@@ -233,11 +284,11 @@ export default function PortfolioPage() {
           {projectBreakdown.map((project: any, index: number) => (
             <div
               key={project.id}
-              className="flex items-center justify-between p-4 bg-navy-dark rounded-lg border border-gold/10 hover:border-gold/30 transition-all"
+              className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-navy-dark rounded-lg border border-gold/10 hover:border-gold/30 transition-all gap-4"
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{
                     backgroundColor: [
                       "#FFD700",
@@ -250,7 +301,9 @@ export default function PortfolioPage() {
                 ></div>
                 <div>
                   <div className="text-sm font-bold text-white">{project.name}</div>
-                  <div className="text-xs text-gray-400 flex items-center gap-1">
+                  <div className="text-xs text-gray-400 flex items-center gap-2 mt-1">
+                    <span className="text-gold font-semibold">{project.total_tokens.toLocaleString()} {project.projects?.token_symbol || 'Tokens'}</span>
+                    <span>•</span>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -260,18 +313,18 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6">
+              <div className="flex flex-wrap items-center justify-end gap-4 md:gap-6">
                 <div className="text-right">
                   <div className="text-sm font-bold text-white">${project.value.toLocaleString()}</div>
                   <div className="text-xs text-gray-400">{project.allocation}% allocation</div>
                 </div>
 
                 <div className="text-right">
-                  <div className={`text-sm font-bold ${project.returnPercentage > 0 ? 'text-green-400' : 'text-gray-400'}`}>
-                    {project.returnPercentage > 0 ? '+' : ''}{project.returnPercentage}%
+                  <div className={`text-sm font-bold ${Number(project.returns) > 0 ? 'text-green-400' : 'text-gray-400'}`}>
+                    {Number(project.returns) > 0 ? '+' : ''}{project.returnPercentage}%
                   </div>
                   <div className="text-xs text-gray-400">
-                    {project.returns > 0 ? `+$${project.returns.toLocaleString()}` : '$0'}
+                    {Number(project.returns) > 0 ? `+$${Number(project.returns).toLocaleString()}` : '$0'}
                   </div>
                 </div>
 
@@ -281,14 +334,32 @@ export default function PortfolioPage() {
                   </span>
                 </div>
 
-                <Link
-                  href={`/projects`}
-                  className="text-gold hover:text-gold-light transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                <div className="flex items-center gap-2">
+                  {project.total_tokens > 0 && project.status === 'active' && project.projects?.lockup_end_date && new Date(project.projects.lockup_end_date).getTime() < Date.now() && (
+                    <button
+                      onClick={() => {
+                        setSelectedPosition({
+                          total_tokens: project.total_tokens,
+                          project_id: project.projectId,
+                          projects: project.projects
+                        });
+                        setIsListModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 bg-gold/10 border border-gold/30 hover:bg-gold hover:text-navy text-gold text-xs font-semibold rounded-lg transition-all"
+                    >
+                      List for Sale
+                    </button>
+                  )}
+
+                  <Link
+                    href={`/projects/${project.projects?.slug || ''}`}
+                    className="text-gold hover:text-gold-light p-1.5 rounded hover:bg-gold/10 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -343,6 +414,16 @@ export default function PortfolioPage() {
           </div>
         </div>
       </div>
+
+      <ListTokenModal
+        isOpen={isListModalOpen}
+        onClose={() => setIsListModalOpen(false)}
+        position={selectedPosition}
+        onSuccess={() => {
+          fetchPositions();
+          refresh();
+        }}
+      />
     </div>
   );
 }

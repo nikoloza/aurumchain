@@ -54,8 +54,8 @@ export default function InvestmentsPage() {
         shares: group.totalTokens,
         status: project?.status || "pending",
         investmentDate: group.latestDate,
-        expectedCompletion: project?.expected_completion_date || "2025-12-31",
-        lockupEnd: group.latestLockup || project?.lockup_end || null,
+        expectedCompletion: project?.expected_completion_date || null,
+        lockupEnd: project?.lockup_end_date || group.latestLockup || null,
         fundingProgress: project?.funding_goal 
           ? Math.min(100, Math.floor((project.current_funding / project.funding_goal) * 100)) 
           : 0,

@@ -23,7 +23,8 @@ export class PortfolioService {
           location,
           country,
           status,
-          images
+          images,
+          lockup_end_date
         )
       `)
       .eq('user_id', userId)

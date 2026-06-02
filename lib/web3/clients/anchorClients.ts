@@ -5,8 +5,14 @@ import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
 import projectRegistryIdl from '@/lib/web3/idl/project_registry.json';
 import complianceTransferIdl from '@/lib/web3/idl/compliance_transfer.json';
 import distributionIdl from '@/lib/web3/idl/allocation_distribution.json';
+import secondaryMarketIdl from '@/lib/web3/idl/secondary_market.json';
 
-import { PROJECT_REGISTRY_PROGRAM_ID, COMPLIANCE_PROGRAM_ID, ALLOCATION_DISTRIBUTION_PROGRAM_ID } from '../config/programs';
+import { 
+  PROJECT_REGISTRY_PROGRAM_ID, 
+  COMPLIANCE_PROGRAM_ID, 
+  ALLOCATION_DISTRIBUTION_PROGRAM_ID,
+  SECONDARY_MARKET_PROGRAM_ID
+} from '../config/programs';
 
 /**
  * Anchor Client Factories
@@ -51,4 +57,12 @@ export const getComplianceProgram = (connection: Connection, wallet?: any) => {
 export const getDistributionProgram = (connection: Connection, wallet?: any) => {
   const provider = getProvider(connection, wallet);
   return new Program(distributionIdl as Idl, ALLOCATION_DISTRIBUTION_PROGRAM_ID, provider);
+};
+
+/**
+ * Returns a typed instance of the Secondary Market program.
+ */
+export const getSecondaryMarketProgram = (connection: Connection, wallet?: any) => {
+  const provider = getProvider(connection, wallet);
+  return new Program(secondaryMarketIdl as Idl, SECONDARY_MARKET_PROGRAM_ID, provider);
 };

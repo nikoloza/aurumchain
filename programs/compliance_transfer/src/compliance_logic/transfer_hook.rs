@@ -21,7 +21,7 @@ pub fn handle_initialize_extra_account_meta_list(
         ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal { bytes: b"eligibility".to_vec() },
-                Seed::AccountKey { index: 0 }, // Source (Owner)
+                Seed::AccountKey { index: 3 }, // Source (Owner)
             ],
             false,
             false,
@@ -30,7 +30,7 @@ pub fn handle_initialize_extra_account_meta_list(
         ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal { bytes: b"eligibility".to_vec() },
-                Seed::AccountKey { index: 2 }, // Destination (Owner)
+                Seed::AccountData { account_index: 2, data_index: 32, length: 32 }, // Destination (Owner) extracted from Token Account Data
             ],
             false,
             false,
@@ -49,6 +49,12 @@ pub fn handle_initialize_extra_account_meta_list(
     // Initialize the ExtraAccountMetaList account
     let account = &ctx.accounts.extra_account_meta_list;
     let mut data = account.try_borrow_mut_data()?;
+    
+    // Wipe existing data to allow re-initialization for legacy tokens
+    for byte in data.iter_mut() {
+        *byte = 0;
+    }
+    
     ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &account_metas)?;
 
     Ok(())
@@ -108,7 +114,7 @@ pub fn handle_transfer_hook(accounts: &TransferHook, _amount: u64) -> Result<()>
 #[derive(Accounts)]
 pub struct InitializeExtraAccountMetaList<'info> {
     #[account(
-        init,
+        init_if_needed,
         seeds = [b"extra-account-metas", mint.key().as_ref()],
         bump,
         payer = payer,
