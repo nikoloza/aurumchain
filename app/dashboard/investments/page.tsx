@@ -27,6 +27,14 @@ export default function InvestmentsPage() {
       acc[pId].totalAmount += Number(inv.amount || 0);
       acc[pId].totalTokens += Number(inv.tokens_purchased || 0);
       
+      if (inv.is_secondary) {
+        acc[pId].secondaryAmount = (acc[pId].secondaryAmount || 0) + Number(inv.amount || 0);
+        acc[pId].secondaryTokens = (acc[pId].secondaryTokens || 0) + Number(inv.tokens_purchased || 0);
+      } else {
+        acc[pId].primaryAmount = (acc[pId].primaryAmount || 0) + Number(inv.amount || 0);
+        acc[pId].primaryTokens = (acc[pId].primaryTokens || 0) + Number(inv.tokens_purchased || 0);
+      }
+      
       const invDate = new Date(inv.invested_at);
       const latestDate = new Date(acc[pId].latestDate);
       if (invDate > latestDate) {
@@ -52,6 +60,8 @@ export default function InvestmentsPage() {
         returns: 0,
         returnPercentage: 0,
         shares: group.totalTokens,
+        primaryTokens: group.primaryTokens || 0,
+        secondaryTokens: group.secondaryTokens || 0,
         status: project?.status || "pending",
         investmentDate: group.latestDate,
         expectedCompletion: project?.expected_completion_date || null,
@@ -279,8 +289,15 @@ export default function InvestmentsPage() {
                   <div className="text-lg font-bold text-white">${investment.investedAmount.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400 mb-1">Total Tokens Purchased</div>
+                  <div className="text-xs text-gray-400 mb-1">Total Tokens</div>
                   <div className="text-lg font-bold text-white">{investment.shares.toLocaleString()} Tokens</div>
+                  {investment.secondaryTokens > 0 && (
+                    <div className="text-[10px] text-gray-500 mt-1 flex gap-2">
+                      <span className="text-blue-400" title="Primary Market">{investment.primaryTokens.toLocaleString()} Direct</span>
+                      <span className="text-gray-600">|</span>
+                      <span className="text-purple-400" title="Secondary Market">{investment.secondaryTokens.toLocaleString()} Secondary</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 mb-1">Token Mint Address</div>

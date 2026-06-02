@@ -30,7 +30,7 @@ function TransactionsPageContent() {
     params.set("tab", tab);
     router.push(`/dashboard/transactions?${params.toString()}`);
   };
-  const [filterType, setFilterType] = useState<"all" | "investment" | "withdrawal" | "dividend" | "deposit" | "refund">("all");
+  const [filterType, setFilterType] = useState<"all" | "investment" | "withdrawal" | "dividend" | "deposit" | "refund" | "secondary_purchase" | "secondary_sale">("all");
   const [dateRange, setDateRange] = useState<"all" | "week" | "month" | "year">("all");
 
   const formatDate = (dateString: string) => {
@@ -96,9 +96,16 @@ function TransactionsPageContent() {
         );
       case "dividend":
       case "deposit":
+      case "secondary_sale":
         return (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+      case "secondary_purchase":
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         );
       default:
@@ -109,11 +116,13 @@ function TransactionsPageContent() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case "investment":
+      case "secondary_purchase":
         return "text-blue-400 bg-blue-400/10";
       case "withdrawal":
         return "text-red-400 bg-red-400/10";
       case "dividend":
       case "deposit":
+      case "secondary_sale":
         return "text-green-400 bg-green-400/10";
       default:
         return "text-gray-400 bg-gray-400/10";
@@ -287,6 +296,26 @@ function TransactionsPageContent() {
                   >
                     Withdrawals
                   </button>
+                  <button
+                    onClick={() => setFilterType("secondary_purchase")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      filterType === "secondary_purchase"
+                        ? "bg-gold text-navy"
+                        : "bg-navy-dark text-gray-400 hover:text-white border border-gold/20"
+                    }`}
+                  >
+                    Secondary Buys
+                  </button>
+                  <button
+                    onClick={() => setFilterType("secondary_sale")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      filterType === "secondary_sale"
+                        ? "bg-gold text-navy"
+                        : "bg-navy-dark text-gray-400 hover:text-white border border-gold/20"
+                    }`}
+                  >
+                    Secondary Sales
+                  </button>
                 </div>
               </div>
 
@@ -370,13 +399,13 @@ function TransactionsPageContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className={`text-sm font-bold ${
-                          transaction.type === "investment"
+                          (transaction.type === "investment" || transaction.type === "secondary_purchase")
                             ? "text-blue-400"
-                            : (transaction.type === "dividend" || transaction.type === "deposit")
+                            : (transaction.type === "dividend" || transaction.type === "deposit" || transaction.type === "secondary_sale")
                             ? "text-green-400"
                             : "text-red-400"
                         }`}>
-                          {(transaction.type === "withdrawal" || transaction.type === "investment") ? "-" : "+"}
+                          {(transaction.type === "withdrawal" || transaction.type === "investment" || transaction.type === "secondary_purchase") ? "-" : "+"}
                           ${Number(transaction.amount).toLocaleString()}
                         </div>
                       </td>

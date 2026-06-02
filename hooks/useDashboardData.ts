@@ -128,6 +128,11 @@ export function useDashboardData() {
         .eq("user_id", authUser.id)
         .order("created_at", { ascending: false });
 
+      const secondaryTradesPromise = supabase.from("secondary_trades")
+        .select(`*, projects(id, name, slug)`)
+        .or(`buyer_id.eq.${authUser.id},seller_id.eq.${authUser.id}`)
+        .order("created_at", { ascending: false });
+
       const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
       const kycPromise = supabase.from("kyc_profiles").select("status").eq("user_id", authUser.id).maybeSingle();
       const eligibilityPromise = supabase.from("eligibility_states").select("status, can_invest").eq("user_id", authUser.id).maybeSingle();
@@ -137,6 +142,7 @@ export function useDashboardData() {
         investmentsRes,
         transactionsRes,
         payoutsRes,
+        secondaryTradesRes,
         projectsRes,
         kycRes,
         eligibilityRes,
@@ -145,6 +151,7 @@ export function useDashboardData() {
         investmentsPromise,
         transactionsPromise,
         payoutsPromise,
+        secondaryTradesPromise,
         projectsPromise,
         kycPromise,
         eligibilityPromise
@@ -226,6 +233,42 @@ export function useDashboardData() {
             projects: payout.projects,
             description: `Dividend from ${payout.projects?.name || 'Project'}`,
             date: payout.paid_at || payout.created_at
+          });
+        }
+      });
+
+      const dbSecondaryTrades = secondaryTradesRes.data || [];
+      // 4. Add records from secondary_trades table
+      dbSecondaryTrades.forEach(trade => {
+        const id = trade.trade_tx || trade.id;
+        const isBuyer = trade.buyer_id === authUser.id;
+        
+        // Add to transactions
+        if (!transactionMap.has(id)) {
+          transactionMap.set(id, {
+            id,
+            type: isBuyer ? 'secondary_purchase' : 'secondary_sale',
+            amount: isBuyer ? trade.paid_amount : (trade.paid_amount * 0.985), // Seller pays 1.5% fee
+            status: 'completed',
+            created_at: trade.created_at,
+            projects: trade.projects,
+            description: isBuyer ? `Secondary Market Purchase of ${trade.projects?.name || 'Project'}` : `Secondary Market Sale of ${trade.projects?.name || 'Project'}`,
+            date: trade.created_at
+          });
+        }
+
+        // Add to investments (only for buyer)
+        if (isBuyer) {
+          allInvestments.push({
+            id: `sec_trade_${trade.id}`,
+            project_id: trade.project_id,
+            amount: trade.paid_amount,
+            tokens_purchased: trade.token_amount,
+            status: 'completed',
+            invested_at: trade.created_at,
+            projects: trade.projects,
+            is_secondary: true,
+            minted_tx_hash: trade.trade_tx
           });
         }
       });
