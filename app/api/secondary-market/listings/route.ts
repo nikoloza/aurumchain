@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
           country,
           token_symbol,
           token_decimals,
-          images
+          images,
+          mint_address,
+          blockchain_project_id
         ),
         profiles:investor_id (
           id,
