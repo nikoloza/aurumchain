@@ -36,7 +36,9 @@ const LENGTH_SIZE = 2;
 import { 
   getMetadataPDA, 
   getMintAuthorityPDA,
-  getExtraAccountMetaListPDA
+  getExtraAccountMetaListPDA,
+  getComplianceControlPDA,
+  getProjectPDA
 } from '../utils/pdaHelpers';
 import { COMPLIANCE_PROGRAM_ID } from '../config/programs';
 import { getComplianceProgram } from '../utils/programDiscoverer';
@@ -392,10 +394,23 @@ export class ProjectRegistryService {
       // Re-fetch blockhash for the second transaction to ensure freshness
       const { blockhash: blockhash2, lastValidBlockHeight: lastValidBlockHeight2 } = await this.connection.getLatestBlockhash('finalized');
 
+      const syncComplianceIx = await complianceProgram.methods
+        .syncMintCompliance()
+        .accounts({
+          control: getComplianceControlPDA(complianceProgram.programId),
+          authority: this.wallet.publicKey,
+          mintLookup: PublicKey.findProgramAddressSync([Buffer.from("mint_lookup"), mintAddress.toBuffer()], complianceProgram.programId)[0],
+          registryProject: getProjectPDA(nextId, this.repository.getProgramId()),
+          mint: mintAddress,
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .instruction();
+
       const transaction2 = new Transaction().add(
         priorityFeeIx,
         createProjectIx,
         setMintIx,
+        syncComplianceIx,
         handoverMintAuthIx
       );
 
