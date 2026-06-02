@@ -520,33 +520,42 @@ async function syncSecondaryMarket(signature?: string) {
               const price = Number(eventData.pricePerToken) / 1_000_000;
               const totalCost = fillAmount * price;
 
-              // Insert Trade Record
-              await supabase.from('secondary_trades').insert({
-                listing_id: listing.id,
-                project_id: listing.project_id,
-                seller_id: listing.investor_id,
-                buyer_id: buyerProfile.id,
-                token_amount: fillAmount,
-                paid_amount: totalCost,
-                trade_tx: signature,
-                created_at: new Date(Number(eventData.timestamp) * 1000).toISOString()
-              });
+              // Check for duplicate trade to prevent double-counting
+              const { data: existingTrade } = await supabase.from('secondary_trades')
+                .select('id')
+                .eq('trade_tx', signature)
+                .eq('listing_id', listing.id)
+                .maybeSingle();
 
-              // Update listing balances
-              const newSold = Number(listing.sold) + fillAmount;
-              const newRemaining = Math.max(0, Number(listing.remaining) - fillAmount);
-              const newStatus = newRemaining === 0 ? 'filled' : 'active';
+              if (!existingTrade) {
+                // Insert Trade Record
+                await supabase.from('secondary_trades').insert({
+                  listing_id: listing.id,
+                  project_id: listing.project_id,
+                  seller_id: listing.investor_id,
+                  buyer_id: buyerProfile.id,
+                  token_amount: fillAmount,
+                  paid_amount: totalCost,
+                  trade_tx: signature,
+                  created_at: new Date(Number(eventData.timestamp) * 1000).toISOString()
+                });
 
-              await supabase.from('secondary_listings')
-                .update({
-                  sold: newSold,
-                  remaining: newRemaining,
-                  status: newStatus,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('id', listing.id);
+                // Update listing balances
+                const newSold = Number(listing.sold) + fillAmount;
+                const newRemaining = Math.max(0, Number(listing.remaining) - fillAmount);
+                const newStatus = newRemaining === 0 ? 'filled' : 'active';
 
-              updated++;
+                await supabase.from('secondary_listings')
+                  .update({
+                    sold: newSold,
+                    remaining: newRemaining,
+                    status: newStatus,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', listing.id);
+
+                updated++;
+              }
             }
           }
         }
