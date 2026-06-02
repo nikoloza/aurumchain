@@ -45,7 +45,8 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
 
-  const [buyAmount, setBuyAmount] = useState('');
+  const [tokenAmountStr, setTokenAmountStr] = useState('');
+  const [usdcAmountStr, setUsdcAmountStr] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isEligible, setIsEligible] = useState<boolean | null>(null);
@@ -57,7 +58,8 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
     if (isOpen && listing) {
       setSuccess(false);
       setTxSig(null);
-      setBuyAmount('');
+      setTokenAmountStr('');
+      setUsdcAmountStr('');
       setError(null);
       checkEligibility();
     }
@@ -110,12 +112,33 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
   if (!isOpen || !listing) return null;
 
   const maxBuyAmount = listing.remaining;
-  const numericBuyAmount = parseFloat(buyAmount) || 0;
   const pricePerToken = listing.token_listing_price;
+
+  const handleTokenChange = (val: string) => {
+    setTokenAmountStr(val);
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0) {
+      setUsdcAmountStr((num * pricePerToken).toFixed(2));
+    } else {
+      setUsdcAmountStr('');
+    }
+  };
+
+  const handleUsdcChange = (val: string) => {
+    setUsdcAmountStr(val);
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0) {
+      const tokens = num / pricePerToken;
+      // Truncate/format to project decimals
+      const decimals = listing.projects.token_decimals || 6;
+      setTokenAmountStr(tokens.toFixed(decimals));
+    } else {
+      setTokenAmountStr('');
+    }
+  };
+
+  const numericBuyAmount = parseFloat(tokenAmountStr) || 0;
   const totalCost = numericBuyAmount * pricePerToken;
-  const feeBasisPoints = 150; // 1.5% fee matches market initialized config
-  const protocolFee = totalCost * (feeBasisPoints / 10000);
-  const totalWithFees = totalCost + protocolFee;
 
   const sellerWalletStr = listing.profiles.wallet_address || listing.profiles.crypto_wallet_address;
   const projectMintStr = listing.projects.blockchain_mint_address || listing.projects.mint_address;
@@ -261,42 +284,69 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
                 </div>
               </div>
 
-              <div className="relative group">
-                <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">Buy Amount</label>
-                <input
-                  type="number"
-                  value={buyAmount}
-                  onChange={(e) => setBuyAmount(e.target.value)}
-                  className="w-full bg-navy/50 border-2 border-gold/20 rounded-xl py-4 px-6 text-white text-xl font-bold focus:border-gold focus:outline-none transition-all group-hover:border-gold/40"
-                  placeholder="0.00"
-                  max={maxBuyAmount}
-                  step="any"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setBuyAmount(maxBuyAmount.toString())}
-                  className="absolute right-4 top-[70%] -translate-y-1/2 text-gold hover:text-gold-light text-xs font-bold"
-                >
-                  MAX
-                </button>
+              <div className="space-y-4">
+                <div className="relative group">
+                  <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Token Amount</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={tokenAmountStr}
+                      onChange={(e) => handleTokenChange(e.target.value)}
+                      className="w-full bg-navy/50 border border-gold/20 rounded-xl py-3 px-4 text-white text-lg font-bold focus:border-gold focus:outline-none transition-all group-hover:border-gold/40"
+                      placeholder="0.00"
+                      max={maxBuyAmount}
+                      step="any"
+                      required
+                    />
+                    <span className="absolute right-16 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">
+                      {listing.projects.token_symbol}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleTokenChange(maxBuyAmount.toString())}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gold hover:text-gold-light text-xs font-bold bg-gold/10 hover:bg-gold/20 px-2 py-1 rounded transition-colors"
+                    >
+                      MAX
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-center -my-2 relative z-10">
+                  <div className="bg-[#0A1628] border border-gold/20 rounded-full p-1.5 text-gold/50 shadow-sm">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="relative group">
+                  <label className="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">USDC Amount</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={usdcAmountStr}
+                      onChange={(e) => handleUsdcChange(e.target.value)}
+                      className="w-full bg-navy/50 border border-gold/20 rounded-xl py-3 px-4 text-white text-lg font-bold focus:border-gold focus:outline-none transition-all group-hover:border-gold/40"
+                      placeholder="0.00"
+                      step="any"
+                      required
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">
+                      USDC
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {numericBuyAmount > 0 && (
                 <div className="bg-navy/50 border border-gold/10 p-4 rounded-xl space-y-3 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Subtotal:</span>
-                    <span className="text-white">${totalCost.toFixed(2)} USDC</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Market Fee (1.5%):</span>
-                    <span className="text-white">${protocolFee.toFixed(2)} USDC</span>
-                  </div>
-                  <div className="h-[1px] bg-gold/10 my-1" />
                   <div className="flex justify-between text-sm font-bold">
                     <span className="text-gold">Total USDC Required:</span>
-                    <span className="text-gold">${totalWithFees.toFixed(2)} USDC</span>
+                    <span className="text-gold">${totalCost.toFixed(2)} USDC</span>
                   </div>
+                  <p className="text-gray-500 text-[10px] text-center italic mt-2">
+                    * No additional buyer fees. The 1.5% marketplace fee is paid by the seller.
+                  </p>
                 </div>
               )}
 

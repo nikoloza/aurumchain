@@ -277,15 +277,23 @@ export function ListTokenModal({ isOpen, onClose, position, onSuccess }: ListTok
               </div>
 
               {numericAmount > 0 && numericPrice > 0 && (
-                <div className="bg-navy/50 border border-gold/10 p-4 rounded-xl space-y-2 text-xs">
+                <div className="bg-navy/50 border border-gold/10 p-4 rounded-xl space-y-3 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Total Listing Value:</span>
+                    <span className="text-gray-400">Gross Proceeds:</span>
                     <span className="text-white font-bold">${totalProceeds.toFixed(2)} USDC</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Market Fee (0% for listings):</span>
-                    <span className="text-white">$0.00 USDC</span>
+                    <span className="text-gray-400">Market Fee (1.5% on sale):</span>
+                    <span className="text-red-400">-${(totalProceeds * 0.015).toFixed(2)} USDC</span>
                   </div>
+                  <div className="h-[1px] bg-gold/10 my-1" />
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-gold">Expected Net Earnings:</span>
+                    <span className="text-gold">${(totalProceeds * 0.985).toFixed(2)} USDC</span>
+                  </div>
+                  <p className="text-gray-500 text-[10px] text-center italic mt-2">
+                    * The 1.5% fee is automatically deducted from your earnings when a buyer fills this order.
+                  </p>
                 </div>
               )}
 
