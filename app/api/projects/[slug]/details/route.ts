@@ -47,6 +47,18 @@ export async function GET(
       console.error(`[API/projects/${slug}/details] Purchase error:`, purchaseError);
     }
 
+    // 2b. Fetch Secondary Trades
+    const { data: secTrades, error: secError } = await supabase
+      .from('secondary_trades')
+      .select('id, buyer_id, token_amount, price_per_token, paid_amount, trade_tx, created_at')
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (secError) {
+      console.error(`[API/projects/${slug}/details] Sec Trades error:`, secError);
+    }
+
     // 3. Fetch holders (all approved investments for aggregation)
     const { data: allInvestments, error: allError } = await supabase
       .from('investments')
@@ -59,36 +71,50 @@ export async function GET(
     }
 
     // 4. Fetch Profiles for all involved users
-    const userIds = Array.from(new Set([
-      ...(purchases?.map(p => p.user_id) || []),
-      ...(allInvestments?.map(i => i.user_id) || [])
-    ]));
+    const uniqueIds = new Set<string>();
+    
+    if (purchases) {
+      purchases.forEach(p => { if (p.user_id) uniqueIds.add(p.user_id); });
+    }
+    if (secTrades) {
+      secTrades.forEach(t => { if (t.buyer_id) uniqueIds.add(t.buyer_id); });
+    }
+    if (allInvestments) {
+      allInvestments.forEach(i => { if (i.user_id) uniqueIds.add(i.user_id); });
+    }
 
-    let profileMap = new Map();
+    const userIds = Array.from(uniqueIds);
+
+    // 4. Fetch profiles for those user IDs
+    let profiles: any[] = [];
     if (userIds.length > 0) {
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profilesData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, wallet_address')
+        .select('id, first_name, last_name, email, crypto_wallet_address, wallet_address')
         .in('id', userIds);
-      
-      if (profileError) {
-        console.error(`[API/projects/${slug}/details] Profile error:`, profileError);
-      } else if (profiles) {
-        profiles.forEach(p => profileMap.set(p.id, p));
+        
+      if (!profileError && profilesData) {
+        profiles = profilesData;
       }
     }
 
-    // 5. Aggregate Holders
+    // 5. Create profile map
+    const profileMap = new Map(profiles.map(p => [p.id, {
+      name: [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || 'Anonymous',
+      email: p.email,
+      wallet_address: p.crypto_wallet_address || p.wallet_address
+    }]));
+
+    // 5b. Aggregate Holders
     const holderMap = new Map();
     if (allInvestments) {
       allInvestments.forEach((h: any) => {
         const userId = h.user_id;
         const profile = profileMap.get(userId);
-        const fullName = profile ? [profile.first_name, profile.last_name].filter(Boolean).join(' ') : 'Anonymous';
         
         const current = holderMap.get(userId) || { 
           tokens: 0, 
-          name: fullName, 
+          name: profile?.name || 'Anonymous', 
           wallet: profile?.wallet_address || '—' 
         };
         current.tokens += Number(h.tokens_purchased);
@@ -101,10 +127,34 @@ export async function GET(
       .slice(0, 10);
 
     // 6. Enriched Purchases with user data
-    const enrichedPurchases = (purchases || []).map(p => ({
-      ...p,
-      user: profileMap.get(p.user_id) || null
-    }));
+    let mergedPurchases: any[] = [];
+    
+    if (purchases) {
+      mergedPurchases.push(...purchases.map(p => ({
+        ...p,
+        type: 'Primary',
+        token_price: Number(p.amount) / Number(p.tokens_purchased),
+        user: profileMap.get(p.user_id) || null
+      })));
+    }
+    
+    if (secTrades) {
+      mergedPurchases.push(...secTrades.map(t => ({
+        id: t.id,
+        amount: t.paid_amount,
+        tokens_purchased: t.token_amount,
+        invested_at: t.created_at,
+        status: 'approved', // trades are instantly settled
+        finalized_tx_hash: t.trade_tx,
+        type: 'Secondary',
+        token_price: Number(t.paid_amount) / Number(t.token_amount),
+        user: profileMap.get(t.buyer_id) || null
+      })));
+    }
+
+    // Sort combined by date descending
+    mergedPurchases.sort((a, b) => new Date(b.invested_at).getTime() - new Date(a.invested_at).getTime());
+    mergedPurchases = mergedPurchases.slice(0, 20);
 
     // 7. Fetch Payout Cycles
     const { data: payoutCycles, error: payoutError } = await supabase
@@ -171,7 +221,7 @@ export async function GET(
 
     return NextResponse.json({
       project: enrichedProject,
-      recentPurchases: enrichedPurchases,
+      recentPurchases: mergedPurchases,
       topHolders,
       payoutCycles: normalizedPayouts
     });

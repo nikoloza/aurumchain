@@ -14,9 +14,9 @@
 
 | Requirement | Status | Notes |
 |---|---|---|
-| `portfolio_positions.locked_tokens` field | ❌ **Missing** | `005_create_portfolio_positions.sql` does **not** define a `locked_tokens` column. The spec requires it to track escrowed tokens |
+| `portfolio_positions.locked_tokens` field | ✅ **Done** | Added via `018_add_secondary_market_safety_columns.sql` to safely track escrowed tokens |
 | `secondary_orders` table (with fields: order ID, seller ID, project ID, PDA address, original qty, remaining qty, price, status `open/filled/partially_filled/cancelled`, timestamps) | ⚠️ **Partial** | Table is named `secondary_listings` instead of `secondary_orders`. Statuses are `active/cancelled/filled` (missing `partially_filled` and `open`). Fields are otherwise aligned |
-| `secondary_trades` table (with fields: trade ID, order ID, buyer ID, seller ID, project ID, qty, price, total value, platform fee, fee recipient, Solana tx sig, timestamp) | ⚠️ **Partial** | Table exists as `secondary_trades`. **Missing**: platform fee amount column, fee recipient address column. Present: listing_id, buyer_id, seller_id, token_amount, paid_amount, trade_tx |
+| `secondary_trades` table (with fields: trade ID, order ID, buyer ID, seller ID, project ID, qty, price, total value, platform fee, fee recipient, Solana tx sig, timestamp) | ✅ **Done** | `platform_fee` and `fee_recipient` columns added via `018_add_secondary_market_safety_columns.sql`. |
 
 ---
 
@@ -24,8 +24,8 @@
 
 | Requirement | Status | Notes |
 |---|---|---|
-| **Order Locking trigger** — fires on new sell order, increments `locked_tokens` | ❌ **Missing** | No `locked_tokens` column exists, so no trigger for it. The on-chain escrow handles physical locking, but the DB-level `locked_tokens` balance tracking is absent |
-| **Order Cancellation trigger** — fires on cancel, decrements `locked_tokens` | ❌ **Missing** | Same reason — `locked_tokens` field doesn't exist |
+| **Order Locking trigger** — fires on new sell order, increments `locked_tokens` | ✅ **Done** | `sync_locked_tokens_from_listings` trigger added in `018_add_secondary_market_safety_columns.sql` to handle this dynamically |
+| **Order Cancellation trigger** — fires on cancel, decrements `locked_tokens` | ✅ **Done** | `sync_locked_tokens_from_listings` trigger added in `018_add_secondary_market_safety_columns.sql` to handle this dynamically |
 | **Trade Execution trigger** — deducts seller tokens, adds buyer tokens, initialises buyer position, recalculates average price | ✅ **Done** | `016_create_secondary_market_tables.sql` has `update_portfolio_positions_on_secondary_trade()` trigger which does all three steps correctly |
 
 ---

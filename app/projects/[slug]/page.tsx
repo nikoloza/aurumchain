@@ -101,7 +101,7 @@ export default function ProjectPage() {
     if (!isLockupPassed || !data?.project?.id) return;
     setLoadingListings(true);
     try {
-      const res = await fetch(`/api/secondary-market/listings?projectId=${data.project.id}&status=active`);
+      const res = await fetch(`/api/secondary-market/orderbook?projectId=${data.project.id}`);
       if (res.ok) {
         const json = await res.json();
         setSecondaryListings(json);
@@ -120,8 +120,7 @@ export default function ProjectPage() {
   }, [isLockupPassed, data?.project?.id]);
 
   const filteredListings = useMemo(() => {
-    if (!currentUserId) return secondaryListings;
-    return secondaryListings.filter(l => l.investor_id !== currentUserId);
+    return secondaryListings; // Show all aggregated pools
   }, [secondaryListings, currentUserId]);
 
   if (loading) {
@@ -344,8 +343,10 @@ export default function ProjectPage() {
                     <thead className="bg-navy-dark/50 text-gray-400 uppercase text-xs border-b border-gold/10">
                       <tr>
                         <th className="px-6 py-4 font-medium">Time</th>
+                        <th className="px-6 py-4 font-medium">Type</th>
                         <th className="px-6 py-4 font-medium">Investor</th>
-                        <th className="px-6 py-4 font-medium">Amount</th>
+                        <th className="px-6 py-4 font-medium">Total Paid</th>
+                        <th className="px-6 py-4 font-medium">Token Price</th>
                         <th className="px-6 py-4 font-medium">Tokens</th>
                         <th className="px-6 py-4 font-medium">Transaction</th>
                       </tr>
@@ -358,12 +359,27 @@ export default function ProjectPage() {
                             <span className="block text-[10px]">{new Date(tx.invested_at).toLocaleDateString()}</span>
                           </td>
                           <td className="px-6 py-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              tx.type === 'Primary' ? 'bg-gold/10 text-gold' : 'bg-blue-500/10 text-blue-400'
+                            }`}>
+                              {tx.type || 'Primary'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
                             <span className="text-white font-medium">
-                              {tx.user ? [tx.user.first_name, tx.user.last_name].filter(Boolean).join(' ') : "Anonymous"}
+                              {(() => {
+                                const name = tx.user ? [tx.user.first_name, tx.user.last_name].filter(Boolean).join(' ') : "";
+                                if (name) return name;
+                                if (tx.user?.wallet_address) return `${tx.user.wallet_address.slice(0, 6)}...${tx.user.wallet_address.slice(-4)}`;
+                                return "Anonymous";
+                              })()}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-green-400 font-bold">
                             {formatCurrency(tx.amount)}
+                          </td>
+                          <td className="px-6 py-4 text-gold font-mono text-xs">
+                            ${Number(tx.token_price || tokenPrice).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 text-white">
                             {formatTokens(tx.tokens_purchased)} {onChain?.symbol}
@@ -384,7 +400,7 @@ export default function ProjectPage() {
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-gray-500">No recent purchases found.</td>
+                          <td colSpan={7} className="px-6 py-12 text-center text-gray-500">No recent purchases found.</td>
                         </tr>
                       )}
                     </tbody>
@@ -416,23 +432,26 @@ export default function ProjectPage() {
                       </thead>
                       <tbody className="divide-y divide-gold/5">
                         {filteredListings.length > 0 ? filteredListings.map((listing: any) => {
-                          const sellerAddr = listing.profiles?.wallet_address || listing.profiles?.crypto_wallet_address || '';
-                          const totalVal = Number(listing.remaining) * Number(listing.token_listing_price);
+                          const totalVal = Number(listing.totalRemaining) * Number(listing.price);
                           return (
                             <tr key={listing.id} className="hover:bg-gold/5 transition-colors group animate-fade-in">
-                              <td className="px-6 py-4 font-mono text-xs text-white">
-                                {sellerAddr ? `${sellerAddr.slice(0, 8)}...${sellerAddr.slice(-8)}` : 'Unknown'}
-                                {listing.investor_id === currentUserId && (
-                                  <span className="ml-2 px-1.5 py-0.5 rounded bg-gold/15 text-gold text-[9px] font-bold uppercase tracking-wider">
-                                    Your Listing
-                                  </span>
-                                )}
+                              <td className="px-6 py-4 font-mono text-[10px] text-white">
+                                <div className="space-y-1 max-h-20 overflow-y-auto pr-1 custom-scrollbar">
+                                  {listing.sellers?.map((s: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between gap-2 items-center bg-navy/40 p-1 rounded border border-gold/5">
+                                      <span className="text-gold" title={s.address}>
+                                        {s.address.slice(0, 6)}...{s.address.slice(-4)}
+                                      </span>
+                                      <span className="text-gray-500">({formatTokens(s.remaining)} Qty)</span>
+                                    </div>
+                                  ))}
+                                </div>
                               </td>
-                              <td className="px-6 py-4 text-white font-bold">
-                                {formatTokens(listing.remaining)} {onChain?.symbol || 'Tokens'}
+                              <td className="px-6 py-4 text-white font-bold text-lg">
+                                {formatTokens(listing.totalRemaining)} <span className="text-sm font-normal text-gray-400">{onChain?.symbol || 'Tokens'}</span>
                               </td>
-                              <td className="px-6 py-4 text-gold font-bold">
-                                ${Number(listing.token_listing_price).toFixed(2)}
+                              <td className="px-6 py-4 text-gold font-bold text-lg">
+                                ${Number(listing.price).toFixed(2)}
                               </td>
                               <td className="px-6 py-4 text-gray-400">
                                 ${totalVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

@@ -49,6 +49,9 @@ The secondary market integration is designed as a modular addition to the curren
 
 To support the secondary market, the backend introduces two new entities and extends the user portfolio tracking model:
 
+> **Implementation Note:** During actual development, the table name `secondary_listings` and status `active` were chosen over `secondary_orders` and `open` because they better reflect the data's lifecycle, avoid disrupting live system configurations, and align better with the existing frontend schemas. This document retains the original proposed terminology for historical tracking.
+
+
 1.  **Portfolio Balance Extension (`portfolio_positions`)**:
     *   Adds a new balance field: `locked_tokens`. This tracks the portion of user-held project tokens currently listed in active sell orders on the secondary market.
     *   **Balance Safety Constraint**: The total number of `locked_tokens` is programmatically prevented from exceeding the user's `total_tokens` balance. The user's available token balance for transfers or new listings is calculated as: `total_tokens - locked_tokens`.

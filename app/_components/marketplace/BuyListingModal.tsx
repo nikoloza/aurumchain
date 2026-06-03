@@ -10,13 +10,12 @@ interface BuyListingModalProps {
   onClose: () => void;
   listing: {
     id: string;
-    sell_order_pda: string;
-    token_amount: number;
-    token_listing_price: number;
-    remaining: number;
-    sequence: number;
-    project_id: string;
-    investor_id: string;
+    projectId: string;
+    price: number;
+    totalRemaining: number;
+    totalOriginal: number;
+    listingCount: number;
+    sellers: { address: string; remaining: number }[];
     projects: {
       id: string;
       name: string;
@@ -29,13 +28,6 @@ interface BuyListingModalProps {
       blockchain_mint_address?: string;
       mint_address?: string;
       accepted_stablecoin?: string;
-    };
-    profiles: {
-      id: string;
-      first_name: string;
-      last_name: string;
-      wallet_address: string;
-      crypto_wallet_address: string;
     };
   } | null;
   onSuccess?: () => void;
@@ -111,8 +103,8 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
 
   if (!isOpen || !listing) return null;
 
-  const maxBuyAmount = listing.remaining;
-  const pricePerToken = listing.token_listing_price;
+  const maxBuyAmount = listing.totalRemaining;
+  const pricePerToken = listing.price;
 
   const handleTokenChange = (val: string) => {
     setTokenAmountStr(val);
@@ -140,9 +132,8 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
   const numericBuyAmount = parseFloat(tokenAmountStr) || 0;
   const totalCost = numericBuyAmount * pricePerToken;
 
-  const sellerWalletStr = listing.profiles.wallet_address || listing.profiles.crypto_wallet_address;
-  const projectMintStr = listing.projects.blockchain_mint_address || listing.projects.mint_address;
-  const stablecoinMintStr = listing.projects.accepted_stablecoin || process.env.NEXT_PUBLIC_USDC_MINT || 'AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf';
+  const projectMintStr = listing.projects?.blockchain_mint_address || listing.projects?.mint_address;
+  const stablecoinMintStr = listing.projects?.accepted_stablecoin || process.env.NEXT_PUBLIC_USDC_MINT || 'AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -167,55 +158,17 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
       return;
     }
 
-    if (!projectMintStr) {
-      setError('Project token mint address is missing.');
-      return;
-    }
-
     setIsSubmitting(true);
     setError(null);
 
     try {
-      if (!secondaryMarketService) throw new Error("Secondary Market service not initialized");
-      
-      console.log(`[BuyListingModal] Filling P2P order...`);
-      const { signature } = await secondaryMarketService.fillOrder({
-        seller: sellerWalletStr,
-        sequence: Number(listing.sequence),
-        amount: numericBuyAmount,
-        projectMint: projectMintStr,
-        stablecoinMint: stablecoinMintStr,
-        projectId: listing.projects.blockchain_project_id || 0,
-        tokenDecimals: listing.projects.token_decimals || 6
-      });
-
-      console.log(`[BuyListingModal] Fill success! Tx: ${signature}`);
-      setTxSig(signature);
-
-      // SNR: Trigger real-time sync immediately so the UI is snappy
-      try {
-        await fetch('/api/webhooks/solana', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            signature,
-            type: 'SYNC_TRIGGER',
-            programName: 'SecondaryMarket'
-          })
-        });
-      } catch (syncErr) {
-        console.warn("[BuyListingModal] Snappy sync webhook failed:", syncErr);
-      }
-
-      setSuccess(true);
-      if (onSuccess) onSuccess();
-
-      setTimeout(() => {
-        onClose();
-      }, 4000);
+      // TODO: Option B Implementation
+      // Instead of client-side tx generation, hit the new backend `/buy` API
+      // const res = await fetch('/api/secondary-market/buy', ...);
+      throw new Error("Secure backend integration in progress. Check back soon!");
     } catch (err: any) {
       console.error("[BuyListingModal] Fill order failed:", err);
-      setError(err.message || 'Failed to buy tokens on-chain.');
+      setError(err.message || 'Failed to buy tokens.');
     } finally {
       setIsSubmitting(false);
     }
@@ -269,8 +222,8 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
                 <span className="inline-flex items-center gap-2 bg-gold/10 border border-gold/30 rounded-full px-3 py-1 text-gold text-[10px] font-bold uppercase tracking-wider mb-2">
                   Buy from Secondary Listing
                 </span>
-                <h2 className="text-2xl font-bold text-white">Purchase {listing.projects.name}</h2>
-                <p className="text-xs text-gray-400">Seller: <span className="font-mono text-gold">{sellerWalletStr.slice(0, 8)}...{sellerWalletStr.slice(-8)}</span></p>
+                <h2 className="text-2xl font-bold text-white">Purchase {listing.projects?.name}</h2>
+                <p className="text-xs text-gray-400">Seller: <span className="font-mono text-gold italic">Anonymous Orderbook ({listing.listingCount} orders)</span></p>
               </div>
 
               <div className="bg-navy/40 border border-gold/10 p-4 rounded-xl space-y-2 text-sm">

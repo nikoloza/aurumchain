@@ -29,13 +29,14 @@ export default function TokenMarketplacePage() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/secondary-market/listings?status=active');
-      if (!res.ok) throw new Error('Failed to load listings');
+      // Hit the new Orderbook API instead of raw listings
+      const res = await fetch('/api/secondary-market/orderbook');
+      if (!res.ok) throw new Error('Failed to load orderbook');
       const data = await res.json();
       setListings(data);
     } catch (err: any) {
-      console.error("[TokenMarketplace] Error fetching listings:", err);
-      setError(err.message || 'Failed to fetch listings');
+      console.error("[TokenMarketplace] Error fetching orderbook:", err);
+      setError(err.message || 'Failed to fetch orderbook');
     } finally {
       setLoading(false);
     }
@@ -57,49 +58,6 @@ export default function TokenMarketplacePage() {
   const handleBuyClick = (listing: any) => {
     setSelectedListing(listing);
     setIsBuyModalOpen(true);
-  };
-
-  const handleCancelClick = async (listing: any) => {
-    if (!publicKey || !secondaryMarketService) return;
-    
-    if (!confirm("Are you sure you want to cancel this listing and refund your tokens from escrow?")) {
-      return;
-    }
-
-    setCancellingListingId(listing.id);
-    try {
-      console.log(`[TokenMarketplace] Cancelling order ${listing.id}...`);
-      const { signature } = await secondaryMarketService.cancelSellOrder({
-        sequence: Number(listing.sequence),
-        projectMint: listing.projects.blockchain_mint_address || listing.projects.mint_address,
-        projectId: listing.projects.blockchain_project_id || 0
-      });
-
-      console.log(`[TokenMarketplace] Cancel transaction signature: ${signature}`);
-
-      // Call API sync immediately
-      try {
-        await fetch('/api/webhooks/solana', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            signature,
-            type: 'SYNC_TRIGGER',
-            programName: 'SecondaryMarket'
-          })
-        });
-      } catch (syncErr) {
-        console.warn("[TokenMarketplace] Snappy cancel sync failed:", syncErr);
-      }
-
-      // Refresh listings
-      await fetchListings();
-    } catch (err: any) {
-      console.error("[TokenMarketplace] Cancel failed:", err);
-      alert(`Cancellation failed: ${err.message || err}`);
-    } finally {
-      setCancellingListingId(null);
-    }
   };
 
   const handleListTokenClick = async () => {
@@ -140,7 +98,6 @@ export default function TokenMarketplacePage() {
 
       if (error) throw error;
       
-      // Filter positions where lockup_end_date has passed, status is active, and user has tokens
       const filtered = (data || []).filter((pos: any) => {
         if (!pos.projects || Number(pos.total_tokens) <= 0) return false;
         if (pos.projects.status !== 'active') return false;
@@ -199,9 +156,6 @@ export default function TokenMarketplacePage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((listing) => {
-            const sellerWallet = listing.profiles.wallet_address || listing.profiles.crypto_wallet_address;
-            const isOwnListing = publicKey && sellerWallet.toLowerCase() === publicKey.toBase58().toLowerCase();
-
             return (
               <div 
                 key={listing.id} 
@@ -210,62 +164,46 @@ export default function TokenMarketplacePage() {
                 <div>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-gold mb-1">{listing.projects.name}</h3>
-                      <p className="text-xs text-gray-400">{listing.projects.location}, {listing.projects.country}</p>
+                      <h3 className="text-lg font-bold text-gold mb-1">{listing.projects?.name}</h3>
+                      <p className="text-xs text-gray-400">{listing.projects?.location}, {listing.projects?.country}</p>
                     </div>
                     <span className="bg-gold/10 text-gold text-xs px-3 py-1 rounded-full font-bold border border-gold/20">
-                      {listing.projects.token_symbol}
+                      {listing.projects?.token_symbol}
                     </span>
                   </div>
 
                   <div className="space-y-3 mb-6 bg-navy-dark/40 border border-gold/5 p-4 rounded-lg text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Price per Token:</span>
-                      <span className="text-white font-bold">${Number(listing.token_listing_price).toFixed(2)} USDC</span>
+                      <span className="text-white font-bold">${Number(listing.price).toFixed(2)} USDC</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Listed Qty:</span>
-                      <span className="text-white">{Number(listing.token_amount).toLocaleString()}</span>
+                      <span className="text-gray-400">Total Available:</span>
+                      <span className="text-white font-bold text-gold">{Number(listing.totalRemaining).toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Remaining Qty:</span>
-                      <span className="text-white font-bold text-gold">{Number(listing.remaining).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Seller:</span>
-                      <span className="text-gray-400 font-mono text-xs">
-                        {isOwnListing ? 'You' : `${sellerWallet.slice(0, 6)}...${sellerWallet.slice(-4)}`}
-                      </span>
+
+                    <div className="mt-4 pt-4 border-t border-gold/10 flex flex-col gap-2">
+                      <span className="text-gray-400 text-xs uppercase tracking-widest">Sellers in this pool:</span>
+                      <div className="max-h-24 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        {listing.sellers?.map((s: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center text-xs bg-[#0A1628] rounded p-2 border border-gold/10">
+                            <span className="text-gold font-mono truncate mr-2 text-[10px]" title={s.address}>
+                              {s.address}
+                            </span>
+                            <span className="text-white font-bold whitespace-nowrap">{s.remaining.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {isOwnListing ? (
-                  <button
-                    disabled={cancellingListingId === listing.id}
-                    onClick={() => handleCancelClick(listing)}
-                    className="w-full bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-white font-bold py-3 rounded-lg border border-red-500/30 transition-all text-sm flex items-center justify-center gap-2"
-                  >
-                    {cancellingListingId === listing.id ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Cancelling...
-                      </>
-                    ) : (
-                      'Cancel Listing'
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleBuyClick(listing)}
-                    className="w-full bg-gradient-to-r from-gold to-gold-light hover:from-gold-light hover:to-gold text-navy font-bold py-3 rounded-lg transition-all text-sm"
-                  >
-                    Buy Tokens
-                  </button>
-                )}
+                <button
+                  onClick={() => handleBuyClick(listing)}
+                  className="w-full bg-gradient-to-r from-gold to-gold-light hover:from-gold-light hover:to-gold text-navy font-bold py-3 rounded-lg transition-all text-sm"
+                >
+                  Buy Tokens
+                </button>
               </div>
             );
           })}

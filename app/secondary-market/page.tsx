@@ -32,7 +32,7 @@ export default function PublicSecondaryMarketPage() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/secondary-market/listings?status=active');
+      const res = await fetch('/api/secondary-market/orderbook');
       if (!res.ok) throw new Error('Failed to load listings');
       const data = await res.json();
       setListings(data);
@@ -100,9 +100,9 @@ export default function PublicSecondaryMarketPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((listing) => {
-              const sellerWallet = listing.profiles.wallet_address || listing.profiles.crypto_wallet_address;
-              const isOwnListing = publicKey && sellerWallet.toLowerCase() === publicKey.toBase58().toLowerCase();
-
+              // We removed 'isOwnListing' calculation here since sellers are grouped
+              // It's possible to check if ANY seller is the user, but for now we omit it
+              
               return (
                 <div 
                   key={listing.id} 
@@ -133,48 +133,49 @@ export default function PublicSecondaryMarketPage() {
                     <div className="space-y-4 mb-8 bg-navy-dark/60 border border-gold/10 p-5 rounded-xl text-sm shadow-inner">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400">Price per Token:</span>
-                        <span className="text-white font-bold text-lg">${Number(listing.token_listing_price).toFixed(2)} USDC</span>
+                        <span className="text-white font-bold text-lg">${Number(listing.price).toFixed(2)} USDC</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Available Qty:</span>
-                        <span className="text-gold font-bold">{Number(listing.remaining).toLocaleString()}</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Available:</span>
+                        <span className="text-white font-bold text-gold">{Number(listing.totalRemaining).toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Seller:</span>
-                        <span className="text-gray-400 font-mono text-xs bg-navy/50 px-2 py-1 rounded">
-                          {isOwnListing ? 'You' : `${sellerWallet.slice(0, 6)}...${sellerWallet.slice(-4)}`}
-                        </span>
+
+                      <div className="mt-4 pt-4 border-t border-gold/10 flex flex-col gap-2">
+                        <span className="text-gray-400 text-xs uppercase tracking-widest">Sellers in this pool:</span>
+                        <div className="max-h-24 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                          {listing.sellers?.map((s: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center text-xs bg-[#0A1628] rounded p-2 border border-gold/10">
+                              <span className="text-gold font-mono truncate mr-2 text-[10px]" title={s.address}>
+                                {s.address}
+                              </span>
+                              <span className="text-white font-bold whitespace-nowrap">{s.remaining.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {isOwnListing ? (
-                    <div className="text-center p-3 border border-gold/20 rounded-xl bg-gold/5">
-                      <p className="text-gold text-sm font-bold">This is your listing.</p>
-                      <p className="text-xs text-gray-400 mt-1">Manage it from your Dashboard.</p>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleBuyClick(listing)}
-                      className="w-full bg-gradient-to-r from-gold to-gold-light hover:scale-[1.02] active:scale-[0.98] text-navy font-bold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
-                    >
-                      {isAuthenticated ? (
-                        <>
-                          Buy Tokens
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                          </svg>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                          </svg>
-                          Log In to Buy
-                        </>
-                      )}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleBuyClick(listing)}
+                    className="w-full bg-gradient-to-r from-gold to-gold-light hover:scale-[1.02] active:scale-[0.98] text-navy font-bold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
+                  >
+                    {isAuthenticated ? (
+                      <>
+                        Buy Tokens
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        Log In to Buy
+                      </>
+                    )}
+                  </button>
                 </div>
               );
             })}
