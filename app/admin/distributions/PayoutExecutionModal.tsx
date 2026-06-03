@@ -79,7 +79,7 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
       // 6. Group by wallet and calculate totals
       const investorMap = new Map<string, InvestorData>();
       
-      positions?.forEach((pos) => {
+      positions?.forEach((pos: any) => {
         const walletAddr = userIdToWallet.get(pos.user_id);
         if (!walletAddr) return; // Skip if no wallet linked
         
