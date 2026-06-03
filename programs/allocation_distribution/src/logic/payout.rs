@@ -3,7 +3,7 @@ use anchor_spl::token_interface::{self, TokenInterface, TokenAccount, Mint};
 use crate::state::*;
 use crate::errors::DistributionError;
 
-pub fn handle_execute_payout(ctx: Context<ExecutePayout>) -> Result<()> {
+pub fn handle_execute_payout(ctx: Context<ExecutePayout>, snapshot_balance: u64) -> Result<()> {
     let epoch                  = &mut ctx.accounts.epoch;
     let payout_record          = &mut ctx.accounts.payout_record;
     let investor_token_account = &ctx.accounts.investor_token_account;
@@ -41,7 +41,7 @@ pub fn handle_execute_payout(ctx: Context<ExecutePayout>) -> Result<()> {
     }
 
     // 1. Calculate amount: (Balance * ProfitPerToken) / 10^ProjectDecimals
-    let balance = investor_token_account.amount;
+    let balance = snapshot_balance;
     let amount  = (balance as u128)
         .checked_mul(epoch.profit_per_token as u128)
         .ok_or(DistributionError::Overflow)?

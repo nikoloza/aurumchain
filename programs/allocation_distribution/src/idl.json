@@ -47,7 +47,7 @@
         { "name": "tokenProgram", "isMut": false, "isSigner": false },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": []
+      "args": [{ "name": "snapshotBalance", "type": "u64" }]
     }
   ],
   "accounts": [

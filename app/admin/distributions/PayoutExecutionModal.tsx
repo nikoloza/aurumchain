@@ -63,70 +63,28 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
         console.warn("Could not fetch mint decimals, falling back to 6.");
       }
 
-      // 3. Fetch all subscription accounts for this project
-      const subs = await complianceProgram.account.investmentSubscriptionAccount.all([
-        {
-          memcmp: {
-            offset: 48,
-            bytes: blockchainProjectId.toArrayLike(Buffer, 'le', 8).toString('base64'),
-            encoding: 'base64'
-          }
-        }
-      ]);
+      // 3. Fetch all portfolio positions for this project via Admin API (bypasses RLS)
+      const res = await fetch(`/api/admin/distributions/investors?projectId=${project.id}&epochId=${epoch.id}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to fetch investors");
+      }
+      const data = await res.json();
+      const positions = data.positions;
+      const paidUserIds = new Set(data.paidUserIds);
+      const userIdToWallet = new Map<string, string>(Object.entries(data.userIdToWallet));
 
-      console.log(`📊 Found ${subs.length} on-chain subscription records.`);
-
-      // 4. Fetch already paid records for this epoch from DB
-      const { data: paidRecords } = await supabase
-        .from('payout_records')
-        .select('user_id')
-        .eq('cycle_id', epoch.id);
-
-      const paidUserIds = new Set(paidRecords?.map(r => r.user_id) || []);
-
-      // 5. Resolve Profile UUIDs for the on-chain wallets (for DB syncing)
-      const allInvestorWallets = Array.from(new Set(subs.map((s: any) => s.account.investor.toBase58())));
-      
-      // Check both profiles and wallet_links
-      const [profilesRes, linksRes] = await Promise.all([
-        supabase.from('profiles').select('id, crypto_wallet_address').in('crypto_wallet_address', allInvestorWallets),
-        supabase.from('wallet_links').select('user_id, wallet_address').in('wallet_address', allInvestorWallets)
-      ]);
-
-      const walletToProfileId = new Map<string, string>();
-      profilesRes.data?.forEach(p => walletToProfileId.set(p.crypto_wallet_address, p.id));
-      linksRes.data?.forEach(l => {
-        if (!walletToProfileId.has(l.wallet_address)) {
-          walletToProfileId.set(l.wallet_address, l.user_id);
-        }
-      });
+      console.log(`📊 Found ${positions?.length || 0} DB portfolio records.`);
 
       // 6. Group by wallet and calculate totals
       const investorMap = new Map<string, InvestorData>();
       
-      subs.forEach((sub: any) => {
-        const walletAddr = sub.account.investor.toBase58();
-        const profileId = walletToProfileId.get(walletAddr) || walletAddr;
-
-        // Investment Amount in USDC (Human)
-        const amountUsdc = Number(sub.account.investmentAmount.toString()) / 1_000_000;
+      positions?.forEach((pos) => {
+        const walletAddr = userIdToWallet.get(pos.user_id);
+        if (!walletAddr) return; // Skip if no wallet linked
         
-        // Price at purchase (or current project price as fallback)
-        const tokenPrice = Number(project.token_price || 0.80); 
-        
-        // Expected tokens based on price
-        const expectedTokens = amountUsdc / tokenPrice;
-        
-        // Raw tokens from blockchain (scaled by detected decimals)
-        const rawTokensScaled = Number(sub.account.allocatedTokenAmount.toString()) / Math.pow(10, decimals);
-        
-        let tokens = rawTokensScaled;
-        if (expectedTokens > 0 && Math.abs(rawTokensScaled - expectedTokens) / expectedTokens > 0.1) {
-          tokens = expectedTokens;
-        }
-
-        // Skip if not allocated and zero
-        if (tokens <= 0 && sub.account.status.allocated === undefined) return;
+        const profileId = pos.user_id;
+        const tokens = pos.total_tokens;
 
         if (investorMap.has(walletAddr)) {
           const existing = investorMap.get(walletAddr)!;
@@ -275,8 +233,12 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
           );
 
           // 2. Execute Payout Instruction
+          let decimals = project.token_decimals || 6;
+          // Scale back to raw token amount since the smart contract expects it in lowest denomination
+          const snapshotBalance = new BN(Math.round(investor.tokensInvested * Math.pow(10, decimals)));
+          
           const ix = await program.methods
-            .executePayout()
+            .executePayout(snapshotBalance)
             .accounts({
               epoch: epochPda,
               payoutRecord: payoutRecordPda,

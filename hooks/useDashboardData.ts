@@ -29,6 +29,7 @@ export interface DashboardData {
   transactions: any[];
   portfolioPositions: any[];
   projects: any[];
+  secondaryListings: any[];
   loading: boolean;
   error: string | null;
 }
@@ -50,6 +51,7 @@ export function useDashboardData() {
     transactions: [],
     portfolioPositions: [],
     projects: [],
+    secondaryListings: [],
     loading: true,
     error: null,
   });
@@ -133,6 +135,11 @@ export function useDashboardData() {
         .or(`buyer_id.eq.${authUser.id},seller_id.eq.${authUser.id}`)
         .order("created_at", { ascending: false });
 
+      const secondaryListingsPromise = supabase.from("secondary_listings")
+        .select(`*`)
+        .eq("investor_id", authUser.id)
+        .eq("status", "active");
+
       const projectsPromise = fetch("/api/projects").then((res) => res.json()).catch(() => []);
       const kycPromise = supabase.from("kyc_profiles").select("status").eq("user_id", authUser.id).maybeSingle();
       const eligibilityPromise = supabase.from("eligibility_states").select("status, can_invest").eq("user_id", authUser.id).maybeSingle();
@@ -143,6 +150,7 @@ export function useDashboardData() {
         transactionsRes,
         payoutsRes,
         secondaryTradesRes,
+        secondaryListingsRes,
         projectsRes,
         kycRes,
         eligibilityRes,
@@ -152,6 +160,7 @@ export function useDashboardData() {
         transactionsPromise,
         payoutsPromise,
         secondaryTradesPromise,
+        secondaryListingsPromise,
         projectsPromise,
         kycPromise,
         eligibilityPromise
@@ -172,6 +181,7 @@ export function useDashboardData() {
       const dbInvestments = investmentsRes.data || [];
       const dbTransactions = transactionsRes.data || [];
       const dbPayouts = payoutsRes.data || [];
+      const dbSecondaryListings = secondaryListingsRes.data || [];
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
       const currentKycStatus = (kycRes.data as any)?.status || (kycRes.data as any)?.kyc_status || (profile?.kyc_verified ? 'approved' : 'not_started');
       
@@ -228,7 +238,7 @@ export function useDashboardData() {
             id,
             type: 'dividend',
             amount: payout.amount_due,
-            status: payout.status === 'paid' ? 'completed' : 'pending',
+            status: payout.status === 'completed' ? 'completed' : 'pending',
             created_at: payout.paid_at || payout.created_at,
             projects: payout.projects,
             description: `Dividend from ${payout.projects?.name || 'Project'}`,
@@ -242,6 +252,7 @@ export function useDashboardData() {
       dbSecondaryTrades.forEach(trade => {
         const id = trade.trade_tx || trade.id;
         const isBuyer = trade.buyer_id === authUser.id;
+        const isSeller = trade.seller_id === authUser.id;
         
         // Add to transactions
         if (!transactionMap.has(id)) {
@@ -264,6 +275,21 @@ export function useDashboardData() {
             project_id: trade.project_id,
             amount: trade.paid_amount,
             tokens_purchased: trade.token_amount,
+            status: 'completed',
+            invested_at: trade.created_at,
+            projects: trade.projects,
+            is_secondary: true,
+            minted_tx_hash: trade.trade_tx
+          });
+        }
+        
+        // Add negative investment for seller to reduce total token count
+        if (isSeller) {
+          allInvestments.push({
+            id: `sec_trade_sell_${trade.id}`,
+            project_id: trade.project_id,
+            amount: -trade.paid_amount,
+            tokens_purchased: -trade.token_amount,
             status: 'completed',
             invested_at: trade.created_at,
             projects: trade.projects,
@@ -447,6 +473,7 @@ export function useDashboardData() {
         transactions: allTransactions,
         portfolioPositions: allInvestments,
         projects,
+        secondaryListings: dbSecondaryListings,
         loading: false,
         error: null,
       });

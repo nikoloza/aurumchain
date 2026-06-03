@@ -28,7 +28,7 @@ pub mod allocation_distribution {
         handle_create_epoch(ctx, project_id, profit_per_token, token_decimals)
     }
 
-    pub fn execute_payout(ctx: Context<ExecutePayout>) -> Result<()> {
-        handle_execute_payout(ctx)
+    pub fn execute_payout(ctx: Context<ExecutePayout>, snapshot_balance: u64) -> Result<()> {
+        handle_execute_payout(ctx, snapshot_balance)
     }
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 export default function InvestmentsPage() {
-  const { stats, investments: dbInvestments, projects, loading } = useDashboardData();
+  const { stats, investments: dbInvestments, projects, secondaryListings, loading } = useDashboardData();
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "funded" | "completed">("all");
   const [sortBy, setSortBy] = useState<"date" | "amount" | "returns">("date");
 
@@ -71,7 +71,8 @@ export default function InvestmentsPage() {
           : 0,
         mint: project?.mint_address || onChain.mint,
         txHashes: txHashes,
-        investments: group.investments // Added this to fix the undefined .map() error
+        investments: group.investments, // Added this to fix the undefined .map() error
+        listedTokens: secondaryListings?.filter((l: any) => l.project_id === group.project_id).reduce((sum: number, l: any) => sum + Number(l.remaining || 0), 0) || 0
       };
     });
   }, [dbInvestments, projects]);
@@ -296,6 +297,13 @@ export default function InvestmentsPage() {
                       <span className="text-blue-400" title="Primary Market">{investment.primaryTokens.toLocaleString()} Direct</span>
                       <span className="text-gray-600">|</span>
                       <span className="text-purple-400" title="Secondary Market">{investment.secondaryTokens.toLocaleString()} Secondary</span>
+                    </div>
+                  )}
+                  {investment.listedTokens > 0 && (
+                    <div className="text-[10px] text-gray-500 mt-1 flex gap-2">
+                      <span className="text-orange-400 font-medium" title="Currently listed on Secondary Market">
+                        Marketplace Listed: {investment.listedTokens.toLocaleString()}
+                      </span>
                     </div>
                   )}
                 </div>

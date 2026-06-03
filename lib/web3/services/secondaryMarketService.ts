@@ -8,7 +8,13 @@ import {
   COMPLIANCE_PROGRAM_ID, 
   ALLOCATION_DISTRIBUTION_PROGRAM_ID 
 } from '../config/programs';
-import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { 
+  getAssociatedTokenAddressSync, 
+  TOKEN_2022_PROGRAM_ID, 
+  TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+  ASSOCIATED_TOKEN_PROGRAM_ID
+} from '@solana/spl-token';
 
 export class SecondaryMarketService {
   private program: Program;
@@ -380,7 +386,16 @@ export class SecondaryMarketService {
         microLamports: 50000, 
       });
 
-      const transaction = new Transaction().add(priorityFeeIx, instruction);
+      const createBuyerAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+        buyer,
+        buyerTokenAccount,
+        buyer,
+        projectMintPubkey,
+        TOKEN_2022_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+      );
+
+      const transaction = new Transaction().add(priorityFeeIx, createBuyerAtaIx, instruction);
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = buyer;
 
