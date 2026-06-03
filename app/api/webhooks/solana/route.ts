@@ -519,6 +519,8 @@ async function syncSecondaryMarket(signature?: string) {
               const fillAmount = Number(eventData.amountFilled) / Math.pow(10, decimals);
               const price = Number(eventData.pricePerToken) / 1_000_000;
               const totalCost = fillAmount * price;
+              const feeCharged = eventData.feeCharged ? Number(eventData.feeCharged) / 1_000_000 : 0;
+              const feeRecipient = process.env.NEXT_PUBLIC_TREASURY_WALLET || null;
 
               // Check for duplicate trade to prevent double-counting
               const { data: existingTrade } = await supabase.from('secondary_trades')
@@ -536,6 +538,8 @@ async function syncSecondaryMarket(signature?: string) {
                   buyer_id: buyerProfile.id,
                   token_amount: fillAmount,
                   paid_amount: totalCost,
+                  platform_fee: feeCharged,
+                  fee_recipient: feeRecipient,
                   trade_tx: signature,
                   created_at: new Date(Number(eventData.timestamp) * 1000).toISOString()
                 });
