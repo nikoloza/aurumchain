@@ -49,13 +49,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Update listing status to 'active'
-    await supabase.from('secondary_listings').update({
+    const { data, error: updateError } = await supabase.from('secondary_listings').update({
       status: 'active',
       creation_tx: signature,
       updated_at: new Date().toISOString()
     })
     .eq('sell_order_pda', sellOrderPda)
-    .eq('investor_id', user.id);
+    .eq('investor_id', user.id)
+    .select();
+
+    if (updateError || !data || data.length === 0) {
+      return NextResponse.json({ error: 'Listing not found or not owned by you.' }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
 

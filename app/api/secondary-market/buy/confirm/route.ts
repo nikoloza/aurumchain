@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { createDefaultConnection } from '@/lib/web3/config/rpc';
+import { SecondaryMarketService } from '@/lib/web3/services/secondaryMarketService';
+import { Keypair } from '@solana/web3.js';
 
 const confirmBuySchema = z.object({
   signature: z.string().min(1),
@@ -55,6 +57,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not confirm transaction on the blockchain.' }, { status: 400 });
     }
 
+    // Fetch live market config for accurate fee
+    const dummyWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: async (tx: any) => tx,
+      signAllTransactions: async (txs: any[]) => txs,
+    };
+    const service = new SecondaryMarketService(connection, dummyWallet as any);
+    let feeBasisPoints = 200; // default 2%
+    try {
+      const configData: any = await (service as any).program.account.marketConfig.fetch((service as any).getConfigPda());
+      feeBasisPoints = configData.feeBasisPoints;
+    } catch (e) {
+      console.warn("Could not fetch MarketConfig, defaulting to 2% fee", e);
+    }
+
     // Since transaction is confirmed on-chain, we apply database updates synchronously for immediate UI feedback.
     // Note: The indexer_watcher script will also process this, but it uses upserts/checks to prevent double counting.
 
@@ -85,7 +102,7 @@ export async function POST(request: NextRequest) {
 
       // 3. Create Trade Record
       const totalCost = fillAmount * chunk.pricePerToken;
-      const platformFee = totalCost * 0.02; // Assuming 2% fee, though indexer parses exact on-chain fee
+      const platformFee = totalCost * (feeBasisPoints / 10000);
       
       const { data: existingTrade } = await supabase.from('secondary_trades')
         .select('id')
@@ -104,54 +121,10 @@ export async function POST(request: NextRequest) {
           platform_fee: platformFee,
           trade_tx: signature,
         });
-
-        // 4. Update Portfolio Positions
-        // Deduct from seller
-        const { data: sellerPortfolio } = await supabase
-          .from('portfolio_positions')
-          .select('*')
-          .eq('user_id', listing.investor_id)
-          .eq('project_id', projectId)
-          .maybeSingle();
-          
-        if (sellerPortfolio) {
-          const avgPrice = Number(sellerPortfolio.average_token_price || 0);
-          const newTotalTokens = Math.max(0, Number(sellerPortfolio.total_tokens) - fillAmount);
-          const newInvested = Math.max(0, Number(sellerPortfolio.total_invested || 0) - (fillAmount * avgPrice));
-          await supabase.from('portfolio_positions').update({
-            total_tokens: newTotalTokens,
-            locked_tokens: Math.max(0, Number(sellerPortfolio.locked_tokens) - fillAmount),
-            total_invested: newInvested,
-            average_token_price: newTotalTokens > 0 ? newInvested / newTotalTokens : 0
-          }).eq('id', sellerPortfolio.id);
-        }
-
-        // Add to buyer
-        const { data: buyerPortfolio } = await supabase
-          .from('portfolio_positions')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('project_id', projectId)
-          .maybeSingle();
-
-        if (buyerPortfolio) {
-          const newTotalTokens = Number(buyerPortfolio.total_tokens) + fillAmount;
-          const newInvested = Number(buyerPortfolio.total_invested || 0) + totalCost;
-          await supabase.from('portfolio_positions').update({
-            total_tokens: newTotalTokens,
-            total_invested: newInvested,
-            average_token_price: newInvested / newTotalTokens
-          }).eq('id', buyerPortfolio.id);
-        } else {
-          await supabase.from('portfolio_positions').insert({
-            user_id: user.id,
-            project_id: projectId,
-            total_tokens: fillAmount,
-            locked_tokens: 0,
-            total_invested: totalCost,
-            average_token_price: totalCost / fillAmount
-          });
-        }
+        
+        // 4. Update Portfolio Positions 
+        // We rely purely on the DB trigger `update_portfolio_positions_on_secondary_trade` 
+        // to handle the balances accurately and avoid double deductions.
       }
     }
 

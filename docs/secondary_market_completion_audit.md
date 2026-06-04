@@ -17,7 +17,7 @@ _Checked: 2026-06-04 (re-verified against live codebase)_
 | Requirement                                                                                                                                                                           | Status         | Notes                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `portfolio_positions.locked_tokens` field                                                                                                                                             | ✅ **Done**    | Present in `018_add_secondary_market_safety_columns.sql` — `locked_tokens DECIMAL(15,8) DEFAULT 0 NOT NULL`. Backfill query also present.                                                                                                                                                                                                                         |
-| `secondary_orders` table (with fields: order ID, seller ID, project ID, PDA address, original qty, remaining qty, price, status `open/filled/partially_filled/cancelled`, timestamps) | ⚠️ **Partial** | Table exists as `secondary_listings` (not `secondary_orders`). Statuses allowed are `active/cancelled/filled` — `'pending'` is used by the new API layer but is **not** in the migration CHECK constraint (potential runtime violation). Spec statuses `partially_filled` and `open` are still absent from the schema. All required fields are otherwise present. |
+| `secondary_orders` table (with fields: order ID, seller ID, project ID, PDA address, original qty, remaining qty, price, status `open/filled/partially_filled/cancelled`, timestamps) | ⚠️ **Partial** | Table exists as `secondary_listings` (not `secondary_orders`). `'pending'` status added via migration `019`. Spec statuses `partially_filled` and `open` are present in schema but not used at runtime. All required fields are otherwise present. |
 | `secondary_trades` table (with fields: trade ID, order ID, buyer ID, seller ID, project ID, qty, price, total value, platform fee, fee recipient, Solana tx sig, timestamp)           | ✅ **Done**    | All fields confirmed present: `platform_fee`, `fee_recipient` added in migration `018`. `trade_tx` maps to Solana tx sig.                                                                                                                                                                                                                                         |
 
 ---
@@ -67,17 +67,89 @@ _Checked: 2026-06-04 (re-verified against live codebase)_
 
 > **Summary: All 7 spec endpoints + 1 bonus listings endpoint are present and fully implemented.**
 
-### 🔴 Critical Bug — `pending` status not in CHECK constraint
+### ~~🔴 Bug 1 — `pending` status not in CHECK constraint~~ ✅ Fixed by migration `019`
 
-The [`orders/create` route](app/api/secondary-market/orders/create/route.ts) inserts a row into `secondary_listings` with `status = 'pending'` (used as an optimistic pre-confirmation state), but migration [`016_create_secondary_market_tables.sql`](supabase/migrations/016_create_secondary_market_tables.sql) defines the column's CHECK constraint as:
-
+Migration `019_update_secondary_listings_status_constraint.sql` dynamically finds and drops the old CHECK constraint and replaces it with:
 ```sql
-CHECK (status IN ('active', 'cancelled', 'filled'))
+CHECK (status IN ('active', 'cancelled', 'filled', 'pending', 'partially_filled', 'open'))
 ```
 
-`'pending'` is **not** in the allowed values. This will throw a **PostgreSQL CHECK constraint violation** at the DB level the first time a user tries to create a sell order in production.
+---
 
-**Fix required:** Create a new migration to add `'pending'` to the constraint:
+### 🔴 Bug 2 — `orders/create` upserts `pending` row but `creation_tx` is `NOT NULL`
+
+The `secondary_listings` table defines `creation_tx TEXT NOT NULL` (migration `016`, line 17). However the `orders/create` route **upserts without providing `creation_tx`**:
+
+```ts
+await supabase.from('secondary_listings').upsert({
+  sell_order_pda: sellOrderPda,
+  investor_id: user.id,
+  ...
+  status: 'pending',
+  // ❌ creation_tx is missing!
+}, { onConflict: 'sell_order_pda' });
+```
+
+This will throw a **NOT NULL constraint violation** on the first `INSERT` (not on an `UPDATE` via upsert conflict). The transaction is signed client-side and the signature only exists after the user signs — the server doesn't have it yet at this point.
+
+**Fix:** Either (a) make `creation_tx` nullable in a migration (`ALTER TABLE secondary_listings ALTER COLUMN creation_tx DROP NOT NULL;`) or (b) pass a placeholder like `'pending'` and overwrite it in `orders/confirm`.
+
+---
+
+### 🟡 Bug 3 — `orders/confirm` does not verify ownership before updating
+
+The `orders/confirm` route does filter by `.eq('investor_id', user.id)`, but it does **not check that the listing actually exists or that the update affected any rows**. If the `sell_order_pda` doesn't match the user's listing, the update silently does nothing and still returns `{ success: true }`.
+
+**Fix:** Check the `count` from the update response:
+```ts
+const { count } = await supabase.from('secondary_listings')
+  .update({ status: 'active', creation_tx: signature })
+  .eq('sell_order_pda', sellOrderPda)
+  .eq('investor_id', user.id);
+
+if (!count || count === 0) {
+  return NextResponse.json({ error: 'Listing not found or not owned by you.' }, { status: 404 });
+}
+```
+
+---
+
+### 🟡 Bug 4 — `sync_locked_tokens_from_listings` trigger does NOT include `pending` listings
+
+The `locked_tokens` trigger in migration `018` only sums listings where `status = 'active'`:
+
+```sql
+AND sl.status = 'active'
+```
+
+However, the `orders/create` route now creates listings with `status = 'pending'` and **also manually sets `locked_tokens`** optimistically. The trigger fires on INSERT but recomputes only `active` listings — so it will **reset `locked_tokens` back to 0** (since no `active` listing exists yet for this row), undoing the optimistic lock. This means a user could double-list their tokens during the window between `orders/create` and `orders/confirm`.
+
+**Fix:** Update the trigger to also count `pending` listings:
+```sql
+AND sl.status IN ('active', 'pending')
+```
+
+---
+
+### 🟡 Bug 5 — `buy/confirm` portfolio update double-counts if DB trigger also fires
+
+When `secondary_trades` is inserted in `buy/confirm` (line 97–106), the DB trigger `on_secondary_trade_logged_update_portfolio` fires **automatically** and updates `portfolio_positions`. But `buy/confirm` also manually updates `portfolio_positions` on lines 110–154. This results in **double-deduction from seller** and **double-addition to buyer** for every trade.
+
+The route has a comment acknowledging the indexer may also run, but the trigger fires synchronously and unconditionally.
+
+**Fix:** Either (a) remove the manual portfolio update block from `buy/confirm` (lines 108–154) and rely solely on the DB trigger, or (b) drop the DB trigger and handle all portfolio logic in the API.
+
+---
+
+### 🟡 Bug 6 — `buy/confirm` hardcodes 2% platform fee instead of reading on-chain value
+
+```ts
+const platformFee = totalCost * 0.02; // Assuming 2% fee
+```
+
+The on-chain `MarketConfig` stores the actual fee in basis points. The API hardcodes 2% regardless. If the admin ever changes the fee in `MarketConfig`, the `secondary_trades.platform_fee` column will record the wrong value.
+
+**Fix:** Either read the fee from the `MarketConfig` account via RPC, or pass the actual fee from the client alongside `matchedChunks`.
 
 ---
 
@@ -99,9 +171,9 @@ This is a significant but legitimate architectural deviation. The current approa
 
 | Requirement                                                                 | Status         | Notes                                                                                                                                                                                                                    |
 | --------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tokens remain in seller's `total_tokens` while escrowed (dividend rule)     | ⚠️ **Partial** | On-chain tokens are physically in escrow PDA. DB `total_tokens` is **not** decremented on listing. But because `locked_tokens` doesn't exist in DB, there is no way to track available vs locked balance at the DB level |
-| Dividend snapshot uses `portfolio_positions.total_tokens` (includes locked) | ⚠️ **Partial** | Dividend payout logic uses `portfolio_positions.total_tokens` ✅, but without `locked_tokens`, the "available for new listings" check is missing                                                                         |
-| Cancel flow releases `amount_remaining` from `locked_tokens`                | ❌ **Missing** | `locked_tokens` column doesn't exist                                                                                                                                                                                     |
+| Tokens remain in seller's `total_tokens` while escrowed (dividend rule)     | ✅ **Done**    | `total_tokens` is NOT decremented on listing. Tokens remain in position for dividend snapshots. `locked_tokens` tracks the escrowed portion separately. |
+| Dividend snapshot uses `portfolio_positions.total_tokens` (includes locked) | ✅ **Done**    | Dividend payout logic uses `portfolio_positions.total_tokens` which includes locked tokens ✅. `locked_tokens` column is now present in `018`. |
+| Cancel flow releases `amount_remaining` from `locked_tokens`                | ✅ **Done**    | `orders/cancel/confirm` manually decrements `locked_tokens`, and the DB trigger `sync_locked_tokens_from_listings` recomputes it automatically on status change to `cancelled`. |
 
 ---
 
@@ -176,14 +248,31 @@ This is a significant but legitimate architectural deviation. The current approa
 
 ---
 
-## Critical Gaps (Highest Priority)
+## Critical Gaps & Bugs (Highest Priority)
 
-1. **🔴 Schema `pending` status not in CHECK constraint** — `app/api/secondary-market/orders/create/route.ts` inserts a row with `status='pending'`, but migration `016` only allows `('active', 'cancelled', 'filled')`. This will throw a DB error in production. **Fix:** Add `'pending'` to the CHECK constraint in a new migration.
+### ✅ Already Fixed
+- **`pending` status CHECK constraint** — Fixed by migration `019`.
+- **`locked_tokens` column missing** — Added in migration `018`.
+- **Cancel flow not decrementing `locked_tokens`** — Handled by `orders/cancel/confirm` + DB trigger.
 
-2. **`useSecondaryMarket.ts` hook missing** — This is an explicitly named deliverable in the spec. The service lives in `lib/web3/services/secondaryMarketService.ts` instead.
+### 🔴 Critical (will cause runtime errors in production)
 
-3. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers the primary market flow, not the secondary market.
+1. **`orders/create` upserts without `creation_tx`** — `secondary_listings.creation_tx` is `NOT NULL`. The upsert in `orders/create` omits this field, causing a DB constraint violation on every new listing INSERT. *See Section 4.1 Bug 2.*
 
-4. **Spec naming divergence** — Table is `secondary_listings` vs spec's `secondary_orders`. Statuses are `active/filled/cancelled` vs spec's `open/partially_filled/filled/cancelled`. Minor — not a functional gap but diverges from spec.
+2. **`sync_locked_tokens_from_listings` trigger ignores `pending` listings** — The trigger resets `locked_tokens` to 0 when a `pending` listing is inserted (since it only counts `active`), defeating the optimistic lock and enabling double-listing. *See Section 4.1 Bug 4.*
 
-5. **`partially_filled` status not tracked** — When a listing is partially consumed, it stays `active` (not `partially_filled`). This matches the current on-chain model but diverges from spec.
+3. **`buy/confirm` double-updates portfolio positions** — The DB trigger on `secondary_trades` INSERT and the manual portfolio update code in `buy/confirm` both fire, causing double-deduction from seller and double-addition to buyer. *See Section 4.1 Bug 5.*
+
+### 🟡 Medium (incorrect data / silent failures)
+
+4. **`orders/confirm` returns success even when listing not found** — No row-count check on the update means a wrong PDA silently does nothing. *See Section 4.1 Bug 3.*
+
+5. **`buy/confirm` hardcodes 2% fee** — Records wrong `platform_fee` in `secondary_trades` if on-chain fee differs. *See Section 4.1 Bug 6.*
+
+### 🔵 Spec Divergence (non-breaking)
+
+6. **`useSecondaryMarket.ts` hook missing** — Named deliverable in spec. Service lives in `lib/web3/services/secondaryMarketService.ts` instead.
+
+7. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers primary market only.
+
+8. **`partially_filled` status not tracked at runtime** — Partially consumed listings remain `active` (spec says `partially_filled`).
