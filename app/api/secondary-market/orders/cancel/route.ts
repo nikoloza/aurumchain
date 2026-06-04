@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
     }
 
-    const mintAddress = project.blockchain_mint_address || project.mint_address;
+    const mintAddress = project.mint_address;
 
     // Build Transaction
     const connection = createDefaultConnection();

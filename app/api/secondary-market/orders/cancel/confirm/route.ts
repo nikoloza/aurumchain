@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         .from('portfolio_positions')
         .select('locked_tokens')
         .eq('user_id', user.id)
-        .eq('project_id', listing.project_id)
+        .eq('project_id', projectId)
         .maybeSingle();
 
       if (portfolio) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
           locked_tokens: Math.max(0, lockedTokens - Number(listing.remaining))
         })
         .eq('user_id', user.id)
-        .eq('project_id', listing.project_id);
+        .eq('project_id', projectId);
       }
     }
 
