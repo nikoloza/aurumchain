@@ -58,8 +58,9 @@ pub fn handle_sync_mint_compliance(
     );
 
     // 3. Status validation: Ensure project is in a state where lockup is defined
+    // We allow Draft as well, because lockup_end_ts is set during project creation
     require!(
-        project.status == ProjectStatus::Funding || project.status == ProjectStatus::Active || project.status == ProjectStatus::Funded,
+        project.status == ProjectStatus::Draft || project.status == ProjectStatus::Funding || project.status == ProjectStatus::Active || project.status == ProjectStatus::Funded,
         ComplianceError::ProjectNotActive
     );
 
