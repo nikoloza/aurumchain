@@ -241,6 +241,77 @@ export class SecondaryMarketService {
   }
 
   /**
+   * Build a Create Sell Order Transaction (For backend API)
+   */
+  async buildCreateSellOrderTransaction(params: {
+    sellerPubkey: string;
+    projectId: number;
+    projectMint: string;
+    amount: number; // e.g. 20 tokens
+    pricePerToken: number; // e.g. 1.50 USDC per token
+    tokenDecimals?: number;
+  }): Promise<{ transaction: Transaction; sequence: number; sellOrderPda: string }> {
+    try {
+      const seller = new PublicKey(params.sellerPubkey);
+      const projectMintPubkey = new PublicKey(params.projectMint);
+      const projectPda = this.getProjectPda(params.projectId);
+      const sellerEligibility = this.getEligibilityPda(seller);
+      const projectPause = this.getProjectPausePda(projectMintPubkey);
+      
+      const distributionControl = Keypair.generate().publicKey;
+
+      const sequence = Math.floor(Date.now() / 1000);
+      const sellOrderPda = this.getSellOrderPda(seller, sequence);
+      const escrowVault = this.getEscrowVaultPda(projectMintPubkey);
+
+      const sellerTokenAccount = getAssociatedTokenAddressSync(projectMintPubkey, seller, false, TOKEN_2022_PROGRAM_ID);
+
+      const decimals = params.tokenDecimals ?? 6;
+      const amountRaw = new BN(params.amount * Math.pow(10, decimals));
+      const priceRaw = new BN(params.pricePerToken * 1_000_000);
+
+      const remainingAccounts = this.getTransferHookRemainingAccounts(
+        projectMintPubkey,
+        seller,
+        this.getVaultAuthorityPda()
+      );
+
+      const instruction = await this.program.methods.createSellOrder(
+        amountRaw,
+        priceRaw,
+        new BN(sequence)
+      ).accounts({
+        config: this.getConfigPda(),
+        seller,
+        sellerTokenAccount,
+        projectMint: projectMintPubkey,
+        escrowVault,
+        vaultAuthority: this.getVaultAuthorityPda(),
+        sellOrder: sellOrderPda,
+        projectAccount: projectPda,
+        sellerEligibility,
+        projectPause,
+        distributionControl,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50000 });
+
+      const transaction = new Transaction().add(priorityFeeIx, instruction);
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = seller;
+
+      return { transaction, sequence, sellOrderPda: sellOrderPda.toBase58() };
+    } catch (error: any) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Cancel an existing sell order
    */
   async cancelSellOrder(params: {
@@ -300,6 +371,57 @@ export class SecondaryMarketService {
       );
 
       return { signature };
+    } catch (error: any) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Build a Cancel Sell Order Transaction (For backend API)
+   */
+  async buildCancelSellOrderTransaction(params: {
+    sellerPubkey: string;
+    sequence: number;
+    projectMint: string;
+    projectId: number;
+  }): Promise<{ transaction: Transaction }> {
+    try {
+      const seller = new PublicKey(params.sellerPubkey);
+      const projectMintPubkey = new PublicKey(params.projectMint);
+      const sellOrder = this.getSellOrderPda(seller, params.sequence);
+      const escrowVault = this.getEscrowVaultPda(projectMintPubkey);
+      const projectPda = this.getProjectPda(params.projectId);
+
+      const sellerTokenAccount = getAssociatedTokenAddressSync(projectMintPubkey, seller, false, TOKEN_2022_PROGRAM_ID);
+
+      const remainingAccounts = this.getTransferHookRemainingAccounts(
+        projectMintPubkey,
+        this.getVaultAuthorityPda(),
+        seller
+      );
+
+      const instruction = await this.program.methods.cancelSellOrder().accounts({
+        sellOrder,
+        seller,
+        sellerTokenAccount,
+        projectMint: projectMintPubkey,
+        escrowVault,
+        vaultAuthority: this.getVaultAuthorityPda(),
+        config: this.getConfigPda(),
+        projectAccount: projectPda,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      } as any)
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50000 });
+
+      const transaction = new Transaction().add(priorityFeeIx, instruction);
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = seller;
+
+      return { transaction };
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -422,6 +544,108 @@ export class SecondaryMarketService {
       );
 
       return { signature };
+    } catch (error: any) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Build Fill Order Instructions (For backend API pooling multiple orders)
+   * This returns the raw instructions so the backend can batch multiple fills into one Transaction.
+   */
+  async buildFillOrderInstructions(params: {
+    buyerPubkey: string;
+    sellerPubkey: string; // fallback seller
+    sequence: number;
+    amount: number;
+    projectMint: string;
+    stablecoinMint: string;
+    projectId: number;
+    tokenDecimals?: number;
+    sellOrderPda?: string;
+  }): Promise<{ instructions: any[]; trueSellerPubkey: string }> {
+    try {
+      const buyer = new PublicKey(params.buyerPubkey);
+      const fallbackSellerPubkey = new PublicKey(params.sellerPubkey);
+      const projectMintPubkey = new PublicKey(params.projectMint);
+      const stablecoinMintPubkey = new PublicKey(params.stablecoinMint);
+      
+      const configPda = this.getConfigPda();
+      const sellOrderPda = params.sellOrderPda 
+        ? new PublicKey(params.sellOrderPda) 
+        : this.getSellOrderPda(fallbackSellerPubkey, params.sequence);
+
+      let sellOrderData: any;
+      try {
+        sellOrderData = await this.program.account.sellOrder.fetch(sellOrderPda);
+      } catch (err: any) {
+        if (err.message && err.message.includes("Account does not exist or has no data")) {
+          throw new Error("This order is no longer available. It may have already been filled or cancelled.");
+        }
+        throw err;
+      }
+      
+      const trueSellerPubkey = sellOrderData.seller;
+
+      const escrowVaultPda = this.getEscrowVaultPda(projectMintPubkey);
+      const projectPda = this.getProjectPda(params.projectId);
+      const buyerEligibility = this.getEligibilityPda(buyer);
+      const projectPause = this.getProjectPausePda(projectMintPubkey);
+      
+      const distributionControl = Keypair.generate().publicKey;
+
+      const configData: any = await this.program.account.marketConfig.fetch(configPda);
+      const feeDestination = configData.feeDestination;
+
+      const buyerTokenAccount = getAssociatedTokenAddressSync(projectMintPubkey, buyer, false, TOKEN_2022_PROGRAM_ID);
+      const buyerUsdcAccount = getAssociatedTokenAddressSync(stablecoinMintPubkey, buyer, false, TOKEN_PROGRAM_ID);
+      const sellerUsdcAccount = getAssociatedTokenAddressSync(stablecoinMintPubkey, trueSellerPubkey, false, TOKEN_PROGRAM_ID);
+      const feeDestinationUsdc = getAssociatedTokenAddressSync(stablecoinMintPubkey, feeDestination, false, TOKEN_PROGRAM_ID);
+
+      const decimals = params.tokenDecimals ?? 6;
+      const buyAmountRaw = new BN(params.amount * Math.pow(10, decimals));
+
+      const remainingAccounts = this.getTransferHookRemainingAccounts(
+        projectMintPubkey,
+        this.getVaultAuthorityPda(),
+        buyer
+      );
+
+      const fillIx = await this.program.methods.fillOrder(buyAmountRaw).accounts({
+        buyer,
+        seller: trueSellerPubkey,
+        config: configPda,
+        sellOrder: sellOrderPda,
+        projectMint: projectMintPubkey,
+        stablecoinMint: stablecoinMintPubkey,
+        escrowVault: escrowVaultPda,
+        vaultAuthority: this.getVaultAuthorityPda(),
+        feeDestination,
+        projectAccount: projectPda,
+        buyerEligibility,
+        projectPause,
+        distributionControl,
+        buyerTokenAccount,
+        buyerUsdcAccount,
+        sellerUsdcAccount,
+        feeDestinationUsdc,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        stablecoinProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+
+      const createBuyerAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+        buyer,
+        buyerTokenAccount,
+        buyer,
+        projectMintPubkey,
+        TOKEN_2022_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+      );
+
+      return { instructions: [createBuyerAtaIx, fillIx], trueSellerPubkey: trueSellerPubkey.toBase58() };
     } catch (error: any) {
       throw this.handleError(error);
     }

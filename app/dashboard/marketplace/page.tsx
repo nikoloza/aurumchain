@@ -60,6 +60,38 @@ export default function TokenMarketplacePage() {
     setIsBuyModalOpen(true);
   };
 
+  const handleCancelListing = async (listing: any, seller: any) => {
+    if (!publicKey) return;
+    try {
+      setCancellingListingId(seller.sellOrderPda);
+      const res = await fetch('/api/secondary-market/orders/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: listing.projects.id,
+          sequence: seller.sequence,
+          walletAddress: publicKey.toBase58(),
+          sellOrderPda: seller.sellOrderPda
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate cancel transaction');
+
+      const { Transaction } = await import('@solana/web3.js');
+      const transaction = Transaction.from(Buffer.from(data.transaction, 'base64'));
+      
+      await sendTransaction(transaction, connection, { skipPreflight: true });
+      
+      alert('Cancel transaction sent! The listing will be removed shortly.');
+      setTimeout(fetchListings, 3000);
+    } catch (err: any) {
+      console.error("Cancel failed:", err);
+      alert(err.message || 'Failed to cancel listing');
+    } finally {
+      setCancellingListingId(null);
+    }
+  };
+
   const handleListTokenClick = async () => {
     if (!publicKey) {
       alert("Please connect your wallet first.");
@@ -156,6 +188,8 @@ export default function TokenMarketplacePage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((listing) => {
+            const hasOtherSellers = listing.sellers?.some((s: any) => s.address !== publicKey?.toBase58());
+            
             return (
               <div 
                 key={listing.id} 
@@ -184,15 +218,31 @@ export default function TokenMarketplacePage() {
 
                     <div className="mt-4 pt-4 border-t border-gold/10 flex flex-col gap-2">
                       <span className="text-gray-400 text-xs uppercase tracking-widest">Sellers in this pool:</span>
-                      <div className="max-h-24 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                        {listing.sellers?.map((s: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center text-xs bg-[#0A1628] rounded p-2 border border-gold/10">
-                            <span className="text-gold font-mono truncate mr-2 text-[10px]" title={s.address}>
-                              {s.address}
-                            </span>
-                            <span className="text-white font-bold whitespace-nowrap">{s.remaining.toLocaleString()}</span>
-                          </div>
-                        ))}
+                      <div className="max-h-32 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        {listing.sellers?.map((s: any, idx: number) => {
+                          const isOwnListing = s.address === publicKey?.toBase58();
+                          return (
+                            <div key={idx} className="flex justify-between items-center text-xs bg-[#0A1628] rounded p-2 border border-gold/10">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <span className="text-gold font-mono truncate text-[10px]" title={s.address}>
+                                  {isOwnListing ? 'You' : s.address}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-white font-bold whitespace-nowrap">{s.remaining.toLocaleString()}</span>
+                                {isOwnListing && (
+                                  <button
+                                    onClick={() => handleCancelListing(listing, s)}
+                                    disabled={cancellingListingId === s.sellOrderPda}
+                                    className="text-[9px] uppercase tracking-wider bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-2 py-1 rounded transition-colors disabled:opacity-50"
+                                  >
+                                    {cancellingListingId === s.sellOrderPda ? '...' : 'Cancel'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -200,9 +250,14 @@ export default function TokenMarketplacePage() {
 
                 <button
                   onClick={() => handleBuyClick(listing)}
-                  className="w-full bg-gradient-to-r from-gold to-gold-light hover:from-gold-light hover:to-gold text-navy font-bold py-3 rounded-lg transition-all text-sm"
+                  disabled={!hasOtherSellers && listing.sellers?.length > 0}
+                  className={`w-full font-bold py-3 rounded-lg transition-all text-sm ${
+                    !hasOtherSellers && listing.sellers?.length > 0
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-gold to-gold-light hover:from-gold-light hover:to-gold text-navy'
+                  }`}
                 >
-                  Buy Tokens
+                  {!hasOtherSellers && listing.sellers?.length > 0 ? 'Your Listing' : 'Buy Tokens'}
                 </button>
               </div>
             );

@@ -544,6 +544,54 @@ async function syncSecondaryMarket(signature?: string) {
                   created_at: new Date(Number(eventData.timestamp) * 1000).toISOString()
                 });
 
+                // Update Portfolio Positions
+                // Deduct from seller
+                const { data: sellerPortfolio } = await supabase
+                  .from('portfolio_positions')
+                  .select('*')
+                  .eq('user_id', listing.investor_id)
+                  .eq('project_id', listing.project_id)
+                  .maybeSingle();
+                  
+                if (sellerPortfolio) {
+                  const avgPrice = Number(sellerPortfolio.average_token_price || 0);
+                  const newTotalTokens = Math.max(0, Number(sellerPortfolio.total_tokens) - fillAmount);
+                  const newInvested = Math.max(0, Number(sellerPortfolio.total_invested || 0) - (fillAmount * avgPrice));
+                  await supabase.from('portfolio_positions').update({
+                    total_tokens: newTotalTokens,
+                    locked_tokens: Math.max(0, Number(sellerPortfolio.locked_tokens) - fillAmount),
+                    total_invested: newInvested,
+                    average_token_price: newTotalTokens > 0 ? newInvested / newTotalTokens : 0
+                  }).eq('id', sellerPortfolio.id);
+                }
+
+                // Add to buyer
+                const { data: buyerPortfolio } = await supabase
+                  .from('portfolio_positions')
+                  .select('*')
+                  .eq('user_id', buyerProfile.id)
+                  .eq('project_id', listing.project_id)
+                  .maybeSingle();
+
+                if (buyerPortfolio) {
+                  const newTotalTokens = Number(buyerPortfolio.total_tokens) + fillAmount;
+                  const newInvested = Number(buyerPortfolio.total_invested || 0) + totalCost;
+                  await supabase.from('portfolio_positions').update({
+                    total_tokens: newTotalTokens,
+                    total_invested: newInvested,
+                    average_token_price: newInvested / newTotalTokens
+                  }).eq('id', buyerPortfolio.id);
+                } else {
+                  await supabase.from('portfolio_positions').insert({
+                    user_id: buyerProfile.id,
+                    project_id: listing.project_id,
+                    total_tokens: fillAmount,
+                    locked_tokens: 0,
+                    total_invested: totalCost,
+                    average_token_price: totalCost / fillAmount
+                  });
+                }
+
                 // Update listing balances
                 const newSold = Number(listing.sold) + fillAmount;
                 const newRemaining = Math.max(0, Number(listing.remaining) - fillAmount);

@@ -285,10 +285,16 @@ export function useDashboardData() {
         
         // Add negative investment for seller to reduce total token count
         if (isSeller) {
+          // Find their original investment to estimate cost basis
+          const originalInvestment = dbInvestments.find(inv => inv.project_id === trade.project_id);
+          const avgCost = originalInvestment && originalInvestment.tokens_purchased > 0 
+            ? originalInvestment.amount / originalInvestment.tokens_purchased 
+            : 0;
+            
           allInvestments.push({
             id: `sec_trade_sell_${trade.id}`,
             project_id: trade.project_id,
-            amount: -trade.paid_amount,
+            amount: -(trade.token_amount * avgCost),
             tokens_purchased: -trade.token_amount,
             status: 'completed',
             invested_at: trade.created_at,

@@ -172,32 +172,52 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
     setError(null);
 
     try {
-      if (!secondaryMarketService) throw new Error("Secondary Market Service is not initialized.");
+      // 1. Get raw unsigned transaction from backend
+      const res = await fetch('/api/secondary-market/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: listing.projects.id,
+          amount: numericBuyAmount,
+          walletAddress: publicKey.toBase58(),
+        }),
+      });
 
-      let amountLeftToBuy = numericBuyAmount;
-      let lastSig = "";
-
-      for (const seller of listing.sellers) {
-        if (amountLeftToBuy <= 0) break;
-
-        const buyAmountForThisSeller = Math.min(amountLeftToBuy, seller.remaining);
-        
-        const res = await secondaryMarketService.fillOrder({
-          seller: seller.address,
-          sequence: seller.sequence,
-          sellOrderPda: seller.sellOrderPda,
-          amount: buyAmountForThisSeller,
-          projectMint: projectMintStr as string,
-          stablecoinMint: stablecoinMintStr,
-          projectId: listing.projects.blockchain_project_id as number,
-          tokenDecimals: listing.projects.token_decimals
-        });
-
-        lastSig = res.signature;
-        amountLeftToBuy -= buyAmountForThisSeller;
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to generate transaction.');
       }
 
-      setTxSig(lastSig);
+      const { transaction: txBase64, matchedChunks } = data;
+
+      // 2. Deserialize Transaction
+      const { Transaction } = await import('@solana/web3.js');
+      const txBuf = Buffer.from(txBase64, 'base64');
+      const transaction = Transaction.from(txBuf);
+
+      // 3. Sign and Send
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: true,
+      });
+
+      // 4. Confirm and update database synchronously for instant UI feedback
+      const confirmRes = await fetch('/api/secondary-market/buy/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          signature,
+          projectId: listing.projects.id,
+          matchedChunks,
+        }),
+      });
+
+      const confirmData = await confirmRes.json();
+      if (!confirmRes.ok) {
+        console.warn("[BuyListingModal] Confirm API warning:", confirmData.error);
+        // We still show success since tx went through on chain, indexer will catch it
+      }
+
+      setTxSig(signature);
       setSuccess(true);
       if (onSuccess) onSuccess();
     } catch (err: any) {
