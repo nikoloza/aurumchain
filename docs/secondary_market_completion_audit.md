@@ -76,94 +76,78 @@ CHECK (status IN ('active', 'cancelled', 'filled', 'pending', 'partially_filled'
 
 ---
 
-### 🔴 Bug 2 — `orders/create` upserts `pending` row but `creation_tx` is `NOT NULL`
+### ~~🔴 Bug 2 — `orders/create` upserts `pending` row but `creation_tx` is `NOT NULL`~~ ✅ Fixed by migration `020`
 
-The `secondary_listings` table defines `creation_tx TEXT NOT NULL` (migration `016`, line 17). However the `orders/create` route **upserts without providing `creation_tx`**:
-
-```ts
-await supabase.from('secondary_listings').upsert({
-  sell_order_pda: sellOrderPda,
-  investor_id: user.id,
-  ...
-  status: 'pending',
-  // ❌ creation_tx is missing!
-}, { onConflict: 'sell_order_pda' });
+Migration `020` drops the NOT NULL constraint:
+```sql
+ALTER TABLE public.secondary_listings ALTER COLUMN creation_tx DROP NOT NULL;
 ```
-
-This will throw a **NOT NULL constraint violation** on the first `INSERT` (not on an `UPDATE` via upsert conflict). The transaction is signed client-side and the signature only exists after the user signs — the server doesn't have it yet at this point.
-
-**Fix:** Either (a) make `creation_tx` nullable in a migration (`ALTER TABLE secondary_listings ALTER COLUMN creation_tx DROP NOT NULL;`) or (b) pass a placeholder like `'pending'` and overwrite it in `orders/confirm`.
+The `orders/create` route can now safely upsert without `creation_tx`. The field is populated later when `orders/confirm` is called with the on-chain signature.
 
 ---
 
-### 🟡 Bug 3 — `orders/confirm` does not verify ownership before updating
+### ~~🟡 Bug 3 — `orders/confirm` does not verify ownership before updating~~ ✅ Fixed
 
-The `orders/confirm` route does filter by `.eq('investor_id', user.id)`, but it does **not check that the listing actually exists or that the update affected any rows**. If the `sell_order_pda` doesn't match the user's listing, the update silently does nothing and still returns `{ success: true }`.
-
-**Fix:** Check the `count` from the update response:
+`orders/confirm` now calls `.select()` on the update and checks `data.length === 0`:
 ```ts
-const { count } = await supabase.from('secondary_listings')
+const { data, error: updateError } = await supabase.from('secondary_listings')
   .update({ status: 'active', creation_tx: signature })
   .eq('sell_order_pda', sellOrderPda)
-  .eq('investor_id', user.id);
+  .eq('investor_id', user.id)
+  .select();
 
-if (!count || count === 0) {
+if (updateError || !data || data.length === 0) {
   return NextResponse.json({ error: 'Listing not found or not owned by you.' }, { status: 404 });
 }
 ```
 
 ---
 
-### 🟡 Bug 4 — `sync_locked_tokens_from_listings` trigger does NOT include `pending` listings
+### ~~🟡 Bug 4 — `sync_locked_tokens_from_listings` trigger does NOT include `pending` listings~~ ✅ Fixed by migration `020`
 
-The `locked_tokens` trigger in migration `018` only sums listings where `status = 'active'`:
-
+Migration `020` replaces the trigger function with:
 ```sql
-AND sl.status = 'active'
+AND sl.status IN ('active', 'pending') -- FIX: added pending
 ```
-
-However, the `orders/create` route now creates listings with `status = 'pending'` and **also manually sets `locked_tokens`** optimistically. The trigger fires on INSERT but recomputes only `active` listings — so it will **reset `locked_tokens` back to 0** (since no `active` listing exists yet for this row), undoing the optimistic lock. This means a user could double-list their tokens during the window between `orders/create` and `orders/confirm`.
-
-**Fix:** Update the trigger to also count `pending` listings:
-```sql
-AND sl.status IN ('active', 'pending')
-```
+Now when a `pending` listing is inserted, `locked_tokens` is correctly incremented and maintained throughout the listing lifecycle.
 
 ---
 
-### 🟡 Bug 5 — `buy/confirm` portfolio update double-counts if DB trigger also fires
+### ~~🟡 Bug 5 — `buy/confirm` portfolio update double-counts if DB trigger also fires~~ ✅ Fixed
 
-When `secondary_trades` is inserted in `buy/confirm` (line 97–106), the DB trigger `on_secondary_trade_logged_update_portfolio` fires **automatically** and updates `portfolio_positions`. But `buy/confirm` also manually updates `portfolio_positions` on lines 110–154. This results in **double-deduction from seller** and **double-addition to buyer** for every trade.
-
-The route has a comment acknowledging the indexer may also run, but the trigger fires synchronously and unconditionally.
-
-**Fix:** Either (a) remove the manual portfolio update block from `buy/confirm` (lines 108–154) and rely solely on the DB trigger, or (b) drop the DB trigger and handle all portfolio logic in the API.
-
----
-
-### 🟡 Bug 6 — `buy/confirm` hardcodes 2% platform fee instead of reading on-chain value
-
+The manual portfolio update block (seller deduction + buyer addition) has been **removed** from `buy/confirm`. The route now relies solely on the DB trigger `on_secondary_trade_logged_update_portfolio` to handle all portfolio position changes after a trade is recorded:
 ```ts
-const platformFee = totalCost * 0.02; // Assuming 2% fee
+// 4. Update Portfolio Positions
+// We rely purely on the DB trigger `update_portfolio_positions_on_secondary_trade`
+// to handle the balances accurately and avoid double deductions.
 ```
 
-The on-chain `MarketConfig` stores the actual fee in basis points. The API hardcodes 2% regardless. If the admin ever changes the fee in `MarketConfig`, the `secondary_trades.platform_fee` column will record the wrong value.
+---
 
-**Fix:** Either read the fee from the `MarketConfig` account via RPC, or pass the actual fee from the client alongside `matchedChunks`.
+### ~~🟡 Bug 6 — `buy/confirm` hardcodes 2% platform fee instead of reading on-chain value~~ ✅ Fixed
+
+`buy/confirm` now fetches the live `MarketConfig` account via RPC before computing the fee:
+```ts
+const configData: any = await (service as any).program.account.marketConfig.fetch(...);
+feeBasisPoints = configData.feeBasisPoints;
+const platformFee = totalCost * (feeBasisPoints / 10000);
+```
+Falls back to 200 basis points (2%) only if the RPC call fails.
 
 ---
 
 ## 5. Architecture Divergence from Spec
 
-The implementation uses a **different architectural pattern** from what the spec requires:
+The implementation uses a **partially different architectural pattern** from what the spec requires. Two of the three spec patterns are now fully implemented:
 
-| Spec Pattern                               | Actual Implementation                                                          |
-| ------------------------------------------ | ------------------------------------------------------------------------------ |
-| Server-side tx generation → client signs   | Client-side tx generation via `SecondaryMarketService` → client signs directly |
-| Server confirms on-chain via RPC           | Indexer watcher (`indexer_watcher.ts`) reads on-chain events and syncs DB      |
-| FIFO multi-order matching engine on server | Single-order fill, one at a time, client-controlled                            |
+| Spec Pattern | Actual Implementation | Status |
+| --- | --- | --- |
+| Server-side tx generation → client signs | Server builds serialized tx → returns Base64 → client signs via wallet adapter → client submits | ✅ **Matches spec** |
+| Server confirms on-chain via RPC | `orders/confirm` and `buy/confirm` both call `connection.getSignatureStatus()` to verify on-chain before updating DB | ✅ **Matches spec** |
+| FIFO multi-order matching engine on server | `POST /api/secondary-market/buy` fetches all active orders sorted by `price ASC, created_at ASC`, iterates through them filling `fillAmount = Math.min(remainingToBuy, availableInOrder)` across multiple listings in a single batched tx | ✅ **Matches spec** |
 
-This is a significant but legitimate architectural deviation. The current approach works but bypasses the server-side compliance and validation layer described in the spec.
+> **Section 5 is no longer a divergence.** The original audit was written before the server-side API layer existed. All three patterns are now implemented server-side. The architecture fully aligns with the spec.
+
 
 ---
 
@@ -244,35 +228,26 @@ This is a significant but legitimate architectural deviation. The current approa
 
 **Rough completion: ~71% fully done, ~20% partial, ~9% missing**
 
-> _(Updated 2026-06-04: Sections 2.1, 2.2, and 4.1 re-verified against live codebase. All 7 previously-missing API endpoints are now fully implemented. locked_tokens column + triggers are confirmed present.)_
+> _(Updated 2026-06-04: Sections 2.1, 2.2, and 4.1 re-verified against live codebase. All 7 previously-missing API endpoints are now fully implemented. locked_tokens column + triggers are confirmed present. Bugs 1–6 all fixed via migrations 019, 020 and updated route files.)_
 
 ---
 
 ## Critical Gaps & Bugs (Highest Priority)
 
-### ✅ Already Fixed
-- **`pending` status CHECK constraint** — Fixed by migration `019`.
+### ✅ All Runtime Bugs Fixed
+- **Bug 1 — `pending` status CHECK constraint** — Fixed by migration `019`.
+- **Bug 2 — `creation_tx` NOT NULL violation** — Fixed by migration `020` (dropped NOT NULL).
+- **Bug 3 — `orders/confirm` silent success** — Fixed: now checks `data.length === 0` and returns 404.
+- **Bug 4 — `locked_tokens` trigger ignoring `pending`** — Fixed by migration `020` (trigger now counts `active` + `pending`).
+- **Bug 5 — `buy/confirm` double portfolio update** — Fixed: manual update block removed, relies on DB trigger.
+- **Bug 6 — Hardcoded 2% fee** — Fixed: reads live `MarketConfig.feeBasisPoints` via RPC with 2% fallback.
 - **`locked_tokens` column missing** — Added in migration `018`.
 - **Cancel flow not decrementing `locked_tokens`** — Handled by `orders/cancel/confirm` + DB trigger.
 
-### 🔴 Critical (will cause runtime errors in production)
+### 🔵 Spec Divergence (non-breaking, low priority)
 
-1. **`orders/create` upserts without `creation_tx`** — `secondary_listings.creation_tx` is `NOT NULL`. The upsert in `orders/create` omits this field, causing a DB constraint violation on every new listing INSERT. *See Section 4.1 Bug 2.*
+1. **`useSecondaryMarket.ts` hook missing** — Named deliverable in spec. Service lives in `lib/web3/services/secondaryMarketService.ts` instead.
 
-2. **`sync_locked_tokens_from_listings` trigger ignores `pending` listings** — The trigger resets `locked_tokens` to 0 when a `pending` listing is inserted (since it only counts `active`), defeating the optimistic lock and enabling double-listing. *See Section 4.1 Bug 4.*
+2. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers primary market only.
 
-3. **`buy/confirm` double-updates portfolio positions** — The DB trigger on `secondary_trades` INSERT and the manual portfolio update code in `buy/confirm` both fire, causing double-deduction from seller and double-addition to buyer. *See Section 4.1 Bug 5.*
-
-### 🟡 Medium (incorrect data / silent failures)
-
-4. **`orders/confirm` returns success even when listing not found** — No row-count check on the update means a wrong PDA silently does nothing. *See Section 4.1 Bug 3.*
-
-5. **`buy/confirm` hardcodes 2% fee** — Records wrong `platform_fee` in `secondary_trades` if on-chain fee differs. *See Section 4.1 Bug 6.*
-
-### 🔵 Spec Divergence (non-breaking)
-
-6. **`useSecondaryMarket.ts` hook missing** — Named deliverable in spec. Service lives in `lib/web3/services/secondaryMarketService.ts` instead.
-
-7. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers primary market only.
-
-8. **`partially_filled` status not tracked at runtime** — Partially consumed listings remain `active` (spec says `partially_filled`).
+3. **`partially_filled` status not tracked at runtime** — Partially consumed listings remain `active` (spec says `partially_filled`).
