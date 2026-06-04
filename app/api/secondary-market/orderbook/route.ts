@@ -69,6 +69,8 @@ export async function GET(request: NextRequest) {
         remaining, 
         token_amount,
         project_id,
+        sequence,
+        sell_order_pda,
         projects:project_id (
           id,
           name,
@@ -124,7 +126,7 @@ export async function GET(request: NextRequest) {
         entry.totalRemaining += remaining;
         entry.totalOriginal += original;
         entry.listingCount += 1;
-        entry.sellers.push({ address: sellerWallet, remaining });
+        entry.sellers.push({ address: sellerWallet, remaining, sequence: listing.sequence, sellOrderPda: listing.sell_order_pda });
       } else {
         orderbookMap.set(groupKey, {
           id: groupKey, // mock ID for React keys
@@ -134,7 +136,7 @@ export async function GET(request: NextRequest) {
           totalRemaining: remaining,
           totalOriginal: original,
           listingCount: 1,
-          sellers: [{ address: sellerWallet, remaining }]
+          sellers: [{ address: sellerWallet, remaining, sequence: listing.sequence, sellOrderPda: listing.sell_order_pda }]
         });
       }
     }

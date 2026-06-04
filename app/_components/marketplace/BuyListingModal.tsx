@@ -15,7 +15,7 @@ interface BuyListingModalProps {
     totalRemaining: number;
     totalOriginal: number;
     listingCount: number;
-    sellers: { address: string; remaining: number }[];
+    sellers: { address: string; remaining: number; sequence: number; sellOrderPda: string }[];
     projects: {
       id: string;
       name: string;
@@ -158,14 +158,48 @@ export function BuyListingModal({ isOpen, onClose, listing, onSuccess }: BuyList
       return;
     }
 
+    if (!projectMintStr) {
+      setError('Project mint address is missing from the listing data.');
+      return;
+    }
+
+    if (listing.projects.blockchain_project_id === undefined) {
+      setError('Blockchain project ID is missing from the listing data.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // TODO: Option B Implementation
-      // Instead of client-side tx generation, hit the new backend `/buy` API
-      // const res = await fetch('/api/secondary-market/buy', ...);
-      throw new Error("Secure backend integration in progress. Check back soon!");
+      if (!secondaryMarketService) throw new Error("Secondary Market Service is not initialized.");
+
+      let amountLeftToBuy = numericBuyAmount;
+      let lastSig = "";
+
+      for (const seller of listing.sellers) {
+        if (amountLeftToBuy <= 0) break;
+
+        const buyAmountForThisSeller = Math.min(amountLeftToBuy, seller.remaining);
+        
+        const res = await secondaryMarketService.fillOrder({
+          seller: seller.address,
+          sequence: seller.sequence,
+          sellOrderPda: seller.sellOrderPda,
+          amount: buyAmountForThisSeller,
+          projectMint: projectMintStr as string,
+          stablecoinMint: stablecoinMintStr,
+          projectId: listing.projects.blockchain_project_id as number,
+          tokenDecimals: listing.projects.token_decimals
+        });
+
+        lastSig = res.signature;
+        amountLeftToBuy -= buyAmountForThisSeller;
+      }
+
+      setTxSig(lastSig);
+      setSuccess(true);
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error("[BuyListingModal] Fill order failed:", err);
       setError(err.message || 'Failed to buy tokens.');

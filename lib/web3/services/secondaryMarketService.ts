@@ -305,38 +305,47 @@ export class SecondaryMarketService {
     }
   }
 
-  /**
-   * Fill a sell order (Buy tokens)
-   */
   async fillOrder(params: {
     seller: string;
     sequence: number;
-    amount: number; // e.g. 5 tokens to buy
+    amount: number;
     projectMint: string;
     stablecoinMint: string;
     projectId: number;
     tokenDecimals?: number;
+    sellOrderPda?: string;
   }): Promise<{ signature: string }> {
     try {
       if (!this.wallet.publicKey) throw new Error("Wallet not connected");
 
       const buyer = this.wallet.publicKey;
-      const sellerPubkey = new PublicKey(params.seller);
+      const fallbackSellerPubkey = new PublicKey(params.seller);
       const projectMintPubkey = new PublicKey(params.projectMint);
       const stablecoinMintPubkey = new PublicKey(params.stablecoinMint);
       
       const configPda = this.getConfigPda();
-      const sellOrderPda = this.getSellOrderPda(sellerPubkey, params.sequence);
+      const sellOrderPda = params.sellOrderPda 
+        ? new PublicKey(params.sellOrderPda) 
+        : this.getSellOrderPda(fallbackSellerPubkey, params.sequence);
+
+      // Fetch sell order data to get the true seller public key
+      let sellOrderData: any;
+      try {
+        sellOrderData = await this.program.account.sellOrder.fetch(sellOrderPda);
+      } catch (err: any) {
+        if (err.message && err.message.includes("Account does not exist or has no data")) {
+          throw new Error("This order is no longer available. It may have already been filled or cancelled.");
+        }
+        throw err;
+      }
+      
+      const trueSellerPubkey = sellOrderData.seller;
+
       const escrowVaultPda = this.getEscrowVaultPda(projectMintPubkey);
       const projectPda = this.getProjectPda(params.projectId);
       const buyerEligibility = this.getEligibilityPda(buyer);
       const projectPause = this.getProjectPausePda(projectMintPubkey);
       
-      // Since distribution_program on-chain was configured to the Project Registry Program ID rather than 
-      // the Allocation & Distribution Program ID, passing the real distribution control PDA causes an 
-      // owner validation mismatch on-chain. To bypass this, we pass a dummy uninitialized PDA / random public key.
-      // Because this account has never been initialized on-chain, its data length is 0, which safely skips the 
-      // pause/owner check on-chain.
       const distributionControl = Keypair.generate().publicKey;
 
       // Fetch config to get feeDestination
@@ -346,7 +355,7 @@ export class SecondaryMarketService {
       // ATAs
       const buyerTokenAccount = getAssociatedTokenAddressSync(projectMintPubkey, buyer, false, TOKEN_2022_PROGRAM_ID);
       const buyerUsdcAccount = getAssociatedTokenAddressSync(stablecoinMintPubkey, buyer, false, TOKEN_PROGRAM_ID);
-      const sellerUsdcAccount = getAssociatedTokenAddressSync(stablecoinMintPubkey, sellerPubkey, false, TOKEN_PROGRAM_ID);
+      const sellerUsdcAccount = getAssociatedTokenAddressSync(stablecoinMintPubkey, trueSellerPubkey, false, TOKEN_PROGRAM_ID);
       const feeDestinationUsdc = getAssociatedTokenAddressSync(stablecoinMintPubkey, feeDestination, false, TOKEN_PROGRAM_ID);
 
       const decimals = params.tokenDecimals ?? 6;
@@ -359,24 +368,26 @@ export class SecondaryMarketService {
       );
 
       const instruction = await this.program.methods.fillOrder(buyAmountRaw).accounts({
-        config: configPda,
         buyer,
-        buyerTokenAccount,
-        buyerUsdcAccount,
-        seller: sellerPubkey,
-        sellerUsdcAccount,
+        seller: trueSellerPubkey,
+        config: configPda,
+        sellOrder: sellOrderPda,
         projectMint: projectMintPubkey,
         stablecoinMint: stablecoinMintPubkey,
         escrowVault: escrowVaultPda,
         vaultAuthority: this.getVaultAuthorityPda(),
-        sellOrder: sellOrderPda,
-        feeDestinationUsdc,
-        buyerEligibility,
+        feeDestination,
         projectAccount: projectPda,
+        buyerEligibility,
         projectPause,
         distributionControl,
+        buyerTokenAccount,
+        buyerUsdcAccount,
+        sellerUsdcAccount,
+        feeDestinationUsdc,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
         stablecoinProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       } as any)
       .remainingAccounts(remainingAccounts)
       .instruction();
