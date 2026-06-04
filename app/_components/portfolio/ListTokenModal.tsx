@@ -136,33 +136,50 @@ export function ListTokenModal({ isOpen, onClose, position, onSuccess }: ListTok
     setError(null);
 
     try {
-      if (!secondaryMarketService) throw new Error("Secondary Market service not initialized");
-      
-      console.log(`[ListTokenModal] Creating P2P sell order...`);
-      const { signature } = await secondaryMarketService.createSellOrder({
-        projectId: project.blockchain_project_id || 0,
-        projectMint: projectMintStr,
-        amount: numericAmount,
-        pricePerToken: numericPrice,
-        tokenDecimals: project.token_decimals || 6
+      console.log(`[ListTokenModal] Creating P2P sell order via API...`);
+      const res = await fetch('/api/secondary-market/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          amount: numericAmount,
+          pricePerToken: numericPrice,
+          walletAddress: publicKey.toBase58(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to generate transaction.');
+      }
+
+      const { transaction: txBase64, sellOrderPda } = data;
+
+      // 2. Deserialize Transaction
+      const { Transaction } = await import('@solana/web3.js');
+      const txBuf = Buffer.from(txBase64, 'base64');
+      const transaction = Transaction.from(txBuf);
+
+      // 3. Sign and Send
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: true,
       });
 
       console.log(`[ListTokenModal] Listing success! Tx: ${signature}`);
       setTxSig(signature);
 
-      // SNR: Trigger real-time sync immediately so the UI is snappy
+      // 4. Confirm on our backend instantly
       try {
-        await fetch('/api/webhooks/solana', {
+        await fetch('/api/secondary-market/orders/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             signature,
-            type: 'SYNC_TRIGGER',
-            programName: 'SecondaryMarket'
-          })
+            sellOrderPda,
+          }),
         });
-      } catch (syncErr) {
-        console.warn("[ListTokenModal] Snappy sync webhook failed:", syncErr);
+      } catch (confirmErr) {
+        console.warn("[ListTokenModal] Confirm API warning:", confirmErr);
       }
 
       setSuccess(true);
