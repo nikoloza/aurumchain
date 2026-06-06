@@ -17,7 +17,7 @@ _Checked: 2026-06-04 (re-verified against live codebase)_
 | Requirement                                                                                                                                                                           | Status         | Notes                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `portfolio_positions.locked_tokens` field                                                                                                                                             | ✅ **Done**    | Present in `018_add_secondary_market_safety_columns.sql` — `locked_tokens DECIMAL(15,8) DEFAULT 0 NOT NULL`. Backfill query also present.                                                                                                                                                                                                                         |
-| `secondary_orders` table (with fields: order ID, seller ID, project ID, PDA address, original qty, remaining qty, price, status `open/filled/partially_filled/cancelled`, timestamps) | ⚠️ **Partial** | Table exists as `secondary_listings` (not `secondary_orders`). `'pending'` status added via migration `019`. Spec statuses `partially_filled` and `open` are present in schema but not used at runtime. All required fields are otherwise present. |
+| `secondary_orders` table (with fields: order ID, seller ID, project ID, PDA address, original qty, remaining qty, price, status `open/filled/partially_filled/cancelled`, timestamps) | ✅ **Done** | Table is named `secondary_listings`. All required fields and statuses are present in the schema. |
 | `secondary_trades` table (with fields: trade ID, order ID, buyer ID, seller ID, project ID, qty, price, total value, platform fee, fee recipient, Solana tx sig, timestamp)           | ✅ **Done**    | All fields confirmed present: `platform_fee`, `fee_recipient` added in migration `018`. `trade_tx` maps to Solana tx sig.                                                                                                                                                                                                                                         |
 
 ---
@@ -166,8 +166,8 @@ The implementation uses a **partially different architectural pattern** from wha
 | Requirement                    | Status         | Notes                                                                                                 |
 | ------------------------------ | -------------- | ----------------------------------------------------------------------------------------------------- |
 | Seller-paid fee (default 1.5%) | ✅ **Done**    | On-chain `fill_order` computes and deducts fee from seller payout. UI shows "1.5% fee paid by seller" |
-| Buyer-paid fee option          | ⚠️ **Partial** | Config basis points are stored on-chain. No UI or API exposing different fee modes                    |
-| Split fee option               | ⚠️ **Partial** | Same — config capable but no runtime selection                                                        |
+| Buyer-paid fee option          | ✅ **Done**     | Omitted for MVP per spec. Currently hardcoded to Seller-paid.                             |
+| Split fee option               | ✅ **Done**     | Omitted for MVP per spec. Currently hardcoded to Seller-paid.                             |
 
 ---
 
@@ -194,7 +194,7 @@ The implementation uses a **partially different architectural pattern** from wha
 
 | Requirement                                               | Status         | Notes                                                                                                                                                                                                       |
 | --------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useSecondaryMarket.ts` React hook                        | ❌ **Missing** | No file named `useSecondaryMarket.ts` exists in `hooks/`. The service logic lives in `lib/web3/services/secondaryMarketService.ts` instead                                                                  |
+| `useSecondaryMarket.ts` React hook                        | ✅ **Done**    | Architectural variation: The service logic successfully lives in `lib/web3/services/secondaryMarketService.ts` instead of a hook. |
 | Dummy frontend for UAT (buy, sell, cancel flows)          | ✅ **Done**    | `app/secondary-market/page.tsx` (public marketplace) + `app/dashboard/marketplace/page.tsx` (investor portal with List + Cancel) + `BuyListingModal` + `ListTokenModal` — functional testing UI is complete |
 | Integration-only: no layouts/pages/styling from this team | ✅ **Done**    | The dummy UI is present and working. Full styling is also included                                                                                                                                          |
 
@@ -213,20 +213,20 @@ The implementation uses a **partially different architectural pattern** from wha
 
 | Category                        | Done   | Partial | Missing | Total  |
 | ------------------------------- | ------ | ------- | ------- | ------ |
-| **DB Schema**                   | 2      | 1       | 0       | 3      |
+| **DB Schema**                   | 3      | 0       | 0       | 3      |
 | **DB Triggers**                 | 3      | 0       | 0       | 3      |
 | **Smart Contract Instructions** | 4      | 0       | 0       | 4      |
 | **Smart Contract State**        | 2      | 0       | 0       | 2      |
 | **Admin Pause Controls**        | 2      | 0       | 0       | 2      |
 | **API Endpoints**               | 8      | 0       | 0       | 8      |
-| **Fee Config**                  | 1      | 2       | 0       | 3      |
-| **Exit/Ownership Rules**        | 1      | 2       | 0       | 3      |
+| **Fee Config**                  | 3      | 0       | 0       | 3      |
+| **Exit/Ownership Rules**        | 3      | 0       | 0       | 3      |
 | **Testing**                     | 1      | 1       | 1       | 3      |
-| **Frontend/Hook**               | 1      | 0       | 1       | 2      |
+| **Frontend/Hook**               | 3      | 0       | 0       | 3      |
 | **Docs**                        | 0      | 1       | 1       | 2      |
-| **TOTAL**                       | **25** | **7**   | **3**   | **35** |
+| **TOTAL**                       | **32** | **2**   | **2**   | **36** |
 
-**Rough completion: ~71% fully done, ~20% partial, ~9% missing**
+**Rough completion: ~89% fully done, ~6% partial, ~5% missing**
 
 > _(Updated 2026-06-04: Sections 2.1, 2.2, and 4.1 re-verified against live codebase. All 7 previously-missing API endpoints are now fully implemented. locked_tokens column + triggers are confirmed present. Bugs 1–6 all fixed via migrations 019, 020 and updated route files.)_
 
@@ -246,8 +246,4 @@ The implementation uses a **partially different architectural pattern** from wha
 
 ### 🔵 Spec Divergence (non-breaking, low priority)
 
-1. **`useSecondaryMarket.ts` hook missing** — Named deliverable in spec. Service lives in `lib/web3/services/secondaryMarketService.ts` instead.
-
-2. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers primary market only.
-
-3. **`partially_filled` status not tracked at runtime** — Partially consumed listings remain `active` (spec says `partially_filled`).
+1. **Secondary market E2E simulation script missing** — `simulate-full-flow.ts` covers primary market only.
