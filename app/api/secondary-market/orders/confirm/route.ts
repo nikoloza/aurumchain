@@ -36,7 +36,14 @@ export async function POST(request: NextRequest) {
     try {
       const { value, context } = await connection.getSignatureStatus(signature, { searchTransactionHistory: true });
       if (value?.err) {
-        return NextResponse.json({ error: 'Transaction failed on the blockchain.' }, { status: 400 });
+        let errorMessage = 'Transaction failed on the blockchain.';
+        const errString = JSON.stringify(value.err);
+        
+        if (errString.includes('3012') || errString.includes('AccountNotInitialized')) {
+          errorMessage = "Investment hasn't been approved yet. Contact admin to mint tokens.";
+        }
+        
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
       }
       
       if (!value || (value.confirmationStatus !== 'confirmed' && value.confirmationStatus !== 'finalized')) {

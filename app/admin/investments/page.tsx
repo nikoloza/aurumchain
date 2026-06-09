@@ -109,42 +109,6 @@ export default function AdminInvestmentsPage() {
         });
       });
 
-      // Add any on-chain subs that are NOT in DB yet (fallback)
-      allSubs.forEach((sub: any) => {
-        if (!usedSubIds.has(sub.publicKey.toBase58())) {
-          const pidStr = sub.account.projectId.toString();
-          const projectData = projectMap[pidStr];
-          const amount = Number(sub.account.investmentAmount.toString()) / 1_000_000;
-          let tokensExp = 0;
-          
-          // Try to estimate tokens expected if price is known
-          if (projectData && projectData.tokenPriceUsdc) {
-            const price = Number(projectData.tokenPriceUsdc.toString()) / 1_000_000;
-            if (price > 0) tokensExp = amount / price;
-          }
-
-          // Check if the on-chain subscription is pending or already allocated
-          const isOnChainPending = sub.account.status.pending !== undefined;
-
-          unified.push({
-            id: sub.publicKey.toBase58(),
-            dbStatus: isOnChainPending ? 'pending' : 'approved',
-            amountUsdc: amount,
-            tokensExpected: tokensExp,
-            minted_tx_hash: null,
-            finalized_tx_hash: null,
-            date: new Date().toISOString(),
-            projectId: pidStr,
-            userId: null, // Unknown since it's on-chain only
-            projectName: projectData?.dbName || projectData?.name || `Project #${pidStr}`,
-            logo: projectData?.images?.[0] || null,
-            tokenSymbol: projectData?.tokenSymbol || 'TOKEN',
-            investorWallet: sub.account.investor.toBase58(),
-            investorName: 'Anonymous (On-Chain)',
-            onChainSub: sub
-          });
-        }
-      });
 
       setUnifiedInvestments(unified);
       setProjects(projectMap);

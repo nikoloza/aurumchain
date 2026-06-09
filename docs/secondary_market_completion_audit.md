@@ -204,8 +204,8 @@ The implementation uses a **partially different architectural pattern** from wha
 
 | Requirement                              | Status         | Notes                                                                                               |
 | ---------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------- |
-| Contract & API integration documentation | ⚠️ **Partial** | `BACKEND_INTEGRATION.md` and `milestone_completion.md` exist. No dedicated secondary-market API doc |
-| Admin control guide (pausing, fees)      | ❌ **Missing** | No standalone admin guide for secondary market controls                                             |
+| Contract & API integration documentation | ✅ **Done** | `BACKEND_INTEGRATION.md` and `milestone_completion.md` exist. Dedicated `secondary_market_api_integration.md` created. |
+| Admin control guide (pausing, fees)      | ✅ **Done** | Standalone admin guide created at `secondary_market_admin_guide.md`                                             |
 
 ---
 
@@ -223,10 +223,10 @@ The implementation uses a **partially different architectural pattern** from wha
 | **Exit/Ownership Rules**        | 3      | 0       | 0       | 3      |
 | **Testing**                     | 1      | 1       | 1       | 3      |
 | **Frontend/Hook**               | 3      | 0       | 0       | 3      |
-| **Docs**                        | 0      | 1       | 1       | 2      |
-| **TOTAL**                       | **32** | **2**   | **2**   | **36** |
+| **Docs**                        | 2      | 0       | 0       | 2      |
+| **TOTAL**                       | **34** | **1**   | **1**   | **36** |
 
-**Rough completion: ~89% fully done, ~6% partial, ~5% missing**
+**Rough completion: ~94% fully done, ~3% partial, ~3% missing**
 
 > _(Updated 2026-06-04: Sections 2.1, 2.2, and 4.1 re-verified against live codebase. All 7 previously-missing API endpoints are now fully implemented. locked_tokens column + triggers are confirmed present. Bugs 1–6 all fixed via migrations 019, 020 and updated route files.)_
 
