@@ -165,25 +165,23 @@ export function ListTokenModal({ isOpen, onClose, position, onSuccess }: ListTok
         skipPreflight: true,
       });
 
-      // 4. Confirm on our backend instantly
-      const confirmRes = await fetch('/api/secondary-market/orders/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          signature,
-          sellOrderPda,
-        }),
-      });
-
-      const confirmData = await confirmRes.json();
-
-      if (!confirmRes.ok) {
-        // If the backend says the transaction failed on-chain, throw an error
-        throw new Error(confirmData.error || 'Transaction failed to confirm on-chain.');
-      }
-
       console.log(`[ListTokenModal] Listing success! Tx: ${signature}`);
       setTxSig(signature);
+
+      // 4. Confirm on our backend instantly
+      try {
+        await fetch('/api/secondary-market/orders/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            signature,
+            sellOrderPda,
+          }),
+        });
+      } catch (confirmErr) {
+        console.warn("[ListTokenModal] Confirm API warning:", confirmErr);
+      }
+
       setSuccess(true);
       if (onSuccess) onSuccess();
 
