@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     // 1. Fetch portfolio positions bypassing RLS
     const { data: positions, error: positionsError } = await supabaseAdmin
       .from('portfolio_positions')
-      .select('user_id, total_tokens')
+      .select('user_id, total_tokens, locked_tokens')
       .eq('project_id', projectId)
       .gt('total_tokens', 0);
       
