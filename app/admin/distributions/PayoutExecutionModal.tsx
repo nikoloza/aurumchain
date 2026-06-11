@@ -65,7 +65,7 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
       }
 
       // 3. Fetch all portfolio positions for this project via Admin API (bypasses RLS)
-      const res = await fetch(`/api/admin/distributions/investors?projectId=${project.id}&epochId=${epoch.id}`);
+      const res = await fetch(`/api/admin/distributions/investors?projectId=${project.id}&epochId=${epoch.id}`, { cache: 'no-store' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to fetch investors");
@@ -328,10 +328,16 @@ export default function PayoutExecutionModal({ epoch, projects, program, onClose
           .map(r => ({ ...r, tx_hash: tx }));
 
         if (recordsToInsert.length > 0) {
-          const { error: dbError } = await supabase.from('payout_records').insert(recordsToInsert);
-          if (dbError) {
-            console.error("Database Sync Error Details:", dbError);
-            setStatus({ type: 'error', msg: `Batch succeeded on-chain, but DB sync failed: ${dbError.message}` });
+          const syncRes = await fetch('/api/admin/distributions/sync-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recordsToInsert })
+          });
+          
+          if (!syncRes.ok) {
+            const err = await syncRes.json();
+            console.error("Database Sync Error Details:", err);
+            setStatus({ type: 'error', msg: `Batch succeeded on-chain, but DB sync failed: ${err.error}` });
           } else {
             // Audit Log for successful batch
             await fetch('/api/admin/audit-logs', {

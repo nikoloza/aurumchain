@@ -168,19 +168,8 @@ async function syncSubscriptions() {
         const isAllocated = subStatus === 'allocated';
         const hasPaymentHash = paymentHash.length > 20;
 
-        // 🛡️ PROTECTION LIST: Skip logic for manually verified records
-        const PROTECTION_LIST = [
-          'db96e990-8463-4f4d-8cbf-dc22373d9cef',
-          'edec3f26-9970-4ddd-9c2f-aa7f338d10bb',
-          '7e42f510-6d50-46a8-877d-a321b5780433',
-          '1f45647b-8ebd-4ac3-bd6e-26a28b0407dc',
-          '9a382347-c9e3-40db-bfe0-8e373dcd2031'
-        ];
-
-        if (existing && PROTECTION_LIST.includes(existing.id)) {
-          continue;
-        }
         
+
         // 🛡️ STRICT ROLE SEPARATION:
         // finalized_tx_hash = investor's USDC payment signature.
         //   Set ONCE at investment creation (Stage 1). NEVER touched here.
