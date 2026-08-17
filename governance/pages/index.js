@@ -12,7 +12,6 @@ import { reconciliation } from './reconciliation.js'
 import { audit } from './audit.js'
 
 export default {
-  '/login': login,
   '/': controlPlane,
   '/authorities': authorities,
   '/roles': roles,
@@ -23,5 +22,8 @@ export default {
   '/subscriptions': subscriptions,
   '/distributions': distributions,
   '/reconciliation': reconciliation,
-  '/audit': audit
+  '/audit': audit,
+  // Last on purpose: the platform pre-renders the FIRST registry entry as
+  // the served entry page — login first meant every visit booted on the form.
+  '/signin': login
 }

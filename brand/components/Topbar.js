@@ -61,7 +61,14 @@ export const Topbar = {
         fontSize: 'Y1',
         fontFamily: 'Mono',
         color: 'title',
-        text: (el, s) => s.root.userEmail || s.root.wallet || ''
+        text: (el, s) => {
+          try {
+            const win = el.node.ownerDocument.defaultView
+            const sess = JSON.parse(win.localStorage.getItem('fractyco_session') || 'null')
+            if (sess && sess.user && sess.user.email) return sess.user.email
+          } catch (e) {}
+          return s.root.userEmail || s.root.wallet || ''
+        }
       }
     },
 

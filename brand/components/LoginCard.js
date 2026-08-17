@@ -2,6 +2,28 @@
 // live in brand/functions/auth.js; the input binding follows the platform
 // idiom — value from root state, preventFetch on every keystroke.
 export const LoginCard = {
+  // Stored-session pickup. This lives HERE, not on the page or in openPage:
+  // a component's onRender always has a real node, and the node is the only
+  // reliable bridge to page-realm localStorage from handler code (bare
+  // `localStorage` in this realm is a different store — the one place a
+  // session is guaranteed NOT to be). The window flag makes the redirect
+  // one-shot, so a re-render during the route transition cannot loop it.
+  onRender: (el, s) => {
+    try {
+      const win = el.node.ownerDocument.defaultView
+      if (win.__fcAutoSignin) return
+      const sess = JSON.parse(win.localStorage.getItem('fractyco_session') || 'null')
+      const live = sess && sess.expires_at &&
+        (Date.now() / 1000) < (Number(sess.expires_at) - 30)
+      if (!live) {
+        if (sess) win.localStorage.removeItem('fractyco_session')
+        return
+      }
+      win.__fcAutoSignin = true
+      el.router('/', el.__ref.root)
+    } catch (e) {}
+  },
+
   flow: 'y',
   gap: 'A',
   width: '100%',

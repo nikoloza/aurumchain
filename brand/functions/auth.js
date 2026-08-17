@@ -131,7 +131,7 @@ export const signout = function signout () {
     (el.node && el.node.ownerDocument.defaultView) ||
     (el.__ref && el.__ref.root && el.__ref.root.node && el.__ref.root.node.ownerDocument.defaultView) ||
     window
-  win.location.href = '/login'
+  win.location.href = '/signin'
 }
 
 // Idempotent — safe to call from every page's onRender. It writes state at

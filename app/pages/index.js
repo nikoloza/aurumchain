@@ -10,7 +10,6 @@ import { identity } from './identity.js'
 import { settings } from './settings.js'
 
 export default {
-  '/login': login,
   '/': overview,
   '/offerings': offerings,
   '/portfolio': portfolio,
@@ -19,5 +18,8 @@ export default {
   '/transactions': transactions,
   '/wallet': wallet,
   '/identity': identity,
-  '/settings': settings
+  '/settings': settings,
+  // Last on purpose: the platform pre-renders the FIRST registry entry as
+  // the served entry page — login first meant every visit booted on the form.
+  '/signin': login
 }
