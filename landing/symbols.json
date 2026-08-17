@@ -1,6 +1,6 @@
 {
   "owner": "fractyco",
-  "key": "fractyco-landing",
+  "key": "landing",
   "branch": "main",
   "dir": ".",
   "port": 5040,
@@ -9,5 +9,5 @@
       "link": "../brand"
     }
   },
-  "version": "1.0.2"
+  "version": "1.2.1"
 }
