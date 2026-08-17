@@ -1,22 +1,44 @@
 // Grotesk display for headings, system sans for body, mono for every number.
 // Numeric columns must align, so the mono face is a first-class token here.
+//
+// `SpaceGrotesk` and `SpaceMono` are the @font-face family names generated from
+// the keys in font.js — keep the two files in step.
 
 export default {
   Default: {
     isDefault: true,
     value: [
-      '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial'
+      'system-ui',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      'Inter',
+      '"Segoe UI"',
+      'Roboto',
+      'Helvetica',
+      'Arial'
     ],
     type: 'sans-serif'
   },
   Display: {
     value: [
-      '"Space Grotesk", -apple-system, BlinkMacSystemFont, "Inter", Helvetica, Arial'
+      'SpaceGrotesk',
+      'system-ui',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      'Inter',
+      'Helvetica',
+      'Arial'
     ],
     type: 'sans-serif'
   },
   Mono: {
-    value: ['"Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas'],
+    value: [
+      'SpaceMono',
+      'ui-monospace',
+      'SFMono-Regular',
+      'Menlo',
+      'Consolas'
+    ],
     type: 'monospace'
   }
 }

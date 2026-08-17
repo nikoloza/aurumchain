@@ -31,6 +31,7 @@ export * from './HeadCell.js'
 export * from './DataRow.js'
 export * from './DataCell.js'
 export * from './EmptyNote.js'
+export * from './LoginCard.js'
 
 // ── Content blocks ──────────────────────────────────────────────────────────
 export * from './StepCard.js'

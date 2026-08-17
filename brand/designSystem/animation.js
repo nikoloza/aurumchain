@@ -1,4 +1,12 @@
 export default {
+  // Mount reveal for marketing sections. Used through `animationName` rather
+  // than a `[data-reveal]` attribute — the runner's HTML shell carries no
+  // stylesheet of ours to define one.
+  fcReveal: {
+    from: { opacity: '0', transform: 'translate3d(0, 20px, 0)' },
+    to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }
+  },
+
   fadeInUp: {
     from: { opacity: '0', transform: 'translate3d(0, 24px, 0)' },
     to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }

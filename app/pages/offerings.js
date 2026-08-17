@@ -1,8 +1,10 @@
 export const offerings = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Offerings — Fractyco' },
-  onCreate: (el) =>
-    el.call('openPage', '/offerings', 'Offerings', 'Open subscriptions. The registry enforces the supply cap and the window.'),
+  onRender: (el) => {
+    el.call('openPage', '/offerings', 'Offerings', 'Open subscriptions. The registry enforces the supply cap and the window.')
+    el.call('loadOfferings')
+  },
 
   Column: {
     Body: {
@@ -11,7 +13,12 @@ export const offerings = {
         gap: 'A',
         childExtends: 'OfferingRow',
         childrenAs: 'state',
-        children: [
+        // Live rows from the platform Supabase; the illustrative set only
+        // renders while the backend has no visible projects.
+        children: (el, s) =>
+          (s.root.backendOfferings && s.root.backendOfferings.length)
+            ? s.root.backendOfferings
+            : [
           {
             name: 'Riverbend Extraction',
             symbol: 'RBX-001',

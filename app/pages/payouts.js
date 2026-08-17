@@ -1,7 +1,7 @@
 export const payouts = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Payouts — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/payouts', 'Payouts', 'One record per epoch per position. Claim sends stablecoin to the linked wallet.'),
 
   Column: {

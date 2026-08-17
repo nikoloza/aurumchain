@@ -1,7 +1,7 @@
 export const reconciliation = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Reconciliation — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/reconciliation', 'Reconciliation', 'The chain is the source of truth. This page finds every row that disagrees with it.'),
 
   Column: {

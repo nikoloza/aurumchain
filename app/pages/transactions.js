@@ -1,7 +1,7 @@
 export const transactions = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Transactions — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/transactions', 'Transactions', 'Every money movement, with its on-chain signature where one exists.'),
 
   Column: {

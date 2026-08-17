@@ -1,3 +1,4 @@
+import { login } from './login.js'
 import { overview } from './overview.js'
 import { offerings } from './offerings.js'
 import { portfolio } from './portfolio.js'
@@ -9,6 +10,7 @@ import { identity } from './identity.js'
 import { settings } from './settings.js'
 
 export default {
+  '/login': login,
   '/': overview,
   '/offerings': offerings,
   '/portfolio': portfolio,

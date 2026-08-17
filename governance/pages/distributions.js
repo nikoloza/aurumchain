@@ -1,7 +1,7 @@
 export const distributions = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Distributions — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/distributions', 'Distributions', 'Open an epoch at a fixed rate, then pay each holder against the snapshot.'),
 
   Column: {

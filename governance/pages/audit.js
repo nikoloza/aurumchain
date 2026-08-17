@@ -1,7 +1,7 @@
 export const audit = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Audit log — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/audit', 'Audit log', 'Append-only. No page in this console can update or delete a row here.'),
 
   Column: {

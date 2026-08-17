@@ -1,7 +1,7 @@
 export const marketplace = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Marketplace — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/marketplace', 'Marketplace', 'Peer-to-peer resale. Every fill still clears the compliance hook.'),
 
   Column: {

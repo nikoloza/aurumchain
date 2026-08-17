@@ -1,7 +1,7 @@
 export const authorities = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Authorities — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/authorities', 'Authorities', 'Transfer an authority through the program. A key change is never a database edit.'),
 
   Column: {

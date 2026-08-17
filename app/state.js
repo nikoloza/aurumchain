@@ -7,6 +7,15 @@
 // The demo figures below stand in for the Supabase reads that replace them:
 // portfolio_positions, investments, payout_records, and secondary_listings.
 export default {
+  // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
+  signedIn: false,
+  userEmail: '',
+  userName: '',
+  authLoading: false,
+  authError: null,
+  signinEmail: '',
+  signinPassword: '',
+
   network: 'Devnet',
   wallet: '7STXs2…uSk4',
 

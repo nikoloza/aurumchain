@@ -1,7 +1,7 @@
 export const wallet = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Wallet — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/wallet', 'Wallet', 'A wallet links only after you sign a server-issued nonce.'),
 
   Column: {

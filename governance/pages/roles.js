@@ -1,7 +1,7 @@
 export const roles = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Roles — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/roles', 'Roles', 'Database-side access control. A grant stays on the record until it is revoked.'),
 
   Column: {

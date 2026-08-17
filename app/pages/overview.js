@@ -1,7 +1,7 @@
 export const overview = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Overview — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/', 'Overview', 'Your positions, payouts, and open subscriptions.'),
 
   Column: {

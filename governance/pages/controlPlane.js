@@ -1,7 +1,7 @@
 export const controlPlane = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Control plane — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/', 'Control plane', 'Who holds which authority, and what is currently paused.'),
 
   Column: {

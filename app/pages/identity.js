@@ -1,7 +1,7 @@
 export const identity = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Identity — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/identity', 'Identity', 'The eligibility record is the single source of truth for what this account may do.'),
 
   Column: {

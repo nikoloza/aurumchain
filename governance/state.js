@@ -8,6 +8,15 @@
 // control account, the compliance config, the market config, user_roles, and
 // audit_logs.
 export default {
+  // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
+  signedIn: false,
+  userEmail: '',
+  userName: '',
+  authLoading: false,
+  authError: null,
+  signinEmail: '',
+  signinPassword: '',
+
   network: 'Devnet',
   wallet: 'gov · 7STXs2…uSk4',
 

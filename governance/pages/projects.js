@@ -1,8 +1,10 @@
 export const projects = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Projects — Fractyco Governance' },
-  onCreate: (el) =>
-    el.call('openPage', '/projects', 'Projects', 'Supply, status, and the mint authority for each asset in the registry.'),
+  onRender: (el) => {
+    el.call('openPage', '/projects', 'Projects', 'Supply, status, and the mint authority for each asset in the registry.')
+    el.call('loadRegistry')
+  },
 
   Column: {
     Body: {
@@ -10,12 +12,19 @@ export const projects = {
         state: { title: 'Registry', lead: 'A status transition out of Completed or Canceled is rejected by the program.' },
         DataTable: {
           state: {
-            columns: ['Asset', 'Mint', 'Issued', 'Cap', 'Round cap', 'Status'],
-            rows: [
-              { cells: [{ text: 'RBX-001', mono: true }, { text: 'AJuj…3jvf', mono: true }, { text: '73,600', mono: true }, { text: '96,000', mono: true }, { text: '40,000', mono: true }, { status: 'Funding' }] },
-              { cells: [{ text: 'KGT-002', mono: true }, { text: 'Es9v…nNYB', mono: true }, { text: '62,000', mono: true }, { text: '150,000', mono: true }, { text: '75,000', mono: true }, { status: 'Funding' }] },
-              { cells: [{ text: 'SVP-003', mono: true }, { text: '9RqV…enjm', mono: true }, { text: '62,000', mono: true }, { text: '62,000', mono: true }, { text: '—' }, { status: 'Completed' }] }
-            ]
+            columns: ['Asset', 'Mint', 'Issued', 'Cap', 'Paused', 'Status']
+          },
+          // Live registry rows; the illustrative set only renders while the
+          // backend has no visible projects.
+          Rows: {
+            children: (el, s) =>
+              (s.root.backendRegistry && s.root.backendRegistry.length)
+                ? s.root.backendRegistry
+                : [
+                    { cells: [{ text: 'RBX-001', mono: true }, { text: 'AJuj…3jvf', mono: true }, { text: '73,600', mono: true }, { text: '96,000', mono: true }, { text: '—' }, { status: 'Funding' }] },
+                    { cells: [{ text: 'KGT-002', mono: true }, { text: 'Es9v…nNYB', mono: true }, { text: '62,000', mono: true }, { text: '150,000', mono: true }, { text: '—' }, { status: 'Funding' }] },
+                    { cells: [{ text: 'SVP-003', mono: true }, { text: '9RqV…enjm', mono: true }, { text: '62,000', mono: true }, { text: '62,000', mono: true }, { text: '—' }, { status: 'Completed' }] }
+                  ]
           }
         }
       },

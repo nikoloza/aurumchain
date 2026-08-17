@@ -1,7 +1,7 @@
 export const compliance = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Compliance — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/compliance', 'Compliance', 'Identity decisions, wallet records, and the rules the transfer hook reads.'),
 
   Column: {

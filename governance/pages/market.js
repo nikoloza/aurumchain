@@ -1,7 +1,7 @@
 export const market = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Market — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/market', 'Market', 'The fee, the fee destination, and the pauses that stop resale.'),
 
   Column: {

@@ -1,3 +1,4 @@
+import { login } from './login.js'
 import { controlPlane } from './controlPlane.js'
 import { authorities } from './authorities.js'
 import { roles } from './roles.js'
@@ -11,6 +12,7 @@ import { reconciliation } from './reconciliation.js'
 import { audit } from './audit.js'
 
 export default {
+  '/login': login,
   '/': controlPlane,
   '/authorities': authorities,
   '/roles': roles,

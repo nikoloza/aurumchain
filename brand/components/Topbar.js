@@ -61,8 +61,15 @@ export const Topbar = {
         fontSize: 'Y1',
         fontFamily: 'Mono',
         color: 'title',
-        text: (el, s) => s.root.wallet || ''
+        text: (el, s) => s.root.userEmail || s.root.wallet || ''
       }
+    },
+
+    SignOutBtn: {
+      extends: 'ActionButton',
+      state: { tone: 'ghost' },
+      text: 'Sign out',
+      onClick: (ev, el) => el.call('signout')
     }
   }
 }

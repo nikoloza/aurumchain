@@ -77,16 +77,34 @@ export const Hero = {
         display: 'inline-flex',
         PillButton: { state: { tone: 'primary' }, text: 'Open an account' }
       },
-      Link_1: {
-        href: '#how',
-        text: '',
-        textDecoration: 'none',
+      HowCta: {
         display: 'inline-flex',
-        onClick: (ev, el) => {
+        state: { anchor: 'how' },
+        // Inline, through el.node.ownerDocument — see components/NavItem.js.
+        onClick: (ev, el, s) => {
           ev.preventDefault()
-          el.call('scrollToSection', 'HowSection')
+          const doc = el.node.ownerDocument
+          const target = doc.getElementById(s.anchor)
+          if (!target) return
+          const root = doc.documentElement
+          const header = doc.querySelector('header')
+          root.scrollTop =
+            root.scrollTop +
+            target.getBoundingClientRect().top -
+            ((header ? header.offsetHeight : 80) + 16)
         },
-        PillButton: { state: { tone: 'secondary' }, text: 'See how it works' }
+        Link: {
+          // Same-document absolute URL — Link then leaves the click to the
+          // HowCta wrapper above. See components/NavItem.js.
+          href: (el) => {
+            const loc = el.node && el.node.ownerDocument.location
+            return loc ? `${loc.origin}${loc.pathname}#how` : '#how'
+          },
+          text: '',
+          textDecoration: 'none',
+          display: 'inline-flex',
+          PillButton: { state: { tone: 'secondary' }, text: 'See how it works' }
+        }
       }
     },
 

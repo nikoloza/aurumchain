@@ -1,7 +1,7 @@
 export const portfolio = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Portfolio — Fractyco' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/portfolio', 'Portfolio', 'Aggregated holdings per project, updated by trigger on every settlement.'),
 
   Column: {

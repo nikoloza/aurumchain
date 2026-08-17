@@ -1,7 +1,7 @@
 export const emergency = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Emergency — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/emergency', 'Emergency', 'Stop the system. Each switch takes effect on the next transaction.'),
 
   Column: {

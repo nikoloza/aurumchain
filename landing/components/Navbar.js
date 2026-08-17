@@ -32,11 +32,11 @@ export const Navbar = {
     gap: 'X',
     '@tabletL': { display: 'none' },
 
-    NavLink: { href: '#how', state: { target: 'HowSection' }, text: 'How it works' },
-    NavLink_1: { extends: 'NavLink', href: '#offerings', state: { target: 'OfferingsSection' }, text: 'Offerings' },
-    NavLink_2: { extends: 'NavLink', href: '#compliance', state: { target: 'ComplianceSection' }, text: 'Compliance' },
-    NavLink_3: { extends: 'NavLink', href: '#chain', state: { target: 'ChainSection' }, text: 'On-chain' },
-    NavLink_4: { extends: 'NavLink', href: '#faq', state: { target: 'FaqSection' }, text: 'FAQ' }
+    NavItem: { state: { anchor: 'how', target: 'HowSection', label: 'How it works' } },
+    NavItem_1: { extends: 'NavItem', state: { anchor: 'offerings', target: 'OfferingsSection', label: 'Offerings' } },
+    NavItem_2: { extends: 'NavItem', state: { anchor: 'compliance', target: 'ComplianceSection', label: 'Compliance' } },
+    NavItem_3: { extends: 'NavItem', state: { anchor: 'chain', target: 'ChainSection', label: 'On-chain' } },
+    NavItem_4: { extends: 'NavItem', state: { anchor: 'faq', target: 'FaqSection', label: 'FAQ' } }
   },
 
   Actions: {

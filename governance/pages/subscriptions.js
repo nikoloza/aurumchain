@@ -1,7 +1,7 @@
 export const subscriptions = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Subscriptions — Fractyco Governance' },
-  onCreate: (el) =>
+  onRender: (el) =>
     el.call('openPage', '/subscriptions', 'Subscriptions', 'Commitments waiting to settle. Finalizing mints tokens to the investor wallet.'),
 
   Column: {
