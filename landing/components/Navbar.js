@@ -45,7 +45,7 @@ export const Navbar = {
     gap: 'Z',
 
     Link: {
-      href: '/login',
+      href: 'https://fractyco--app.at.symbo.ls/signin',
       text: '',
       display: 'inline-flex',
       textDecoration: 'none',
@@ -53,7 +53,7 @@ export const Navbar = {
       PillButton: { state: { tone: 'secondary' }, text: 'Sign in' }
     },
     Link_1: {
-      href: '/signup',
+      href: 'https://fractyco--app.at.symbo.ls/signin',
       text: '',
       display: 'inline-flex',
       textDecoration: 'none',

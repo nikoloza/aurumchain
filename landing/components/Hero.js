@@ -71,7 +71,7 @@ export const Hero = {
       flexWrap: 'wrap',
 
       Link: {
-        href: '/signup',
+        href: 'https://fractyco--app.at.symbo.ls/signin',
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',

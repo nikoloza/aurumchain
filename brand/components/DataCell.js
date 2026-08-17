@@ -13,7 +13,18 @@ export const DataCell = {
     color: 'paragraph',
     display: (el, s) => (s.status ? 'none' : 'inline'),
     fontFamily: (el, s) => (s.mono ? 'Mono' : 'Default'),
-    text: (el, s) => s.text || ''
+    // `session: 'email'` resolves the signed-in account's email at render
+    // time — table rows are plain data, so live values are declared by name.
+    text: (el, s) => {
+      if (s.session === 'email') {
+        try {
+          const win = el.node.ownerDocument.defaultView
+          const sess = JSON.parse(win.localStorage.getItem('fractyco_session') || 'null')
+          if (sess && sess.user && sess.user.email) return sess.user.email
+        } catch (e) {}
+      }
+      return s.text || ''
+    }
   },
 
   StatusPill: {

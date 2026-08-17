@@ -12,7 +12,7 @@ export const settings = {
           state: {
             columns: ['Field', 'Value'],
             rows: [
-              { cells: [{ text: 'Email' }, { text: 'investor@fractyco.example' }] },
+              { cells: [{ text: 'Email' }, { session: 'email' }] },
               { cells: [{ text: 'Country' }, { text: 'Georgia' }] },
               { cells: [{ text: 'Timezone' }, { text: 'Asia/Tbilisi' }] },
               { cells: [{ text: 'Member since' }, { text: '2026-07-02', mono: true }] }

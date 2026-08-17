@@ -54,10 +54,10 @@ export const SiteFooter = {
           {
             title: 'Investors',
             links: [
-              { text: 'Open an account', href: '/signup' },
-              { text: 'Sign in', href: '/login' },
-              { text: 'Verify identity', href: '/kyc' },
-              { text: 'Support', href: '/support' }
+              { text: 'Open an account', href: 'https://fractyco--app.at.symbo.ls/signin' },
+              { text: 'Sign in', href: 'https://fractyco--app.at.symbo.ls/signin' },
+              { text: 'Verify identity', href: 'https://fractyco--app.at.symbo.ls/identity' },
+              { text: 'Support', href: 'mailto:hello@fractyco.app' }
             ]
           },
           {

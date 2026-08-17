@@ -37,14 +37,14 @@ export const ClosingSection = {
       flexWrap: 'wrap',
 
       Link: {
-        href: '/signup',
+        href: 'https://fractyco--app.at.symbo.ls/signin',
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',
         PillButton: { state: { tone: 'primary' }, text: 'Open an account' }
       },
       Link_1: {
-        href: '/support',
+        href: 'mailto:hello@fractyco.app',
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',
