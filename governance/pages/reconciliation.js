@@ -1,0 +1,48 @@
+export const reconciliation = {
+  extends: ['Page', 'ShellPage'],
+  metadata: { title: 'Reconciliation — Fractyco Governance' },
+  onCreate: (el) =>
+    el.call('openPage', '/reconciliation', 'Reconciliation', 'The chain is the source of truth. This page finds every row that disagrees with it.'),
+
+  Column: {
+    Body: {
+      StatRow: {
+        state: {
+          tiles: [
+            { label: 'Rows checked', value: '4,812', delta: 'last run 12 min ago', tone: 'flat' },
+            { label: 'In agreement', value: '4,809', delta: '99.94%' },
+            { label: 'Drifted', value: '3', delta: 'needs a decision', tone: 'down' },
+            { label: 'Last full sweep', value: '2026-08-17', delta: '02:00 UTC', tone: 'flat' }
+          ]
+        }
+      },
+
+      Panel: {
+        state: { title: 'Drift', lead: 'A drifted row means the database and the chain report different numbers.' },
+        DataTable: {
+          state: {
+            columns: ['Record', 'Field', 'Database', 'Chain', 'Status'],
+            rows: [
+              { cells: [{ text: 'investment 8a1f…', mono: true }, { text: 'tokens_purchased' }, { text: '500.0000', mono: true }, { text: '499.0000', mono: true }, { status: 'Pending' }] },
+              { cells: [{ text: 'position 2c77…', mono: true }, { text: 'total_tokens' }, { text: '556.0000', mono: true }, { text: '532.0000', mono: true }, { status: 'Pending' }] },
+              { cells: [{ text: 'listing 91be…', mono: true }, { text: 'remaining' }, { text: '80.0000', mono: true }, { text: '56.0000', mono: true }, { status: 'Processing' }] }
+            ]
+          }
+        },
+        Actions: {
+          flow: 'x',
+          gap: 'Z',
+          paddingTop: 'Z',
+          ActionButton: { text: 'Adopt chain values' },
+          ActionButton_1: { extends: 'ActionButton', state: { tone: 'secondary' }, text: 'Run sweep' }
+        }
+      },
+
+      EmptyNote: {
+        state: {
+          text: 'Adopting a chain value rewrites the database row and writes an audit entry that carries both the previous and the new state.'
+        }
+      }
+    }
+  }
+}

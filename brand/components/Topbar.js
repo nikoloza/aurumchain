@@ -1,0 +1,68 @@
+// Page chrome above the content column: page title, and the account block.
+export const Topbar = {
+  tag: 'header',
+  flow: 'x',
+  align: 'center space-between',
+  gap: 'A',
+  width: '100%',
+  padding: 'Z B',
+  theme: 'nav',
+  borderBottom: '1px solid white.06',
+  position: 'sticky',
+  top: '0',
+  zIndex: '20',
+  backdropFilter: 'saturate(1.4) blur(12px)',
+
+  Titles: {
+    flow: 'y',
+    gap: '0',
+
+    H1: {
+      margin: '0',
+      fontFamily: 'Display',
+      fontSize: 'B',
+      fontWeight: '700',
+      letterSpacing: '-.02em',
+      color: 'title',
+      text: (el, s) => s.root.pageTitle || ''
+    },
+    Sub: {
+      tag: 'span',
+      fontSize: 'Y1',
+      color: 'caption',
+      text: (el, s) => s.root.pageLead || ''
+    }
+  },
+
+  Right: {
+    flow: 'x',
+    align: 'center center',
+    gap: 'Z',
+
+    NetworkPill: {},
+
+    Account: {
+      flow: 'x',
+      align: 'center center',
+      gap: 'Y',
+      padding: 'X Z',
+      borderRadius: 'E',
+      theme: 'secondary',
+
+      Dot: {
+        width: 'Y',
+        height: 'Y',
+        borderRadius: 'E',
+        background: 'green',
+        flexShrink: '0'
+      },
+      Name: {
+        tag: 'span',
+        fontSize: 'Y1',
+        fontFamily: 'Mono',
+        color: 'title',
+        text: (el, s) => s.root.wallet || ''
+      }
+    }
+  }
+}

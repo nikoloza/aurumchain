@@ -1,0 +1,13 @@
+{
+  "owner": "fractyco",
+  "key": "fractyco-app",
+  "branch": "main",
+  "dir": ".",
+  "port": 5041,
+  "sharedLibraries": {
+    "fractyco/brand": {
+      "link": "../brand"
+    }
+  },
+  "version": "1.0.2"
+}

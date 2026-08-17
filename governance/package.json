@@ -1,0 +1,17 @@
+{
+  "name": "@fractyco/governance",
+  "version": "1.0.0",
+  "description": "Fractyco \u2014 governance and control-plane dashboard",
+  "author": "fractyco",
+  "private": true,
+  "scripts": {
+    "start": "rm -rf .parcel-cache && smbls start --no-cache",
+    "build": "rm -rf .parcel-cache && smbls build"
+  },
+  "dependencies": {
+    "smbls": "^3.14.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.16.4"
+  }
+}

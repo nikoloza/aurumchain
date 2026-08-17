@@ -1,0 +1,66 @@
+<html lang="en">
+  <head>
+    <title>Fractyco — Tokenized real-world assets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Fractyco tokenizes real-world assets. Investors buy compliant fractions, hold them on Solana, and receive on-chain payouts." />
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* The runtime's app-shell reset makes <html> the fixed shell, which kills
+         document scrolling and in-page anchors. Restore the normal document
+         model. :root (0,1,0) outspecs the runtime's bare html (0,0,1). */
+      :root {
+        position: static;
+        width: auto;
+        height: auto;
+        min-height: 100%;
+        scroll-behavior: auto;
+      }
+
+      section[id] { scroll-margin-top: 96px; }
+
+      @keyframes fcReveal {
+        from { opacity: 0; transform: translate3d(0, 20px, 0); }
+        to   { opacity: 1; transform: translate3d(0, 0, 0); }
+      }
+      [data-reveal] {
+        animation: fcReveal .8s cubic-bezier(.22,.61,.36,1) both;
+        will-change: opacity, transform;
+      }
+      [data-reveal="late"] { animation-delay: 120ms; }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: .001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: .001ms !important;
+          scroll-behavior: auto !important;
+        }
+        [data-reveal] { opacity: 1 !important; transform: none !important; }
+      }
+
+      :focus-visible {
+        outline: 2px solid #e5b35a;
+        outline-offset: 2px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="./index.js"></script>
+    <script>
+      // smbls clears <html lang> on every render — assert it for assistive tech.
+      (function () {
+        var el = document.documentElement
+        function setLang () { if (el.lang !== 'en') el.lang = 'en' }
+        setLang()
+        new MutationObserver(setLang).observe(el, { attributes: true, attributeFilter: ['lang'] })
+      })()
+    </script>
+  </body>
+</html>

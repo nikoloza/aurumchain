@@ -1,0 +1,9 @@
+{
+  "name": "@fractyco/brand",
+  "version": "1.0.0",
+  "description": "Fractyco design system and component library",
+  "private": true,
+  "type": "module",
+  "main": "./context.js",
+  "sideEffects": true
+}

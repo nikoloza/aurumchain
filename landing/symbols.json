@@ -1,0 +1,13 @@
+{
+  "owner": "fractyco",
+  "key": "fractyco-landing",
+  "branch": "main",
+  "dir": ".",
+  "port": 5040,
+  "sharedLibraries": {
+    "fractyco/brand": {
+      "link": "../brand"
+    }
+  },
+  "version": "1.0.2"
+}
