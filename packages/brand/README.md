@@ -36,6 +36,10 @@ and resolves the same library on the platform through its `symbols.json`:
   component of its own.
 - `functions/` — helpers more than one surface calls, such as `openPage`.
 
+> **A surface has no `designSystem/` folder.** `smbls init` scaffolds one, but
+> a surface's `context.js` never imports it, so it is dead weight that invites
+> token drift. Delete it after scaffolding; every token belongs here.
+
 ## What stays in a surface
 
 - `pages/` — the route registry and one file per route.

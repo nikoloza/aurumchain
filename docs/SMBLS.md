@@ -14,6 +14,11 @@ pages under `pages/` with `pages/index.js` as the only import-based registry.
 exports the same shape for frank, the serializer that turns the project into
 the JSON snapshot the platform stores and serves.
 
+New surfaces: `smbls init` scaffolds a `designSystem/` folder and a set of
+empty token files. A surface's `context.js` never imports them — delete the
+whole folder and take every token from the shared library instead. Removing
+them from the three surfaces here left the served output byte-identical.
+
 The shared library: `packages/brand/` is both a local folder and the platform library
 `fractyco/uikit`. Locally each surface imports `@fractyco/brand/context.js` from its
 `sharedLibraries.js`; on the platform the library is registered in each
