@@ -205,6 +205,12 @@ Every secondary-market write is rate-limited through `lib/api/rateLimit`.
       ([SPEC.md](./SPEC.md) §12).
 - [ ] The wallet-address constraint accepts EVM format only — correct it
       before any Solana address is written ([SPEC.md](./SPEC.md) §12).
+- [ ] **Prune the Next.js-only code in `lib/`** once the API-layer decision
+      above lands: `lib/supabase/client.ts` + `server.ts` (`@supabase/ssr`,
+      `next/headers`), `lib/wagmi.ts` (EVM/WalletConnect), and the
+      `lib/domains/*` services that import `@/lib/supabase/server` — none of
+      it can run outside the retired Next app. If the domains services are
+      kept for the new HTTP shell, rewrite their supabase client first.
 
 ---
 

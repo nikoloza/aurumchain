@@ -50,3 +50,9 @@ Backend and API work is tracked separately in
       ([SPEC.md](./SPEC.md) §12).
 - [ ] Wallet-address constraint accepts EVM format only — correct before any
       Solana-address writes ([SPEC.md](./SPEC.md) §12).
+- [ ] **Publish the new logo.** The aurc.app wordmark (Clash Display, bronze)
+      landed in `packages/brand` (commit `1883517`) but only in git — run
+      `bun run publish:all` so the brand library and the three surfaces pick
+      it up on `fractyco--*.at.symbo.ls`.
+- [ ] A stale dev server is holding port 5040 on the iMac, so `bun start`
+      shifts the landing surface to 5043 — `lsof -ti :5040 | xargs kill`.
