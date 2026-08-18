@@ -21,7 +21,7 @@ import { PROJECT_REGISTRY_PROGRAM_ID } from '../lib/web3/config/programs';
  */
 
 describe("Solana Tokenization Service Verification", () => {
-  const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
   const connection = new Connection(RPC_URL, "confirmed");
 
   const privateKeyStr = process.env.WALLET_PRIVATE_KEY!;

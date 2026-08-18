@@ -12,10 +12,10 @@ if (typeof window === 'undefined') {
  *
  * This file centralizes the RPC endpoint selection logic.
  * To change providers, set ALCHEMY_RPC_URL in your .env file.
- * To switch networks, set NEXT_PUBLIC_SOLANA_RPC_URL in your .env file.
+ * To switch networks, set SOLANA_RPC_URL in your .env file.
  */
 
-const NETWORK = process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet';
+const NETWORK = process.env.SOLANA_CLUSTER || 'devnet';
 
 /**
  * Primary RPC URL — read from env (server-side only).
@@ -24,12 +24,12 @@ const NETWORK = process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet';
  */
 export const SOLANA_RPC_URL =
   process.env.ALCHEMY_RPC_URL ||
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+  process.env.SOLANA_RPC_URL ||
   'https://api.devnet.solana.com';
 
 /** Public fallback used for calls that the primary provider restricts (e.g. getProgramAccounts on Alchemy free tier). */
 export const FALLBACK_RPC_URL =
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+  process.env.SOLANA_RPC_URL ||
   'https://api.devnet.solana.com';
 
 /**

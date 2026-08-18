@@ -9,13 +9,13 @@ import { PublicKey } from '@solana/web3.js';
 
 // Project Registry Program ID
 export const PROJECT_REGISTRY_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_PROJECT_REGISTRY_PROGRAM_ID || 
+  process.env.PROJECT_REGISTRY_PROGRAM_ID || 
   'DZBcioGMWiriWXejSRYo3kjVJtS9VLe5RvwdUhr5HxJN'
 );
 
 // Compliance / Transfer Control Program ID
 export const COMPLIANCE_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_COMPLIANCE_PROGRAM_ID || 
+  process.env.COMPLIANCE_PROGRAM_ID || 
   'BYg6sLi3UHLPB8de7J6Z3wAM5PcdV9T5HxtqBfuD85V9'
 );
 
@@ -26,12 +26,12 @@ export const METAPLEX_METADATA_PROGRAM_ID = new PublicKey(
 
 // Allocation & Distribution Program ID
 export const ALLOCATION_DISTRIBUTION_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_ALLOCATION_DISTRIBUTION_PROGRAM_ID || 
+  process.env.ALLOCATION_DISTRIBUTION_PROGRAM_ID || 
   'EZXJQXX2vYoDrUP6JUcqeShhqKpSRuDecLK9JUiVzkTz'
 );
 
 // Secondary Market Program ID
 export const SECONDARY_MARKET_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_SECONDARY_MARKET_PROGRAM_ID || 
+  process.env.SECONDARY_MARKET_PROGRAM_ID || 
   '8sQeYFf2kDEM33n3ZjnwEsMqwriR6eFNhjtAg7J5Lo6c'
 );
