@@ -5,18 +5,47 @@ holds them in a personal wallet, and receives the asset's profit on-chain.
 
 Read [SPEC.md](./SPEC.md) for the full technical specification.
 
+## Live demos
+
+| Surface | Production | Purpose |
+| --- | --- | --- |
+| Landing | https://fractyco--landing.at.symbo.ls | Marketing site |
+| App | https://fractyco--app.at.symbo.ls | Investor dashboard |
+| Governance | https://fractyco--governance.at.symbo.ls | Operator / compliance console |
+
+Staging and development follow the pattern
+`fractyco--<surface>--staging.at.symbo.ls` / `--development`. The dashboards
+sign in against the live Supabase backend; the demo account lives in `.env`
+(not committed).
+
 ## Layout
 
 ```
 fractyco/
-├── brand/          shared design system and component library
-├── landing/        marketing site        → aurc.app       (port 5040)
-├── app/            investor application  → app.aurc.app   (port 5041)
-├── governance/     control plane         → gov.aurc.app   (port 5042)
-├── supabase/       database schema and migrations
+├── brand/          design system + component library, shared by every surface
+├── landing/        marketing site                     (port 5040)
+├── app/            investor application               (port 5041)
+├── governance/     operator and compliance console    (port 5042)
+├── supabase/       database schema and migrations — borrowed from `main`, unchanged
+├── scripts/        the cross-surface runner
 ├── SPEC.md         technical specification
 └── .legacy/        reference worktree — the pre-Symbols source, on `main`
 ```
+
+## Run
+
+```sh
+npm install          # hoists smbls + parcel for every workspace
+npm start            # all three dev servers in one terminal, prefixed output
+npm run start:app    # or one surface at a time
+npm run build        # production build per surface
+npm run publish:all  # push + publish every surface, then the brand library
+```
+
+Each surface links `brand/` through its `symbols.json`
+(`"fractyco/uikit": {}` on the platform, `../brand` locally). Put a reusable
+component in `brand/`; a surface keeps only its pages and the sections those
+pages compose.
 
 ## Branches
 
@@ -25,36 +54,9 @@ fractyco/
 | `main` | The original Next.js and Anchor source. Reference only. |
 | `next` | The Symbols rebuild. Keeps `supabase/` from `main`; everything else is new. |
 
-The old source stays available as a git worktree:
-
-```sh
-git worktree add .legacy main    # already set up; `.legacy/` is gitignored
-```
-
-## Run a surface
-
-```sh
-cd landing        # or app, or governance
-smbls start       # http://localhost:5040 / 5041 / 5042
-```
-
-Each surface links the `brand/` library through its `symbols.json`. Put a
-reusable component in `brand/`. Put a page section in its own surface.
-
 ## Platform
 
-The three surfaces are Symbols projects under the `fractyco` organization on
-production (`api.symbols.app`):
-
-| Surface | Project key |
-| --- | --- |
-| `landing/` | `fractyco-landing` |
-| `app/` | `fractyco-app` |
-| `governance/` | `fractyco-governance` |
-
-```sh
-smbls push        # push the source
-smbls publish     # push, publish the version, deploy the environments
-```
-
-Environment deploys need workspace credits. Version publishing does not.
+The surfaces are Symbols projects under the `fractyco` org on production
+(`api.symbols.app`): keys `landing`, `app`, `governance`, plus the `uikit`
+library (the `brand/` folder). `smbls publish` inside any package pushes and
+deploys it to development, staging, and production.

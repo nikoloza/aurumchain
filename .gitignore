@@ -17,3 +17,7 @@ dist-brender/
 # Reference worktree: the pre-Symbols source, checked out on `main`.
 # `git worktree add .legacy main` — never committed on this branch.
 .legacy/
+
+# Local media/design assets — never committed.
+design.mp4
+*.mp4
