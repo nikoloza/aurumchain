@@ -3,7 +3,9 @@
 Fractyco divides a real-world asset into tokens. An investor buys the tokens,
 holds them in a personal wallet, and receives the asset's profit on-chain.
 
-Read [SPEC.md](./SPEC.md) for the full technical specification.
+Read [SPEC.md](./SPEC.md) for the full technical specification, and
+[SMBLS.md](./SMBLS.md) for how to run, publish, and operate the toolchain in
+this repo.
 
 ## Live demos
 

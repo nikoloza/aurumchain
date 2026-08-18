@@ -11,6 +11,9 @@ export * from './CallTag.js'
 
 // ── Marketing layout ────────────────────────────────────────────────────────
 export * from './Section.js'
+export * from './NavLink.js'
+export * from './NavItem.js'
+export * from './FooterItem.js'
 export * from './SectionHeading.js'
 export * from './FooterLink.js'
 export * from './FooterCol.js'
