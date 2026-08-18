@@ -2,23 +2,29 @@
 
 One design system and one component set for all three surfaces.
 
-| Surface      | Folder        | Port | Domain       |
-| ------------ | ------------- | ---- | ------------ |
-| Marketing    | `landing/`    | 5040 | aurc.app     |
-| Investor app | `app/`        | 5041 | app.aurc.app |
-| Governance   | `governance/` | 5042 | gov.aurc.app |
+| Surface      | Package                 | Port | Domain       |
+| ------------ | ----------------------- | ---- | ------------ |
+| Marketing    | `packages/landing/`     | 5040 | aurc.app     |
+| Investor app | `packages/dashboard/`   | 5041 | app.aurc.app |
+| Governance   | `packages/governance/`  | 5042 | gov.aurc.app |
 
-Each surface links this folder in its `symbols.json`:
+Each surface declares this package as a Bun workspace dependency:
 
 ```json
-"sharedLibraries": { "fractyco/brand": { "link": "../brand" } }
+"dependencies": { "@fractyco/brand": "workspace:*" }
 ```
 
-and imports the context in its `sharedLibraries.js`:
+imports the context in its `sharedLibraries.js`:
 
 ```js
-import brand from '../brand/context.js'
+import brand from '@fractyco/brand/context.js'
 export default [brand]
+```
+
+and resolves the same library on the platform through its `symbols.json`:
+
+```json
+"sharedLibraries": { "fractyco/uikit": {} }
 ```
 
 ## What belongs here
@@ -35,4 +41,4 @@ export default [brand]
 - `pages/` — the route registry and one file per route.
 - `components/` — only the sections a page composes, and chrome that hardcodes
   that surface's own navigation. The landing `Navbar` and `Hero` are the
-  examples; `app/` and `governance/` currently define nothing.
+  examples; `dashboard/` and `governance/` currently define nothing.

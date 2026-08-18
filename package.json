@@ -3,24 +3,26 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "brand",
-    "landing",
-    "app",
-    "governance"
+    "packages/*"
   ],
   "scripts": {
-    "start": "node scripts/run.mjs start",
-    "build": "node scripts/run.mjs build",
-    "publish:all": "node scripts/run.mjs publish",
-    "start:landing": "npm --workspace landing run start",
-    "start:app": "npm --workspace app run start",
-    "start:governance": "npm --workspace governance run start",
+    "start": "bun scripts/run.mjs start",
+    "build": "bun scripts/run.mjs build",
+    "publish:all": "bun scripts/run.mjs publish",
+    "start:landing": "bun run --filter @fractyco/landing start",
+    "start:dashboard": "bun run --filter @fractyco/dashboard start",
+    "start:governance": "bun run --filter @fractyco/governance start",
+    "sync-idl": "cp programs/project_registry/src/idl.json lib/web3/idl/project_registry.json && cp programs/compliance_transfer/src/idl.json lib/web3/idl/compliance_transfer.json && cp programs/allocation_distribution/src/idl.json lib/web3/idl/allocation_distribution.json && cp programs/secondary_market/src/idl.json lib/web3/idl/secondary_market.json && echo \"IDLs synced.\"",
+    "patch-idl:registry": "bunx tsx scripts/patch-idl.ts project_registry",
+    "patch-idl:compliance": "bunx tsx scripts/patch-idl.ts compliance_transfer",
+    "patch-idl:distribution": "bunx tsx scripts/patch-idl.ts allocation_distribution",
+    "verify-user": "bunx tsx scripts/manual-verify.ts",
+    "indexer": "bunx tsx scripts/indexer_watcher.ts",
     "test:eligibility": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/eligibility.ts --timeout 100000",
     "test:subscription": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/subscription.ts --timeout 100000",
     "test:tokenization": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/tokenization.ts --timeout 100000",
     "test:secondary-market": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/secondary-market.ts --timeout 150000",
-    "test:full-flow": "cross-env NODE_OPTIONS=\"--import tsx\" npx tsx tests/simulate-full-flow.ts",
-    "verify-user": "npx tsx scripts/manual-verify.ts"
+    "test:full-flow": "cross-env NODE_OPTIONS=\"--import tsx\" bunx tsx tests/simulate-full-flow.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
@@ -50,5 +52,6 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "packageManager": "bun@1.3.14"
 }

@@ -1,11 +1,14 @@
 {
-  "name": "@fractyco/app",
+  "name": "@fractyco/landing",
   "version": "1.0.0",
-  "description": "Fractyco \u2014 investor application",
+  "description": "Fractyco \u2014 public marketing site",
   "author": "fractyco",
   "private": true,
   "scripts": {
     "start": "rm -rf .parcel-cache && smbls start --no-cache",
     "build": "rm -rf .parcel-cache && smbls build"
+  },
+  "dependencies": {
+    "@fractyco/brand": "workspace:*"
   }
 }

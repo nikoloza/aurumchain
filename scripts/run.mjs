@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Runs a smbls command across the three surfaces.
 //
-//   node scripts/run.mjs start     dev servers: landing 5040, app 5041, governance 5042
+//   bun scripts/run.mjs start     dev servers: landing 5040, dashboard 5041, governance 5042
 //   node scripts/run.mjs build     production build per surface
 //   node scripts/run.mjs publish   push + publish every surface, then the brand library
 //
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 const mode = process.argv[2] || 'start'
-const SURFACES = ['landing', 'app', 'governance']
+const SURFACES = ['landing', 'dashboard', 'governance']
 const TARGETS = mode === 'publish' ? [...SURFACES, 'brand'] : SURFACES
 
 const ARGS = {
@@ -34,8 +34,8 @@ const prefix = (name, data) => {
 
 const run = (name) =>
   new Promise((resolve) => {
-    const child = spawn('npx', ['smbls', ...ARGS], {
-      cwd: path.join(rootDir, name),
+    const child = spawn('bunx', ['smbls', ...ARGS], {
+      cwd: path.join(rootDir, 'packages', name),
       env: process.env
     })
     child.stdout.on('data', (d) => prefix(name, d))

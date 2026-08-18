@@ -3,12 +3,22 @@
 ## Product
 - [ ] Point `aurc.app`, `app.aurc.app`, `gov.aurc.app` DNS at the platform
       (surfaces currently serve at `fractyco--<surface>.at.symbo.ls`).
-- [ ] Seed the backend: insert rows into `projects` / `offerings` — the live
-      reads on App → Offerings and Governance → Projects light up with no code
-      change.
-- [ ] Wire the remaining read paths in `brand/functions/backend.js`
-      (portfolio, payouts, transactions, wallet, audit log — every page that
-      has a backing table). Pattern: `_restFetch` + one mapper per page.
+- [ ] **Seed the backend.** `projects` and `offerings` are empty, so the only
+      two live pages (Dashboard → Offerings, Governance → Projects) fall back
+      to placeholder rows. Insert rows and both go real with no code change.
+- [ ] **Replace placeholder content with live reads.** Everything except
+      sign-in/session, Dashboard → Offerings and Governance → Projects is
+      hard-coded in `pages/*.js` — see the data table in
+      [README.md](./README.md#data--live-vs-placeholder). Still placeholder:
+      - Dashboard: Overview, Portfolio, Marketplace, Payouts, Transactions,
+        Wallet, Identity, Settings (all rows but Email)
+      - Governance: Overview, Compliance, Subscriptions, Distributions,
+        Market, Reconciliation, Audit, Roles, Authorities, Control plane,
+        Emergency
+
+      Pattern: one loader per page in `packages/brand/functions/backend.js`
+      (`_restFetch` + mapper), page reads `s.root.<key>`, placeholder stays as
+      the empty-state fallback.
 - [ ] Write paths: subscribe flow (app) and the governance queues
       (finalize / reject, epoch creation, reconciliation adopt) — each action
       must also write an `audit_logs` row.
