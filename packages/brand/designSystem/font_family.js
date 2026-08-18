@@ -19,6 +19,15 @@ export default {
     ],
     type: 'sans-serif'
   },
+  Brand: {
+    value: [
+      'ClashDisplay',
+      '"Clash Display"',
+      'system-ui',
+      'sans-serif'
+    ],
+    type: 'sans-serif'
+  },
   Display: {
     value: [
       'SpaceGrotesk',

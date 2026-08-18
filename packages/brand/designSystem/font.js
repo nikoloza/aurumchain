@@ -7,6 +7,14 @@
 // weight.
 
 export default {
+  ClashDisplay: [
+    {
+      url: 'https://cdn.fontshare.com/wf/BFBSY7LX5W2U2EROCLVVTQP4VS7S4PC3/IIUX4FGTMD2LK2VWD3RVTAS4SSMUN7B5/53RZKGODFYDW3QHTIL7IPOWTBCSUEZK7.woff2',
+      fontWeight: 700,
+      fontDisplay: 'swap'
+    }
+  ],
+
   SpaceGrotesk: [
     {
       url: 'https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_k3HqU.woff2',

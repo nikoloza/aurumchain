@@ -8,6 +8,7 @@ export default {
   navyDeep: '#060f1a',    // deepest canvas — page background in dark
   navySoft: '#12233c',    // raised panel on navy
   gold: '#e5b35a',        // primary accent
+  bronze: '#c17f3b',      // wordmark — carried over from the aurc.app logo
   goldLight: '#f5d78e',
   goldDark: '#c89b3c',
 
