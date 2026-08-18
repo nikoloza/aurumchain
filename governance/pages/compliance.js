@@ -23,7 +23,7 @@ export const compliance = {
           state: {
             columns: ['Account', 'Provider ref', 'Country', 'Submitted', 'Status'],
             rows: [
-              { cells: [{ text: 'a.kovacs@example.com' }, { text: 'sms_9f31c2', mono: true }, { text: 'Hungary' }, { text: '2026-08-13', mono: true }, { status: 'Under review' }] },
+              { cells: [{ text: 'p.novak@example.com' }, { text: 'sms_9f31c2', mono: true }, { text: 'Czechia' }, { text: '2026-08-13', mono: true }, { status: 'Under review' }] },
               { cells: [{ text: 'm.orozco@example.com' }, { text: 'sms_7b88d1', mono: true }, { text: 'Mexico' }, { text: '2026-08-15', mono: true }, { status: 'Pending' }] },
               { cells: [{ text: 'j.tanaka@example.com' }, { text: 'sms_2ac40e', mono: true }, { text: 'Japan' }, { text: '2026-08-16', mono: true }, { status: 'Pending' }] },
               { cells: [{ text: 'l.smith@example.com' }, { text: 'sms_1de77a', mono: true }, { text: 'United States' }, { text: '2026-08-10', mono: true }, { status: 'Rejected' }] }
@@ -45,13 +45,13 @@ export const compliance = {
               label: 'KYC bypass',
               call: 'compliance_transfer.set_kyc_bypass',
               note: 'Testing only. Lets an unverified wallet receive tokens. Super admin, with a nonce.',
-              status: 'Revoked'
+              status: 'Off'
             },
             {
               label: 'Lockup bypass',
               call: 'compliance_transfer.toggle_lockup_bypass',
               note: 'Allows a transfer inside the lockup window for a named wallet.',
-              status: 'Revoked'
+              status: 'Off'
             },
             {
               label: 'Mint compliance sync',

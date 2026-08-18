@@ -17,7 +17,7 @@ export const FooterCol = {
   Links: {
     flow: 'y',
     gap: '0',
-    childExtends: 'FooterLink',
+    childExtends: 'FooterItem',
     childrenAs: 'state',
     children: (el, s) => s.links || []
   }

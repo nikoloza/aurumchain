@@ -21,19 +21,19 @@ export const emergency = {
               label: 'Registry emergency pause',
               call: 'project_registry.set_emergency_pause',
               note: 'Blocks issuance and status changes across every project.',
-              status: 'Active'
+              status: 'Off'
             },
             {
               label: 'Global transfer pause',
               call: 'compliance_transfer.set_global_transfer_pause',
               note: 'The transfer hook rejects every move while this is on.',
-              status: 'Active'
+              status: 'Off'
             },
             {
               label: 'Market pause',
               call: 'secondary_market.update_market_config',
               note: 'Stops new sell orders and fills. Cancels stay open.',
-              status: 'Active'
+              status: 'Off'
             }
           ]
         }

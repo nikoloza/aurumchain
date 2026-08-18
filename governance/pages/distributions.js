@@ -9,9 +9,9 @@ export const distributions = {
       StatRow: {
         state: {
           tiles: [
-            { label: 'Epochs closed', value: '4', delta: 'RBX-001, SVP-003', tone: 'flat' },
-            { label: 'Distributed', value: '$186K', delta: 'to 212 holders' },
-            { label: 'Unclaimed', value: '$14.2K', delta: '38 records', tone: 'flat' },
+            { label: 'Epochs closed', value: '3', delta: 'RBX-001, SVP-003', tone: 'flat' },
+            { label: 'Distributed', value: '$256.7K', delta: 'claimed by 212 holders' },
+            { label: 'Unclaimed', value: '$14.2K', delta: '38 records — totals $270.9K with claimed', tone: 'flat' },
             { label: 'Next epoch', value: 'Sep 30', delta: 'epoch 5', tone: 'flat' }
           ]
         }

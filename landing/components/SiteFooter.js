@@ -45,28 +45,27 @@ export const SiteFooter = {
           {
             title: 'Product',
             links: [
-              { text: 'How it works', href: '#how' },
-              { text: 'Offerings', href: '#offerings' },
-              { text: 'Secondary market', href: '#market' },
-              { text: 'On-chain', href: '#chain' }
+              { label: 'How it works', anchor: 'how' },
+              { label: 'Offerings', anchor: 'offerings' },
+              { label: 'Secondary market', anchor: 'market' },
+              { label: 'On-chain', anchor: 'chain' }
             ]
           },
           {
             title: 'Investors',
             links: [
-              { text: 'Open an account', href: 'https://fractyco--app.at.symbo.ls/signin' },
-              { text: 'Sign in', href: 'https://fractyco--app.at.symbo.ls/signin' },
-              { text: 'Verify identity', href: 'https://fractyco--app.at.symbo.ls/identity' },
-              { text: 'Support', href: 'mailto:hello@fractyco.app' }
+              { label: 'Open an account', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'Sign in', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'Verify identity', url: 'https://fractyco--app.at.symbo.ls/identity' },
+              { label: 'Support', url: 'mailto:hello@fractyco.app' }
             ]
           },
           {
             title: 'Company',
             links: [
-              { text: 'About', href: '/about' },
-              { text: 'Compliance', href: '#compliance' },
-              { text: 'Terms', href: '/terms' },
-              { text: 'Privacy', href: '/privacy' }
+              { label: 'About', anchor: 'how' },
+              { label: 'Compliance', anchor: 'compliance' },
+              { label: 'Contact', url: 'mailto:hello@fractyco.app' }
             ]
           }
         ]
