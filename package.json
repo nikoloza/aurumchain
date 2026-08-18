@@ -2,19 +2,53 @@
   "name": "fractyco",
   "private": true,
   "type": "module",
-  "workspaces": ["brand", "landing", "app", "governance"],
+  "workspaces": [
+    "brand",
+    "landing",
+    "app",
+    "governance"
+  ],
   "scripts": {
     "start": "node scripts/run.mjs start",
     "build": "node scripts/run.mjs build",
     "publish:all": "node scripts/run.mjs publish",
     "start:landing": "npm --workspace landing run start",
     "start:app": "npm --workspace app run start",
-    "start:governance": "npm --workspace governance run start"
+    "start:governance": "npm --workspace governance run start",
+    "test:eligibility": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/eligibility.ts --timeout 100000",
+    "test:subscription": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/subscription.ts --timeout 100000",
+    "test:tokenization": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/tokenization.ts --timeout 100000",
+    "test:secondary-market": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/secondary-market.ts --timeout 150000",
+    "test:full-flow": "cross-env NODE_OPTIONS=\"--import tsx\" npx tsx tests/simulate-full-flow.ts",
+    "verify-user": "npx tsx scripts/manual-verify.ts"
   },
   "dependencies": {
-    "smbls": "^3.14.0"
+    "@coral-xyz/anchor": "^0.29.0",
+    "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
+    "@metaplex-foundation/umi": "^1.5.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.5.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/spl-token-metadata": "^0.1.6",
+    "@solana/web3.js": "^1.98.4",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.94.0",
+    "@types/bs58": "^4.0.4",
+    "@types/pg": "^8.20.0",
+    "bs58": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0",
+    "smbls": "^3.14.0",
+    "tweetnacl": "^1.0.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "parcel": "^2.16.4"
+    "@types/bn.js": "^5.2.0",
+    "@types/node": "^25.0.10",
+    "cross-env": "^10.1.0",
+    "mocha": "^11.7.5",
+    "parcel": "^2.16.4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

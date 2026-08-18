@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "programs/project_registry",
+    "programs/compliance_transfer",
+    "programs/allocation_distribution",
+    "programs/secondary_market"
+]
+resolver = "2"

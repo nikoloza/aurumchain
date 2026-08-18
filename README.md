@@ -29,6 +29,9 @@ fractyco/
 ├── landing/        marketing site                     (port 5040)
 ├── app/            investor application               (port 5041)
 ├── governance/     operator and compliance console    (port 5042)
+├── programs/       the four Anchor programs (registry, compliance, distribution, market)
+├── lib/            web3 + domain service layer (TypeScript) — from `main`, unchanged
+├── tests/          on-chain integration tests (mocha/tsx) — `npm run test:*`
 ├── supabase/       database schema and migrations — borrowed from `main`, unchanged
 ├── scripts/        the cross-surface runner
 ├── SPEC.md         technical specification
@@ -54,8 +57,8 @@ pages compose.
 
 | Branch | Contents |
 | --- | --- |
-| `main` | The original Next.js and Anchor source. Reference only. |
-| `next` | The Symbols rebuild. Keeps `supabase/` from `main`; everything else is new. |
+| `main` | The original source. Reference only. |
+| `next` | The Symbols rebuild. Keeps the full on-chain/backend machinery from `main` — `programs/`, `lib/` (minus React hooks/wagmi), `tests/`, `supabase/`, Anchor + Cargo manifests. Only the React/Vercel UI layer was replaced. |
 
 ## Platform
 

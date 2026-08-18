@@ -1,0 +1,22 @@
+[package]
+name = "compliance_transfer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "compliance_transfer"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed", "idl-build"] }
+spl-transfer-hook-interface = "0.6.0"
+spl-tlv-account-resolution = "0.6.0"
+spl-type-length-value = "0.4.0"
+solana-program = "1.18.0"

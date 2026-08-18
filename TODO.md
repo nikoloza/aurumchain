@@ -30,6 +30,10 @@
       in the pending platform release. Re-verify after it deploys.
 
 ## Housekeeping
+- [ ] Re-point `app/api/*` functionality: the old Next.js API routes stayed on
+      `main` (they are Vercel constructs) — reimplement the SPEC.md §9 route
+      contract against `lib/domains/*` services, or restore the routes behind
+      a thin server.
 - [ ] Remove `investments.status_legacy` after confirming no reader uses it
       (SPEC.md §12).
 - [ ] Wallet-address constraint accepts EVM format only — correct before any
