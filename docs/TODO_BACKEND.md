@@ -140,10 +140,12 @@ Every secondary-market write is rate-limited through `lib/api/rateLimit`.
 
 - [ ] **Choose the shape.** Either restore `app/api/**` onto `next` behind a
       thin server (Bun/Hono/Express — the handlers are framework-agnostic apart
-      from `NextRequest`/`NextResponse`), or re-expose `lib/domains/*` as
-      Supabase Edge Functions. Every service the routes call already lives on
-      `next`; only the HTTP shell is missing. Record the decision in
-      [SPEC.md](./SPEC.md) §9.
+      from `NextRequest`/`NextResponse`), or re-expose the domain services as
+      Supabase Edge Functions. The Next-era `lib/domains/*` services and
+      `lib/supabase/*` clients were pruned from `next` (they could not run
+      outside Next) — recover them from `main` / `.legacy` or git history and
+      rewrite their supabase client for the chosen shell. Record the decision
+      in [SPEC.md](./SPEC.md) §9.
 - [ ] **Port the four routes the Symbols surfaces will need first**, in this
       order: `GET /api/projects`, `GET /api/projects/[slug]/details`,
       `GET /api/portfolio/summary`, `GET /api/secondary-market/orderbook`.
@@ -205,12 +207,13 @@ Every secondary-market write is rate-limited through `lib/api/rateLimit`.
       ([SPEC.md](./SPEC.md) §12).
 - [ ] The wallet-address constraint accepts EVM format only — correct it
       before any Solana address is written ([SPEC.md](./SPEC.md) §12).
-- [ ] **Prune the Next.js-only code in `lib/`** once the API-layer decision
-      above lands: `lib/supabase/client.ts` + `server.ts` (`@supabase/ssr`,
-      `next/headers`), `lib/wagmi.ts` (EVM/WalletConnect), and the
-      `lib/domains/*` services that import `@/lib/supabase/server` — none of
-      it can run outside the retired Next app. If the domains services are
-      kept for the new HTTP shell, rewrite their supabase client first.
+- [x] **Prune the Next.js-only code in `lib/`**: removed `lib/supabase/`
+      (`@supabase/ssr`, `next/headers`), `lib/wagmi.ts` (EVM/WalletConnect),
+      the eight `lib/domains/*` service dirs that imported
+      `@/lib/supabase/server`, and their orphaned `shared/schemas.ts` +
+      `shared/types.ts`. Kept: `shared/blockchain-interfaces.ts` (used by the
+      Solana tokenization service and tests) and `lib/api/rateLimit.ts`.
+      Recover the services from `main` / `.legacy` when the API shell lands.
 
 ---
 
