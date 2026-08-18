@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "symbols-mcp": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--refresh", "--with", "mcp<2", "symbols-mcp"]
+    }
+  }
+}
