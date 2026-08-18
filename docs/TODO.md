@@ -1,4 +1,7 @@
-# TODO
+# TODO — product and frontend
+
+Backend and API work is tracked separately in
+[TODO_BACKEND.md](./TODO_BACKEND.md).
 
 ## Product
 - [ ] Point `aurc.app`, `app.aurc.app`, `gov.aurc.app` DNS at the platform
@@ -9,7 +12,7 @@
 - [ ] **Replace placeholder content with live reads.** Everything except
       sign-in/session, Dashboard → Offerings and Governance → Projects is
       hard-coded in `pages/*.js` — see the data table in
-      [README.md](./README.md#data--live-vs-placeholder). Still placeholder:
+      [README.md](../README.md#data--live-vs-placeholder). Still placeholder:
       - Dashboard: Overview, Portfolio, Marketplace, Payouts, Transactions,
         Wallet, Identity, Settings (all rows but Email)
       - Governance: Overview, Compliance, Subscriptions, Distributions,
@@ -40,11 +43,10 @@
       in the pending platform release. Re-verify after it deploys.
 
 ## Housekeeping
-- [ ] Re-point `app/api/*` functionality: the old Next.js API routes stayed on
-      `main` (they are Vercel constructs) — reimplement the SPEC.md §9 route
-      contract against `lib/domains/*` services, or restore the routes behind
-      a thin server.
+- [ ] Re-point `app/api/*` functionality — tracked in detail in
+      [TODO_BACKEND.md](./TODO_BACKEND.md), which audits what the live site
+      actually uses.
 - [ ] Remove `investments.status_legacy` after confirming no reader uses it
-      (SPEC.md §12).
+      ([SPEC.md](./SPEC.md) §12).
 - [ ] Wallet-address constraint accepts EVM format only — correct before any
-      Solana-address writes (SPEC.md §12).
+      Solana-address writes ([SPEC.md](./SPEC.md) §12).

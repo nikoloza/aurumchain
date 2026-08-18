@@ -1,6 +1,16 @@
 # 🚀 FRACTYCO Deployment Guide
 
-This guide is a **complete, step-by-step reference** for deploying the entire FRACTYCO ecosystem under a **new wallet / new Program IDs**. It covers the four Solana programs, every single file that must be updated with new addresses, IDL synchronisation, database migrations, environment variables, and the full operational walkthrough for both Admins and Investors.
+This guide is a **complete, step-by-step reference** for deploying the entire FRACTYCO ecosystem under a **new wallet / new Program IDs**. It covers the four Solana programs, every single file that must be updated with new addresses, IDL synchronisation, database migrations, environment variables, publishing the three Symbols surfaces, and the full operational walkthrough for both operators and investors.
+
+> [!IMPORTANT]
+> **Read this first — the front end moved.** The React/Next.js UI this guide
+> was originally written for now lives on the `main` branch only. On `next`
+> the front end is three **Symbols** projects under `packages/`
+> (`landing`, `dashboard`, `governance`), the package manager is **Bun**, and
+> the Next.js API routes (`app/api/*`) have **not** been ported yet — see
+> [TODO_BACKEND.md](./TODO_BACKEND.md). Phases 1–7 (chain, IDLs, database,
+> CLI) are unchanged and authoritative. Phases 8–10 describe UI flows and API
+> endpoints that exist on `main`; each is annotated with its status on `next`.
 
 ---
 
@@ -20,7 +30,10 @@ This guide is a **complete, step-by-step reference** for deploying the entire FR
 
 4. **Supabase Account** — [supabase.com](https://supabase.com/). Create a new project.
 
-5. **Node.js ≥ 18** and **npm** installed.
+5. **Bun ≥ 1.2** — the package manager and script runner for the whole repo
+   ([bun.sh](https://bun.sh/)). Install with
+   `curl -fsSL https://bun.sh/install | bash`. A Node.js ≥ 18 runtime is still
+   required by the Anchor and Solana tooling Bun shells out to.
 
 6. **Solana CLI** (required to create/manage SPL token mints and send funds)
    - **Linux / macOS**:
@@ -119,7 +132,12 @@ You already updated these in Step 3 above during deployment. Verify they match:
 ### 2.3 — TypeScript programs config  
 **Path**: `lib/web3/config/programs.ts`
 
-This file is used by **all frontend pages, API routes, and CLI scripts**. Update the fallback strings:
+This file is read by the **service layer, the CLI scripts and the integration
+tests** (`lib/`, `scripts/`, `tests/`). The `NEXT_PUBLIC_` prefix is a leftover
+from the Next.js build — keep the names as they are, because `lib/` reads them
+verbatim. The Symbols surfaces do **not** read these variables: they talk to
+Supabase REST directly from `packages/brand/functions/backend.js`. Update the
+fallback strings:
 
 ```typescript
 export const PROJECT_REGISTRY_PROGRAM_ID = new PublicKey(
@@ -150,13 +168,13 @@ export const SECONDARY_MARKET_PROGRAM_ID = new PublicKey(
 
 ## 📄 Phase 3: Synchronise IDL Files
 
-The frontend Anchor clients read from compiled JSON IDL files located at `lib/web3/idl/`. After replacing the four `programs/*/src/idl.json` files with the freshly exported ones, run:
+The Anchor clients read compiled JSON IDL files from `lib/web3/idl/`. After replacing the four `programs/*/src/idl.json` files with the freshly exported ones, run:
 
 ```bash
-npm run sync-idl
+bun run sync-idl
 ```
 
-This command (defined in `package.json`) copies all four IDLs to the frontend location in one step:
+This command (defined in the root `package.json`) copies all four IDLs into the service layer in one step:
 
 ```
 programs/project_registry/src/idl.json         → lib/web3/idl/project_registry.json
@@ -179,7 +197,7 @@ lib/web3/idl/
 
 ## ⚙️ Phase 4: Environment Variables
 
-Create a `.env` file in the **project root** (copy `.env.example` as a starting point):
+Create a `.env` file in the **repo root** (copy `.env.example` as a starting point). It configures `lib/`, `scripts/` and `tests/`:
 
 ```env
 # =============================================
@@ -230,7 +248,24 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
 SUMSUB_APP_TOKEN=your_sumsub_token
 SUMSUB_SECRET_KEY=your_sumsub_secret
 NEXT_PUBLIC_SUMSUB_LEVEL_NAME=basic-kyc-level
+
+# =============================================
+# SYMBOLS SURFACES (dev + demo account)
+# =============================================
+# The surfaces read Supabase over REST with the browser-safe publishable key.
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+FRACTYCO_DEMO_EMAIL=demo@fractyco.app
+FRACTYCO_DEMO_PASSWORD=...
 ```
+
+> [!NOTE]
+> The surface code does not read `.env` at runtime — Symbols projects ship as
+> static bundles, so the Supabase URL and the **publishable** key are inlined
+> in `packages/brand/functions/backend.js`. That key is browser-safe by
+> design; RLS decides what a session may read. Change the project and you must
+> edit that file, not an environment variable. Never inline the service-role
+> key there.
 
 ### Handling Mock USDC
 
@@ -300,14 +335,30 @@ VALUES ('YOUR_USER_UUID', 'super_admin');
 
 ---
 
-## 📦 Phase 6: Install Dependencies and Start the App
+## 📦 Phase 6: Install Dependencies and Start the Surfaces
+
+One install at the repo root covers every workspace — the chain/backend
+dependencies and all four Symbols packages share a single `bun.lock`:
 
 ```bash
-npm install
-npm run dev
+bun install
+bun start
 ```
 
-The app runs at `http://localhost:3000`.
+`bun start` runs the three dev servers together with prefixed output:
+
+| Surface | Package | URL |
+|---|---|---|
+| Marketing site | `packages/landing` | http://localhost:5040 |
+| Investor dashboard | `packages/dashboard` | http://localhost:5041 |
+| Governance console | `packages/governance` | http://localhost:5042 |
+
+Start one at a time with `bun run start:landing`, `bun run start:dashboard`,
+or `bun run start:governance`.
+
+> [!NOTE]
+> On `main` this phase was `npm install && npm run dev`, serving the Next.js
+> app on `http://localhost:3000`. That app is no longer part of `next`.
 
 ---
 
@@ -323,19 +374,25 @@ The **indexer watcher** is a long-running background process that listens to Sol
 | **Audit log integrity** | Populates `audit_logs` with on-chain events that the frontend cannot self-report (e.g., direct wallet transfers). |
 | **Portfolio accuracy** | Keeps `portfolio_positions` up to date when tokens change hands on the secondary market. |
 | **Distribution reliability** | Ensures holder snapshots are accurate before a payout epoch is created. |
-| **Reconciliation baseline** | Provides the on-chain data that the `/admin/reconciliation` page compares against. |
+| **Reconciliation baseline** | Provides the on-chain data that the governance Reconciliation page compares against. |
 
-**Open a new terminal** (keep `npm run dev` running in another window) and run:
+**Open a new terminal** (keep `bun start` running in another window) and run:
 
 ```bash
-npx ts-node scripts/indexer_watcher.ts
+bun run indexer          # → bunx tsx scripts/indexer_watcher.ts
 ```
+
+> [!WARNING]
+> `scripts/*.ts` is excluded by `.gitignore` (line 59), so
+> `indexer_watcher.ts` is **not in this repository**. Copy it in from your
+> deployment checkout before running the command.
 
 > [!IMPORTANT]
 > This process must stay running for as long as the platform is active. In production, run it as a managed background service (e.g., `pm2`, a systemd service, or a dedicated worker dyno on your hosting provider).
 
 > [!TIP]
-> You can also invoke it with `npx tsx scripts/indexer_watcher.ts` if you are using the `tsx` runtime already installed as a dev dependency.
+> `tsx` is installed as a dev dependency, so `bunx tsx scripts/<script>.ts`
+> works for any script in that folder.
 
 ---
 
@@ -355,7 +412,7 @@ Any investor who wants to invest or trade must be approved:
 1. Ask the investor for their **Solana Devnet wallet address**.
 2. Run:
    ```bash
-   npx tsx scripts/manual-verify.ts <user_email> <solana_wallet_address>
+   bun run verify-user <user_email> <solana_wallet_address>
    ```
    This script:
    - Links the wallet address to the user's profile in Supabase.
@@ -380,6 +437,40 @@ INSERT INTO public.user_roles (user_id, role) VALUES ('YOUR_USER_ID', 'super_adm
 ---
 
 ## 🚀 Phase 8: Platform Walkthrough & Lifecycle
+
+> [!IMPORTANT]
+> **Status on `next`.** The pages below are the React app on `main`, still
+> deployed at `www.aurc.app`. The Symbols rebuild reproduces the same
+> information architecture across two surfaces — the old `/admin/*` pages are
+> the **governance** surface, the old `/dashboard/*` pages are the
+> **dashboard** surface — but only sign-in, the dashboard Offerings list and
+> the governance Projects registry read the backend today. Every other screen
+> shows placeholder content, and no surface writes. Treat this walkthrough as
+> the behaviour to restore, and see [TODO_BACKEND.md](./TODO_BACKEND.md) for
+> the endpoint-by-endpoint plan.
+>
+> Route equivalents:
+>
+> | This guide (`main`) | Symbols surface (`next`) |
+> |---|---|
+> | `/admin` | governance `/` |
+> | `/admin/projects` | governance `/projects` |
+> | `/admin/compliance` | governance `/compliance` |
+> | `/admin/investments` | governance `/subscriptions` |
+> | `/admin/distributions` | governance `/distributions` |
+> | `/admin/audit-logs` | governance `/audit` |
+> | `/admin/reconciliation` | governance `/reconciliation` |
+> | `/admin/authority` | governance `/authorities` |
+> | `/login`, `/signup` | dashboard `/signin` |
+> | `/dashboard` | dashboard `/` |
+> | `/dashboard/portfolio` | dashboard `/portfolio` |
+> | `/dashboard/investments` | dashboard `/transactions` |
+> | `/dashboard/distributions` | dashboard `/payouts` |
+> | `/dashboard/marketplace`, `/secondary-market` | dashboard `/marketplace`, `/offerings` |
+> | `/dashboard/wallet` | dashboard `/wallet` |
+> | `/kyc` | dashboard `/identity` |
+> | `/account` | dashboard `/settings` |
+> | `/`, `/projects`, `/about`, `/support` | landing `/` and its sections |
 
 ### 🛡️ Admin Workflow
 
@@ -489,6 +580,12 @@ INSERT INTO public.user_roles (user_id, role) VALUES ('YOUR_USER_ID', 'super_adm
 ---
 
 ## 🔄 Phase 9: Secondary Market (Peer-to-Peer Trading)
+
+> [!NOTE]
+> On `next` the dashboard Marketplace page renders the same layout with
+> placeholder rows; the order flows below run only on `main`. The
+> `secondary_market` program and `lib/web3/services/secondaryMarketService.ts`
+> are both present on `next` — only the HTTP layer is missing.
 
 ### Prerequisites
 
@@ -616,6 +713,14 @@ UPDATE secondary_listings SET status = 'cancelled' WHERE id = 'YOUR_LISTING_UUID
 
 ## 🔑 Phase 10: Complete API Reference
 
+> [!WARNING]
+> **None of these endpoints are served by `next`.** They are Next.js route
+> handlers under `app/api/`, which stayed on `main` because they are Vercel
+> constructs. The services behind them (`lib/domains/*`, `lib/web3/services/*`)
+> **are** on `next` and unchanged. [TODO_BACKEND.md](./TODO_BACKEND.md) maps
+> every route to its tables, its service, and whether the legacy client
+> actually calls it.
+
 ### Public / Investor APIs
 
 | Method | Endpoint | Auth | Description |
@@ -693,24 +798,71 @@ UPDATE secondary_listings SET status = 'cancelled' WHERE id = 'YOUR_LISTING_UUID
 
 ## 🔍 Phase 11: Monitoring & Debugging Scripts
 
-All scripts live in `scripts/` and are run with `npx tsx scripts/<script>.ts`.
+All scripts live in `scripts/` and are run with `bunx tsx scripts/<script>.ts`.
+
+> [!WARNING]
+> `.gitignore` excludes `scripts/*.ts` (line 59), so **none of these files are
+> in this repository** — they carry operator keys. Copy them in from your
+> deployment checkout. The only script tracked here is `scripts/run.mjs`, the
+> cross-surface dev/build/publish runner.
 
 | Script | Command | Description |
 |---|---|---|
-| `check-project.ts` | `npx tsx scripts/check-project.ts <on_chain_project_id>` | Reads a project's on-chain state (registry PDA, mint, etc.) |
-| `verify-wallet.ts` | `npx tsx scripts/verify-wallet.ts <wallet_address>` | Checks if a wallet is KYC-registered on-chain |
-| `check-mint.ts` | `npx tsx scripts/check-mint.ts <mint_address>` | Checks mint authority, supply, and decimals |
-| `check-balances.ts` | `npx tsx scripts/check-balances.ts` | Checks SOL + token balances for all test wallets |
-| `check-onchain-balances.ts` | `npx tsx scripts/check-onchain-balances.ts` | Checks holder balances directly from Solana |
-| `check-epochs.ts` | `npx tsx scripts/check-epochs.ts` | Lists all distribution epochs and their status |
-| `check-subscriptions.ts` | `npx tsx scripts/check-subscriptions.ts` | Lists all investment subscriptions and their status |
-| `manual-verify.ts` | `npm run verify-user <email> <wallet>` | Approves a user's KYC on-chain and in Supabase |
-| `recover_payouts.ts` | `npx tsx scripts/recover_payouts.ts` | Attempts to recover/retry failed payout transactions |
-| `recalculate-portfolios.ts` | `npx tsx scripts/recalculate-portfolios.ts` | Recomputes all `portfolio_positions` from raw investment data |
-| `sync-onchain-balances.ts` | `npx tsx scripts/sync-onchain-balances.ts` | Pulls on-chain token balances into Supabase |
-| `sync-all-compliance.ts` | `npx tsx scripts/sync-all-compliance.ts` | Re-syncs compliance state for all registered wallets |
-| `audit-connectivity.ts` | `npx tsx scripts/audit-connectivity.ts` | Tests RPC, Supabase, and program connectivity |
-| `indexer_watcher.ts` | `npx tsx scripts/indexer_watcher.ts` | Runs the background Solana event indexer (long-running) |
+| `check-project.ts` | `bunx tsx scripts/check-project.ts <on_chain_project_id>` | Reads a project's on-chain state (registry PDA, mint, etc.) |
+| `verify-wallet.ts` | `bunx tsx scripts/verify-wallet.ts <wallet_address>` | Checks if a wallet is KYC-registered on-chain |
+| `check-mint.ts` | `bunx tsx scripts/check-mint.ts <mint_address>` | Checks mint authority, supply, and decimals |
+| `check-balances.ts` | `bunx tsx scripts/check-balances.ts` | Checks SOL + token balances for all test wallets |
+| `check-onchain-balances.ts` | `bunx tsx scripts/check-onchain-balances.ts` | Checks holder balances directly from Solana |
+| `check-epochs.ts` | `bunx tsx scripts/check-epochs.ts` | Lists all distribution epochs and their status |
+| `check-subscriptions.ts` | `bunx tsx scripts/check-subscriptions.ts` | Lists all investment subscriptions and their status |
+| `manual-verify.ts` | `bun run verify-user <email> <wallet>` | Approves a user's KYC on-chain and in Supabase |
+| `recover_payouts.ts` | `bunx tsx scripts/recover_payouts.ts` | Attempts to recover/retry failed payout transactions |
+| `recalculate-portfolios.ts` | `bunx tsx scripts/recalculate-portfolios.ts` | Recomputes all `portfolio_positions` from raw investment data |
+| `sync-onchain-balances.ts` | `bunx tsx scripts/sync-onchain-balances.ts` | Pulls on-chain token balances into Supabase |
+| `sync-all-compliance.ts` | `bunx tsx scripts/sync-all-compliance.ts` | Re-syncs compliance state for all registered wallets |
+| `audit-connectivity.ts` | `bunx tsx scripts/audit-connectivity.ts` | Tests RPC, Supabase, and program connectivity |
+| `indexer_watcher.ts` | `bunx tsx scripts/indexer_watcher.ts` | Runs the background Solana event indexer (long-running) |
+
+---
+
+## 🌐 Phase 12: Publish the Symbols Surfaces
+
+The three front ends are Symbols projects under the `fractyco` organisation on
+production (`api.symbols.app`), sharing one library — `fractyco/uikit`, which
+is `packages/brand/`.
+
+**Publish the library first.** The server embeds library content into the
+served pages at publish time, so a component change reaches production only
+after `brand` is published and the surfaces are republished on top of it:
+
+```bash
+bun run publish:all      # brand, then every surface, in order
+```
+
+Or one at a time:
+
+```bash
+cd packages/brand      && bunx smbls publish --yes --non-interactive
+cd packages/dashboard  && bunx smbls publish --yes --non-interactive
+```
+
+Each publish deploys to development, staging and production:
+
+| Surface | Production URL |
+|---|---|
+| `packages/landing` | https://fractyco--landing.at.symbo.ls |
+| `packages/dashboard` | https://fractyco--app.at.symbo.ls |
+| `packages/governance` | https://fractyco--governance.at.symbo.ls |
+
+Custom domains (`aurc.app`, `app.aurc.app`, `gov.aurc.app`) are not pointed at
+the platform yet — `aurc.app` still serves the legacy Vercel deployment.
+
+> [!WARNING]
+> Verify the CLI channel before publishing: `bunx smbls channels` must report
+> `https://api.symbols.app`. A dev-pinned `.symbols_local/config.json` pushes
+> to a different server and the work silently never appears in production.
+
+Full toolchain reference: [SMBLS.md](./SMBLS.md).
 
 ---
 
@@ -723,16 +875,22 @@ Use this checklist to verify a clean deployment:
 - [ ] `Anchor.toml` updated with all 4 new Program IDs
 - [ ] `lib/web3/config/programs.ts` fallback strings updated
 - [ ] All 4 `programs/*/src/idl.json` replaced with newly exported IDLs
-- [ ] `npm run sync-idl` executed — all 4 `lib/web3/idl/*.json` files updated
+- [ ] `bun run sync-idl` executed — all 4 `lib/web3/idl/*.json` files updated
 - [ ] `.env` created with all required variables
 - [ ] All Supabase migrations run in order (001 → 022 → sync_redeploy.sql)
 - [ ] Super Admin user created and role assigned
 - [ ] At least one investor created, KYC-verified, and funded
-- [ ] `npm run dev` starts without errors
-- [ ] `npx ts-node scripts/indexer_watcher.ts` started in a separate terminal (background indexer running)
+- [ ] `bun install` completes and `bun start` brings up all three surfaces (5040 / 5041 / 5042)
+- [ ] `bun run indexer` started in a separate terminal (background indexer running)
+- [ ] `bunx smbls channels` reports `https://api.symbols.app`
+- [ ] `bun run publish:all` completed — brand published before the surfaces
 - [ ] Test project created successfully (confirms program IDs are correct)
 - [ ] Test investment made (confirms USDC mint and compliance program work)
 
 ---
 
-**Congratulations!** Your FRACTYCO instance is now fully operational. For technical support, refer to other files in the `docs/` directory or contact the development team.
+**Congratulations!** Your FRACTYCO instance is now fully operational.
+
+Next: [TODO_BACKEND.md](./TODO_BACKEND.md) tracks what the live site still
+depends on and what the Symbols rebuild has to take over. Other references
+live alongside this file in `docs/`.

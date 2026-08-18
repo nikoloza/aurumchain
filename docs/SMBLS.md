@@ -45,7 +45,7 @@ bun run start:dashboard      # a single surface
 
 Dev servers are the smbls runner with livesync. Framework-level changes need
 a cache clear: `rm -rf .parcel-cache .symbols_local/symbols-runner-cache` in
-the surface, then restart. `npx smbls frank-audit` inside a surface lints the
+the surface, then restart. `bunx smbls frank-audit` inside a surface lints the
 project against framework rules — keep criticals at zero.
 
 ## Publishing
@@ -81,11 +81,11 @@ production API. Keys: `landing`, `app`, `governance`, and the library
 `smbls project list --search fractyco`, `smbls libs status`.
 
 **Always check the channel before create/push/publish/upload:**
-`npx smbls channels` — the ● must be on `https://api.symbols.app`.
+`bunx smbls channels` — the ● must be on `https://api.symbols.app`.
 my.symbols.app talks to production; the CLI can be silently pinned to the dev
 API by a stale `.symbols_local/config.json` (`channel`/`apiBaseUrl`), and
 everything pushed there simply never appears in the UI. Switch with
-`npx smbls channels --server https://api.symbols.app`.
+`bunx smbls channels --server https://api.symbols.app`.
 
 Per-surface local state lives in `.symbols_local/` (gitignored):
 `config.json` pins the channel and project id, `lock.json` the branch.
@@ -94,12 +94,12 @@ re-attached to its platform project.
 
 ## Docs and files on the platform
 
-- `npx smbls docs push` (from a folder with `docs/*.md`) syncs Markdown docs
+- `bunx smbls docs push` (from a folder with `docs/*.md`) syncs Markdown docs
   to the workspace — they appear under **Notes** at
   my.symbols.app/w/fractyco/default/notes. Frontmatter carries
   title/folderPath/tags; `_serverHash` handles conflict detection. The
   landing package's `docs/` holds the mirrored SPEC.md.
-- `npx smbls files upload <path> --key <key> --visibility public` uploads a
+- `bunx smbls files upload <path> --key <key> --visibility public` uploads a
   file and records it in the project's `files` map
   (`packages/landing/files/spec.js` is such a record). Private files are only
   readable through the authenticated `/core/files/<id>/download` endpoint.
@@ -117,7 +117,7 @@ Hook it up (Claude Code):
 
 ```sh
 claude mcp add symbols-mcp -- uvx symbols-mcp      # recommended, auto-updates
-# or: claude mcp add symbols-mcp -- npx -y @symbo.ls/mcp
+# or: claude mcp add symbols-mcp -- bunx -y @symbo.ls/mcp
 ```
 
 How this repo expects agents to use it:
@@ -130,8 +130,8 @@ How this repo expects agents to use it:
 - **When unsure of a pattern**, `search_symbols_docs` /
   `get_sdk_reference` / `get_cli_reference` instead of guessing.
 - **While generating**, `audit_component` validates a single component
-  inline; `npx -y @symbo.ls/mcp symbols-audit <dir>` (frank-audit
-  underneath, the same engine as `npx smbls frank-audit`) sweeps a whole
+  inline; `bunx -y @symbo.ls/mcp symbols-audit <dir>` (frank-audit
+  underneath, the same engine as `bunx smbls frank-audit`) sweeps a whole
   package — this repo keeps criticals at zero.
 - The generation/conversion tools (`generate_component`, `generate_page`,
   `convert_react`, `convert_html`, `convert_to_json`) and the platform

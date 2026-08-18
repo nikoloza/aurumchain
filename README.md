@@ -3,11 +3,22 @@
 Fractyco divides a real-world asset into tokens. An investor buys the tokens,
 holds them in a personal wallet, and receives the asset's profit on-chain.
 
-Read [SPEC.md](./SPEC.md) for the full technical specification,
-[SMBLS.md](./SMBLS.md) for how to run, publish, and operate the Symbols
-toolchain (including the `symbols-mcp` assistant agents must load before
-writing DOMQL), and [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md)
-for the chain and database deployment walkthrough.
+**The front end lives in `packages/`.** Three Symbols surfaces plus the shared
+design system — `packages/landing`, `packages/dashboard`, `packages/governance`
+and `packages/brand` — wired together as Bun workspaces. Everything outside
+`packages/` is chain and backend: the Anchor programs, the TypeScript service
+layer, the database schema and the integration tests.
+
+All documentation is in [`docs/`](./docs):
+
+| Document | Covers |
+| --- | --- |
+| [SPEC.md](./docs/SPEC.md) | the full technical specification |
+| [SMBLS.md](./docs/SMBLS.md) | running, publishing and operating the Symbols toolchain — read before writing DOMQL |
+| [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | deploying programs, database, indexer and surfaces end to end |
+| [TODO.md](./docs/TODO.md) | product and frontend work |
+| [TODO_BACKEND.md](./docs/TODO_BACKEND.md) | what the live `aurc.app` backend uses, and what the rebuild must take over |
+| [api.md](./docs/api.md) | the API route contract (served by `main`, not yet by `next`) |
 
 ## Live demos
 
@@ -47,7 +58,8 @@ Reconciliation, Audit, Roles, Authorities, Control plane, Emergency.
 > **The two live pages also show placeholders right now.** `projects` and
 > `offerings` are readable but **empty**, and both loaders fall back to the
 > illustrative set when the query returns no rows. Seed the tables and those
-> two pages switch to real data with no code change — see [TODO.md](./TODO.md).
+> two pages switch to real data with no code change — see
+> [docs/TODO.md](./docs/TODO.md).
 
 No page writes to the backend yet. There is no mock server and no fixture
 layer: "placeholder" means literal values inside `pages/*.js`. To make a page
@@ -59,7 +71,7 @@ kept as the empty-state fallback.
 
 ```
 fractyco/
-├── packages/
+├── packages/         ← the entire front end, as Bun workspaces
 │   ├── brand/        design system + component library, shared by every surface
 │   ├── landing/      marketing site                     (port 5040)
 │   ├── dashboard/    investor application               (port 5041)
@@ -68,11 +80,14 @@ fractyco/
 ├── lib/              web3 + domain service layer (TypeScript) — from `main`, unchanged
 ├── tests/            on-chain integration tests (mocha/tsx) — `bun run test:*`
 ├── supabase/         database schema and migrations — borrowed from `main`, unchanged
-├── docs/             chain + API operator documentation
+├── docs/             every Markdown document in the repo
 ├── scripts/          the cross-surface runner
-├── SPEC.md           technical specification
 └── .legacy/          reference worktree — the pre-Symbols source, on `main`
 ```
+
+Nothing outside `packages/` renders UI, and nothing inside it talks to Solana:
+the surfaces read Supabase over REST, and the chain work happens in `programs/`
+and `lib/`.
 
 `packages/*` are Bun workspaces. Every surface links `brand/` through its
 `symbols.json` (`"fractyco/uikit": {}` on the platform, `../brand` locally).
@@ -182,9 +197,11 @@ The Symbols surfaces replace the old React routes one-to-one.
 | `/dashboard/wallet`, `/kyc`, `/account` | `/wallet`, `/identity`, `/settings` | dashboard |
 | `/admin/*` | `/`, `/projects`, `/compliance`, `/distributions`, `/audit`, `/reconciliation`, `/authority` | governance |
 
-The HTTP layer that fronted these (`app/api/*` on `main`) is a Vercel
-construct and stayed on `main`; `docs/api.md` still describes that contract.
-See [TODO.md](./TODO.md) — it needs a new home over `lib/domains/*`.
+The HTTP layer that fronted these (`app/api/*` on `main`) is a Vercel construct
+and stayed there — it is still live at `www.aurc.app`.
+[docs/TODO_BACKEND.md](./docs/TODO_BACKEND.md) audits which of those 38 routes
+the live site actually uses, which tables each one touches, and which service
+on `next` already implements it.
 
 ## Branches
 
