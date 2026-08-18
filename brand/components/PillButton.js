@@ -28,7 +28,7 @@ export const PillButton = {
   isSecondary: (el, s) => s.tone === 'secondary',
   '.isSecondary': {
     theme: 'secondary',
-    ':hover': { transform: 'translateY(-2px)', background: 'white.12' }
+    ':hover': { transform: 'translateY(-2px)', background: 'veilStrong' }
   },
 
   isGhost: (el, s) => s.tone === 'ghost',

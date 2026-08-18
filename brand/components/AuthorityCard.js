@@ -36,7 +36,7 @@ export const AuthorityCard = {
     flow: 'y',
     gap: 'W',
     paddingTop: 'Z',
-    borderTop: '1px solid white.06',
+    borderTop: '1px solid hairline',
 
     Scope: { tag: 'span', fontSize: 'Y1', color: 'caption', text: (el, s) => s.scope || '' },
     Limit: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', color: 'paragraph', text: (el, s) => s.limit || '' }

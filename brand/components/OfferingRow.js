@@ -48,7 +48,7 @@ export const OfferingRow = {
     width: '100%',
     height: 'Y',
     borderRadius: 'E',
-    background: 'white.08',
+    background: 'veil',
     overflow: 'hidden',
 
     Fill: {

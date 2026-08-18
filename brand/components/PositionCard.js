@@ -66,7 +66,7 @@ export const PositionCard = {
     flow: 'x',
     gap: 'Z',
     paddingTop: 'Z',
-    borderTop: '1px solid white.06',
+    borderTop: '1px solid hairline',
 
     ActionButton: { state: { tone: 'secondary' }, text: 'List on marketplace' },
     ActionButton_1: { extends: 'ActionButton', state: { tone: 'ghost' }, text: 'View payouts' }

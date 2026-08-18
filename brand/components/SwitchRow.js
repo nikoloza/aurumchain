@@ -7,7 +7,7 @@ export const SwitchRow = {
   gap: 'A',
   width: '100%',
   padding: 'Z 0',
-  borderBottom: '1px solid white.06',
+  borderBottom: '1px solid hairline',
   flexWrap: 'wrap',
 
   Left: {

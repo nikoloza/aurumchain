@@ -7,7 +7,7 @@ export const Topbar = {
   width: '100%',
   padding: 'Z B',
   theme: 'nav',
-  borderBottom: '1px solid white.06',
+  borderBottom: '1px solid hairline',
   position: 'sticky',
   top: '0',
   zIndex: '20',
@@ -39,6 +39,7 @@ export const Topbar = {
     align: 'center center',
     gap: 'Z',
 
+    ThemeToggle: {},
     NetworkPill: {},
 
     Account: {

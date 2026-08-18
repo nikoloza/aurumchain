@@ -44,7 +44,7 @@ export const OfferingCard = {
     width: '100%',
     height: 'Y',
     borderRadius: 'E',
-    background: 'white.08',
+    background: 'veil',
     overflow: 'hidden',
 
     Fill: {
@@ -82,7 +82,7 @@ export const OfferingCard = {
     align: 'center space-between',
     gap: 'Z',
     paddingTop: 'Z',
-    borderTop: '1px solid white.08',
+    borderTop: '1px solid hairline',
 
     Token: {
       tag: 'span',

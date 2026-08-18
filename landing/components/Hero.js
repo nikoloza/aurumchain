@@ -115,7 +115,7 @@ export const Hero = {
       flexWrap: 'wrap',
       marginTop: 'B',
       paddingTop: 'B',
-      borderTop: '1px solid white.08',
+      borderTop: '1px solid hairline',
       width: '100%',
       textAlign: 'left',
 

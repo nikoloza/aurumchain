@@ -5,9 +5,9 @@ export const CallTag = {
   fontSize: 'Y',
   padding: 'W Y',
   borderRadius: 'X',
-  background: 'white.05',
+  background: 'veil',
   color: 'caption',
-  border: '1px solid white.08',
+  border: '1px solid hairline',
   whiteSpace: 'nowrap',
   text: (el, s) => s.text || ''
 }

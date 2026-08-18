@@ -5,7 +5,7 @@ export const FaqItem = {
   tag: 'article',
   flow: 'y',
   width: '100%',
-  borderBottom: '1px solid white.08',
+  borderBottom: '1px solid hairline',
 
   Trigger: {
     tag: 'button',

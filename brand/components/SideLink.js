@@ -15,7 +15,7 @@ export const SideLink = {
   textDecoration: 'none',
   cursor: 'pointer',
   transition: 'background .18s ease, color .18s ease',
-  ':hover': { background: 'white.06', color: 'title' },
+  ':hover': { background: 'veil', color: 'title' },
 
   href: (el, s) => s.path,
 

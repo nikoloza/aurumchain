@@ -26,6 +26,8 @@ export default {
   paragraph: ['ink.86', 'white.74'],
   caption: ['muted', 'white.52'],
   hairline: ['line', 'white.1'],
+  veil: ['black.04', 'white.06'],      // subtle fill: hovers, tracks, inputs
+  veilStrong: ['black.08', 'white.12'],
 
   // ── Status ────────────────────────────────────────────────────────────────
   green: '#2fa36b',

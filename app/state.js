@@ -7,6 +7,9 @@
 // The demo figures below stand in for the Supabase reads that replace them:
 // portfolio_positions, investments, payout_records, and secondary_listings.
 export default {
+  // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
+  themeMode: '',
+
   // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
   signedIn: false,
   userEmail: '',

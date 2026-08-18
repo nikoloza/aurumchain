@@ -5,9 +5,9 @@ export const DataRow = {
   width: '100%',
   padding: 'Z 0',
   alignItems: 'center',
-  borderBottom: '1px solid white.06',
+  borderBottom: '1px solid hairline',
   transition: 'background .18s ease',
-  ':hover': { background: 'white.03' },
+  ':hover': { background: 'veil' },
 
   Cells: {
     display: 'contents',

@@ -1,3 +1,6 @@
 // The landing surface holds no cross-section state — FAQ rows carry their own
 // local `open` flag and every other section is static.
-export default {}
+export default {
+  // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
+  themeMode: ''
+}

@@ -18,7 +18,7 @@ export const ActionButton = {
   '.isPrimary': { theme: 'primary', ':hover': { transform: 'translateY(-1px)' } },
 
   isSecondary: (el, s) => s.tone === 'secondary',
-  '.isSecondary': { theme: 'secondary', ':hover': { background: 'white.12' } },
+  '.isSecondary': { theme: 'secondary', ':hover': { background: 'veilStrong' } },
 
   isGhost: (el, s) => s.tone === 'ghost',
   '.isGhost': { theme: 'ghost', ':hover': { color: 'title' } }

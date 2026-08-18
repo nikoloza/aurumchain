@@ -5,7 +5,7 @@ export const SiteFooter = {
   width: '100%',
   padding: 'D C B',
   theme: 'surface',
-  borderTop: '1px solid white.08',
+  borderTop: '1px solid hairline',
   '@tabletS': { padding: 'C A B' },
 
   Inner: {
@@ -78,7 +78,7 @@ export const SiteFooter = {
       gap: 'Z',
       flexWrap: 'wrap',
       paddingTop: 'A',
-      borderTop: '1px solid white.08',
+      borderTop: '1px solid hairline',
 
       Copy: {
         tag: 'span',

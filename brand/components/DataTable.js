@@ -10,7 +10,7 @@ export const DataTable = {
     gap: 'Z',
     width: '100%',
     padding: 'Y 0',
-    borderBottom: '1px solid white.1',
+    borderBottom: '1px solid hairline',
     childExtends: 'HeadCell',
     childrenAs: 'state',
     children: (el, s) => (s.columns || []).map((text) => ({ text }))

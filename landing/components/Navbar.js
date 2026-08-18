@@ -12,7 +12,7 @@ export const Navbar = {
   padding: 'Z C',
   theme: 'nav',
   backdropFilter: 'saturate(1.5) blur(14px)',
-  borderBottom: '1px solid white.08',
+  borderBottom: '1px solid hairline',
   '@tabletS': { padding: 'Z A' },
 
   Link: {
@@ -44,6 +44,7 @@ export const Navbar = {
     align: 'center center',
     gap: 'Z',
 
+    ThemeToggle: {},
     Link: {
       href: 'https://fractyco--app.at.symbo.ls/signin',
       text: '',

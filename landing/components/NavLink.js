@@ -11,5 +11,5 @@ export const NavLink = {
   padding: 'Y Z',
   borderRadius: 'X',
   transition: 'color .2s ease, background .2s ease',
-  ':hover': { color: 'title', background: 'white.06' }
+  ':hover': { color: 'title', background: 'veil' }
 }

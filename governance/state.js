@@ -8,6 +8,9 @@
 // control account, the compliance config, the market config, user_roles, and
 // audit_logs.
 export default {
+  // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
+  themeMode: '',
+
   // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
   signedIn: false,
   userEmail: '',
