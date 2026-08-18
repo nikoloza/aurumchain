@@ -103,3 +103,39 @@ re-attached to its platform project.
   file and records it in the project's `files` map
   (`landing/files/spec.js` is such a record). Private files are only
   readable through the authenticated `/core/files/<id>/download` endpoint.
+
+## symbols-mcp — the framework assistant for AI agents
+
+[`symbols-mcp`](https://github.com/symbo-ls/symbols-mcp) is the MCP server
+for the Symbols stack: documentation search, the mandatory framework
+ruleset, code generation/conversion, auditing, and platform project
+management — usable from Claude Code, Cursor, claude.ai, or any MCP client.
+Documentation tools need no account; project-management tools log in to the
+platform.
+
+Hook it up (Claude Code):
+
+```sh
+claude mcp add symbols-mcp -- uvx symbols-mcp      # recommended, auto-updates
+# or: claude mcp add symbols-mcp -- npx -y @symbo.ls/mcp
+```
+
+How this repo expects agents to use it:
+
+- **Before writing any DOMQL**, call `get_project_context` (resolves
+  owner/key/env from the nearest `symbols.json`) and `get_project_rules`
+  (the mandatory ruleset — v3 syntax, plain-object components, no
+  cross-file imports, token-only styling). Do not write Symbols code from
+  memory.
+- **When unsure of a pattern**, `search_symbols_docs` /
+  `get_sdk_reference` / `get_cli_reference` instead of guessing.
+- **While generating**, `audit_component` validates a single component
+  inline; `npx -y @symbo.ls/mcp symbols-audit <dir>` (frank-audit
+  underneath, the same engine as `npx smbls frank-audit`) sweeps a whole
+  package — this repo keeps criticals at zero.
+- The generation/conversion tools (`generate_component`, `generate_page`,
+  `convert_react`, `convert_html`, `convert_to_json`) and the platform
+  tools (`login`, `list_projects`, `save_to_project`, `publish`, `push`)
+  cover the full loop from prompt to deployed project without the CLI —
+  in this repo the CLI flow above is the primary path, and the MCP is the
+  reference and validation layer.

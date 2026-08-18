@@ -5,7 +5,8 @@ holds them in a personal wallet, and receives the asset's profit on-chain.
 
 Read [SPEC.md](./SPEC.md) for the full technical specification, and
 [SMBLS.md](./SMBLS.md) for how to run, publish, and operate the toolchain in
-this repo.
+this repo — including the `symbols-mcp` assistant agents should load
+before writing any DOMQL.
 
 ## Live demos
 
