@@ -21,3 +21,6 @@ dist-brender/
 # Local media/design assets — never committed.
 design.mp4
 *.mp4
+
+# Generated Note copies of docs/ — rebuild with `bun run docs:sync`
+packages/landing/docs/

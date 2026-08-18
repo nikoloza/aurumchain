@@ -12,6 +12,8 @@
     "start:landing": "bun run --filter @fractyco/landing start",
     "start:dashboard": "bun run --filter @fractyco/dashboard start",
     "start:governance": "bun run --filter @fractyco/governance start",
+    "docs:sync": "bun scripts/sync-notes.mjs",
+    "docs:push": "bun scripts/sync-notes.mjs && cd packages/landing && bunx smbls docs push",
     "sync-idl": "cp programs/project_registry/src/idl.json lib/web3/idl/project_registry.json && cp programs/compliance_transfer/src/idl.json lib/web3/idl/compliance_transfer.json && cp programs/allocation_distribution/src/idl.json lib/web3/idl/allocation_distribution.json && cp programs/secondary_market/src/idl.json lib/web3/idl/secondary_market.json && echo \"IDLs synced.\"",
     "patch-idl:registry": "bunx tsx scripts/patch-idl.ts project_registry",
     "patch-idl:compliance": "bunx tsx scripts/patch-idl.ts compliance_transfer",

@@ -3,6 +3,11 @@
 Everything below is a Markdown document in this folder. The repo-root
 [README.md](../README.md) is the entry point.
 
+These files are the single source of truth. The copies published to the
+workspace Notes at my.symbols.app are **generated** from them — run
+`bun run docs:sync` (or `bun run docs:push` to sync and publish); never edit
+the generated copies under `packages/landing/docs/`.
+
 ## Start here
 
 | Document | Covers |

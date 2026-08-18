@@ -109,6 +109,7 @@ bun start                 # all three dev servers, prefixed output
 bun run start:dashboard   # or one surface at a time
 bun run build             # production build per surface
 bun run publish:all       # push + publish every surface, then the brand library
+bun run docs:push         # regenerate the Note copies of docs/ and sync them
 ```
 
 ## Smart contracts — 4 programs
