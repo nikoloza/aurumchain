@@ -46,13 +46,14 @@ export default {
   },
 
   // Visible keyboard focus on every interactive element (WCAG 2.4.7).
+  // Slate blue reads on both the ivory and the navy ground.
   ':focus-visible': {
-    outline: '2px solid #e5b35a',
+    outline: '2px solid #607D94',
     outlineOffset: '2px',
     borderRadius: '3px'
   },
 
   '::selection': {
-    background: 'rgba(229, 179, 90, 0.28)'
+    background: 'rgba(168, 192, 207, 0.45)'
   }
 }

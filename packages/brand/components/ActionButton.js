@@ -8,7 +8,7 @@ export const ActionButton = {
   fontWeight: '600',
   padding: 'Y A',
   minHeight: 'B1',
-  borderRadius: 'Z',
+  borderRadius: 'radiusControl',
   cursor: 'pointer',
   whiteSpace: 'nowrap',
   transition: 'transform .18s ease, background .18s ease',

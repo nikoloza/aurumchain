@@ -8,9 +8,18 @@ export const offerings = {
 
   Column: {
     Body: {
+      SkeletonList: {
+        flow: 'y',
+        gap: 'A',
+        show: (el, s) => !s.root.backendOfferingsLoaded,
+        childExtends: 'SkeletonRow',
+        children: [{}, {}, {}]
+      },
+
       List: {
         flow: 'y',
         gap: 'A',
+        show: (el, s) => !!s.root.backendOfferingsLoaded,
         childExtends: 'OfferingRow',
         childrenAs: 'state',
         // Live rows from the platform Supabase; the illustrative set only

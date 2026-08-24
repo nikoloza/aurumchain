@@ -5,6 +5,7 @@ export const FaqSection = {
   Inner: {
     SectionHeading: {
       state: {
+        num: '07',
         eyebrow: 'FAQ',
         title: 'The questions we get first.'
       }

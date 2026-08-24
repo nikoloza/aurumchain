@@ -1,4 +1,4 @@
-// Small neutral label. Use ChipAccent for the gold variant — a tone flag on
+// Small neutral label. Use ChipAccent for the mist-accent variant — a tone flag on
 // the chip would collide with the state a parent passes down for its text.
 export const Chip = {
   tag: 'span',
@@ -10,7 +10,7 @@ export const Chip = {
   letterSpacing: '.02em',
   textTransform: 'uppercase',
   padding: 'W Z',
-  borderRadius: 'E',
+  borderRadius: 'radiusPill',
   whiteSpace: 'nowrap',
   theme: 'chip'
 }

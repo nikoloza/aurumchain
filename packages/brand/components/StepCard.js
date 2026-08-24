@@ -3,10 +3,16 @@ export const StepCard = {
   flow: 'y',
   gap: 'Z',
   padding: 'B',
-  borderRadius: 'B',
+  borderRadius: 'radiusCard',
   theme: 'card',
-  transition: 'transform .25s ease, border-color .25s ease',
-  ':hover': { transform: 'translateY(-3px)', borderColor: 'gold.4' },
+  transition: (el, s) => 'opacity .8s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') + ', transform .25s ease, border-color .25s ease',
+  opacity: '0',
+  isRevealed: (el, s) => s.inView !== false,
+  '.isRevealed': { opacity: '1' },
+  '@reduceMotion': { opacity: '1', transition: 'none' },
+  onMousemove: (ev, el) => el.call('tiltCard', ev),
+  onMouseout: (ev, el) => el.call('tiltReset', ev),
+  ':hover': { transform: 'translateY(-3px)', borderColor: 'slate.45' },
 
   Num: {
     tag: 'span',
@@ -14,7 +20,7 @@ export const StepCard = {
     fontSize: 'Y1',
     fontWeight: '700',
     letterSpacing: '.1em',
-    color: 'gold',
+    color: 'accentInk',
     text: (el, s) => s.step || ''
   },
 

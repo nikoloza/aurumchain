@@ -14,8 +14,10 @@ export const ComplianceSection = {
 
       SectionHeading: {
         state: {
+          num: '04',
           eyebrow: 'Compliance',
-          title: 'The token itself refuses a non-compliant transfer.',
+          titleTop: 'The token itself refuses',
+          title: 'a non-compliant transfer.',
           lead:
             'Compliance is not a screen in front of the ledger. It runs inside the transfer path, so an unverified wallet cannot receive tokens even through a direct transfer.'
         }

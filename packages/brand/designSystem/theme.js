@@ -1,94 +1,95 @@
 // ── Fractyco themes ─────────────────────────────────────────────────────────
-// Dark is the product default (a navy trading surface). Light stays available
-// for the marketing site and for print-style exports.
+// Light is the brand's presentation ground (soft ivory, deep navy ink); dark
+// is the same identity inverted onto the navy. Surfaces stay flat — weight
+// comes from the navy, air from the ivory.
 
 export default {
   document: {
-    '@light': { background: 'paper', color: 'ink' },
-    '@dark': { background: 'navyDeep', color: 'white.92' }
+    '@light': { background: 'ivory', color: 'ink' },
+    '@dark': { background: 'navyDeep', color: 'ivory.92' }
   },
 
   // Page wash used to separate stacked sections
   surface: {
-    '@light': { background: 'mist', color: 'ink' },
-    '@dark': { background: 'navy', color: 'white.86' }
+    '@light': { background: 'ivoryDim', color: 'ink' },
+    '@dark': { background: 'navy', color: 'ivory.86' }
   },
 
   // Standard panel
   card: {
     '@light': { background: 'white', color: 'ink', border: '1px solid line' },
-    '@dark': { background: 'navySoft', color: 'white.9', border: '1px solid white.08' }
+    '@dark': { background: 'navySoft', color: 'ivory.9', border: '1px solid ivory.08' }
   },
 
-  // Focus panel — the one card in a row that carries the accent
+  // Focus panel — the one card in a row that carries the brand's weight
   accentCard: {
-    '@light': { background: 'navy', color: 'white', border: '1px solid navy' },
-    '@dark': { background: 'navySoft', color: 'white', border: '1px solid gold.32' }
+    '@light': { background: 'navy', color: 'ivory', border: '1px solid navy' },
+    '@dark': { background: 'navySoft', color: 'ivory', border: '1px solid mist.32' }
   },
 
-  // Primary action
+  // Primary action — navy on ivory; inverts to ivory on navy in dark
   primary: {
-    '@light': { background: 'gold', color: 'navyDeep' },
-    '@dark': { background: 'gold', color: 'navyDeep' }
+    '@light': { background: 'navy', color: 'ivory' },
+    '@dark': { background: 'ivory', color: 'navy' }
   },
 
   // Outlined action
   secondary: {
     '@light': { background: 'white', color: 'ink', border: '1px solid line' },
-    '@dark': { background: 'white.06', color: 'white.92', border: '1px solid white.16' }
+    '@dark': { background: 'ivory.06', color: 'ivory.92', border: '1px solid ivory.16' }
   },
 
   // Quiet action — text only
   ghost: {
     '@light': { background: 'transparent', color: 'muted' },
-    '@dark': { background: 'transparent', color: 'white.6' }
+    '@dark': { background: 'transparent', color: 'ivory.6' }
   },
 
   // Small label
   chip: {
     '@light': { background: 'white', color: 'muted', border: '1px solid line' },
-    '@dark': { background: 'white.05', color: 'white.66', border: '1px solid white.1' }
+    '@dark': { background: 'ivory.05', color: 'ivory.66', border: '1px solid ivory.1' }
   },
 
   chipAccent: {
-    '@light': { background: 'gold.16', color: 'goldDark' },
-    '@dark': { background: 'gold.14', color: 'goldLight' }
+    '@light': { background: 'mist.4', color: '#2C4E68' },
+    '@dark': { background: 'mist.14', color: 'mist' }
   },
 
   // Status chips
   chipPositive: {
     '@light': { background: 'green.12', color: 'green' },
-    '@dark': { background: 'green.16', color: '#66d3a0' }
+    '@dark': { background: 'green.16', color: '#5FC69B' }
   },
   chipNegative: {
     '@light': { background: 'red.12', color: 'red' },
-    '@dark': { background: 'red.18', color: '#ff8a86' }
+    '@dark': { background: 'red.18', color: '#F0928C' }
   },
   chipPending: {
-    '@light': { background: 'amber.14', color: '#9a6f10' },
-    '@dark': { background: 'amber.16', color: '#f0c463' }
+    '@light': { background: 'amber.16', color: '#8A6420' },
+    '@dark': { background: 'amber.16', color: '#E4BE72' }
   },
 
   // Application chrome
   nav: {
-    '@light': { background: 'white.86', color: 'ink' },
-    '@dark': { background: 'navyDeep.82', color: 'white.92' }
+    '@light': { background: 'ivory.82', color: 'ink' },
+    '@dark': { background: 'navyDeep.82', color: 'ivory.92' }
   },
 
   rail: {
     '@light': { background: 'white', color: 'ink', border: '1px solid line' },
-    '@dark': { background: 'navy', color: 'white.86', border: '1px solid white.06' }
+    '@dark': { background: 'navy', color: 'ivory.86', border: '1px solid ivory.06' }
   },
 
   divider: {
     '@light': { borderColor: 'line' },
-    '@dark': { borderColor: 'white.08' }
+    '@dark': { borderColor: 'ivory.08' }
   },
 
-  // Stays dark in both modes
+  // Stays navy in both modes — the brand's dark band
   inverted: {
-    '@light': { background: 'navyDeep', color: 'white' },
-    '@dark': { background: 'black', color: 'white' }
+    '@light': { background: 'navy', color: 'ivory' },
+    '@dark': { background: 'navy', color: 'ivory' }
   },
 
   none: { color: 'none', background: 'none' },

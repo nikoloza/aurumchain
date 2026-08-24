@@ -9,8 +9,10 @@ export const HowSection = {
   Inner: {
     SectionHeading: {
       state: {
+        num: '01',
         eyebrow: 'How it works',
-        title: 'Four states between signing up and getting paid.',
+        titleTop: 'Four states between',
+        title: 'signing up and getting paid.',
         lead:
           'Eligibility is a state machine, not a checkbox. An account advances one step at a time, and the on-chain compliance record advances with it.'
       }
@@ -25,6 +27,7 @@ export const HowSection = {
 
       StepCard: {
         state: {
+          revealDelay: '0s',
           step: '01',
           title: 'Verify identity',
           body:
@@ -34,6 +37,7 @@ export const HowSection = {
       StepCard_1: {
         extends: 'StepCard',
         state: {
+          revealDelay: '.09s',
           step: '02',
           title: 'Link a wallet',
           body:
@@ -43,6 +47,7 @@ export const HowSection = {
       StepCard_2: {
         extends: 'StepCard',
         state: {
+          revealDelay: '.18s',
           step: '03',
           title: 'Subscribe',
           body:
@@ -52,6 +57,7 @@ export const HowSection = {
       StepCard_3: {
         extends: 'StepCard',
         state: {
+          revealDelay: '.27s',
           step: '04',
           title: 'Hold and earn',
           body:

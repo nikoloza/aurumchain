@@ -3,7 +3,7 @@ export const AuthorityCard = {
   flow: 'y',
   gap: 'Z',
   padding: 'A',
-  borderRadius: 'A',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Head: {
@@ -27,7 +27,7 @@ export const AuthorityCard = {
     tag: 'span',
     fontFamily: 'Mono',
     fontSize: 'Z',
-    color: 'gold',
+    color: 'accentInk',
     wordBreak: 'break-all',
     text: (el, s) => s.holder || ''
   },

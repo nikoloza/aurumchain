@@ -5,5 +5,9 @@
   "private": true,
   "type": "module",
   "main": "./context.js",
-  "sideEffects": true
+  "sideEffects": true,
+  "scripts": {
+    "start": "rm -rf .parcel-cache && smbls start --no-cache",
+    "build": "rm -rf .parcel-cache && smbls build"
+  }
 }

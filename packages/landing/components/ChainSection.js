@@ -7,8 +7,10 @@ export const ChainSection = {
   Inner: {
     SectionHeading: {
       state: {
+        num: '05',
         eyebrow: 'On-chain',
-        title: 'Four programs, one settlement path.',
+        titleTop: 'Four programs,',
+        title: 'one settlement path.',
         lead:
           'The registry owns supply. Compliance owns permission. Distribution owns payouts. The market owns resale.'
       }

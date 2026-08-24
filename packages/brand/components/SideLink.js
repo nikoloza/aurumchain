@@ -20,7 +20,7 @@ export const SideLink = {
   href: (el, s) => s.path,
 
   isActive: (el, s) => s.root.route === s.path,
-  '.isActive': { background: 'gold.14', color: 'gold' },
+  '.isActive': { background: 'activeWash', color: 'activeInk' },
 
   onClick: (ev, el, s) => {
     ev.preventDefault()

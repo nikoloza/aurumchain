@@ -29,7 +29,7 @@ export const settings = {
             columns: ['Field', 'Value'],
             rows: [
               { cells: [{ text: 'Cluster' }, { text: 'devnet' }] },
-              { cells: [{ text: 'Settlement asset' }, { text: 'USDC' }] },
+              { cells: [{ text: 'Settlement asset' }, { text: 'USDC', mono: true }] },
               { cells: [{ text: 'Registry program' }, { text: 'DZBc…HxJN', mono: true }] },
               { cells: [{ text: 'Compliance program' }, { text: 'BYg6…85V9', mono: true }] }
             ]

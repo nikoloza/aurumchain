@@ -26,7 +26,7 @@ export const SwitchRow = {
       tag: 'span',
       fontFamily: 'Mono',
       fontSize: 'Y',
-      color: 'gold',
+      color: 'accentInk',
       text: (el, s) => s.call || ''
     },
     Note: {

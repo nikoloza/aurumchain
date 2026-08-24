@@ -22,6 +22,11 @@ export const ShellPage = {
       gap: 'B',
       width: '100%',
       padding: 'B',
+      animationName: 'pageEnter',
+      animationDuration: 'D',
+      animationTimingFunction: 'ease-out',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
       '@tabletS': { padding: 'A Z' }
     }
   }

@@ -7,8 +7,10 @@ export const OfferingsSection = {
   Inner: {
     SectionHeading: {
       state: {
+        num: '03',
         eyebrow: 'Offerings',
-        title: 'Each asset becomes a supply-capped token.',
+        titleTop: 'Each asset becomes',
+        title: 'a supply-capped token.',
         lead:
           'An offering fixes the token symbol, the supply cap, the unit price, and the subscription window. The registry enforces every one of them.'
       }
@@ -22,7 +24,33 @@ export const OfferingsSection = {
       '@mobileL': { gridTemplateColumns: '1fr' },
 
       OfferingCard: {
+        // The one navy tile in the row — explicit fills so it holds in both
+        // page schemes (themeModifier emits unresolved vars in this runner).
+        background: 'navy',
+        border: '1px solid navy',
+        ':hover': { transform: 'translateY(-3px)', borderColor: 'mist.5' },
+        Head: {
+          Titles: {
+            H3: { color: 'ivory' },
+            Loc: { color: 'mist.72' }
+          },
+          ChipAccent: { background: 'mist.18', color: 'mist', border: '1px solid mist.25' }
+        },
+        Bar: {
+          background: 'ivory.14',
+          Fill: { background: 'mist' }
+        },
+        Meta: {
+          Raised: { color: 'ivory' },
+          Pct: { color: 'mist' }
+        },
+        Footer: {
+          borderTopColor: 'ivory.16',
+          Token: { color: 'mist.65' },
+          Apr: { color: 'green+28' }
+        },
         state: {
+          revealDelay: '0s',
           name: 'Riverbend Extraction',
           location: 'Ashanti, Ghana',
           status: 'Funding',
@@ -37,6 +65,7 @@ export const OfferingsSection = {
       OfferingCard_1: {
         extends: 'OfferingCard',
         state: {
+          revealDelay: '.1s',
           name: 'Kalgoorlie Tailings',
           location: 'Western Australia',
           status: 'Funding',
@@ -51,6 +80,7 @@ export const OfferingsSection = {
       OfferingCard_2: {
         extends: 'OfferingCard',
         state: {
+          revealDelay: '.2s',
           name: 'Serra Verde Plant',
           location: 'Minas Gerais, Brazil',
           status: 'Closed',

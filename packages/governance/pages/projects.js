@@ -16,7 +16,17 @@ export const projects = {
           },
           // Live registry rows; the illustrative set only renders while the
           // backend has no visible projects.
+          SkeletonRows: {
+            flow: 'y',
+            gap: 'Y',
+            padding: 'Z 0',
+            show: (el, s) => !s.root.backendRegistryLoaded,
+            childExtends: 'Skeleton',
+            childrenAs: 'state',
+            children: [{ h: 'B' }, { h: 'B' }, { h: 'B' }]
+          },
           Rows: {
+            show: (el, s) => !!s.root.backendRegistryLoaded,
             children: (el, s) =>
               (s.root.backendRegistry && s.root.backendRegistry.length)
                 ? s.root.backendRegistry

@@ -4,10 +4,16 @@ export const OfferingCard = {
   flow: 'y',
   gap: 'A',
   padding: 'B',
-  borderRadius: 'B',
+  borderRadius: 'radiusCard',
   theme: 'card',
-  transition: 'transform .25s ease, border-color .25s ease',
-  ':hover': { transform: 'translateY(-3px)', borderColor: 'gold.4' },
+  transition: (el, s) => 'opacity .8s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') + ', transform .25s ease, border-color .25s ease',
+  opacity: '0',
+  isRevealed: (el, s) => s.inView !== false,
+  '.isRevealed': { opacity: '1' },
+  '@reduceMotion': { opacity: '1', transition: 'none' },
+  onMousemove: (ev, el) => el.call('tiltCard', ev),
+  onMouseout: (ev, el) => el.call('tiltReset', ev),
+  ':hover': { transform: 'translateY(-3px)', borderColor: 'slate.45' },
 
   Head: {
     flow: 'x',
@@ -53,7 +59,7 @@ export const OfferingCard = {
       left: '0',
       height: '100%',
       borderRadius: 'E',
-      background: 'gold',
+      background: 'meter',
       width: (el, s) => `${Math.min(100, Number(s.pct) || 0)}%`
     }
   },
@@ -72,7 +78,7 @@ export const OfferingCard = {
     },
     Pct: {
       tag: 'span',
-      color: 'gold',
+      color: 'accentInk',
       text: (el, s) => `${s.pct || 0}%`
     }
   },

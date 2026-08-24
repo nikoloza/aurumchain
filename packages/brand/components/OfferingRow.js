@@ -4,7 +4,7 @@ export const OfferingRow = {
   flow: 'y',
   gap: 'Z',
   padding: 'A',
-  borderRadius: 'A',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Head: {
@@ -57,7 +57,7 @@ export const OfferingRow = {
       left: '0',
       height: '100%',
       borderRadius: 'E',
-      background: 'gold',
+      background: 'meter',
       width: (el, s) => `${Math.min(100, Number(s.pct) || 0)}%`
     }
   },

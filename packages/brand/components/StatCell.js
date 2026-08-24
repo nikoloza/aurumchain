@@ -6,10 +6,11 @@ export const StatCell = {
   Value: {
     tag: 'span',
     fontFamily: 'Mono',
-    fontSize: 'C',
-    fontWeight: '700',
-    letterSpacing: '-.02em',
-    color: 'gold',
+    fontSize: 'E',
+    fontWeight: '600',
+    letterSpacing: '-.03em',
+    lineHeight: '1.05',
+    color: 'title',
     text: (el, s) => s.value || ''
   },
 

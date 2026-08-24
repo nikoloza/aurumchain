@@ -36,15 +36,10 @@ export const FaqItem = {
       display: 'inline-flex',
       width: 'A',
       height: 'A',
-      color: 'gold',
+      color: 'accentInk',
       transition: 'transform .3s ease',
       '.open': { transform: 'rotate(180deg)' },
-      Svg: {
-        viewBox: '0 0 24 24',
-        width: 'A',
-        height: 'A',
-        html: '<polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-      }
+      Icon: { name: 'chevronDown', fontSize: 'A' }
     }
   },
 

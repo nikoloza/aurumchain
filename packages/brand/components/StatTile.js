@@ -3,7 +3,7 @@ export const StatTile = {
   flow: 'y',
   gap: 'X',
   padding: 'A',
-  borderRadius: 'A',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Label: {

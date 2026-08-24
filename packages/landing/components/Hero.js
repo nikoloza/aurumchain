@@ -1,4 +1,8 @@
-// Opening band.
+// Opening band — the brandbook's editorial voice at full size. Left-aligned
+// condensed display headline in the two-tone treatment (slate phrase, navy
+// payoff, mist diamond full stop), the compliance story underneath, and a
+// figure strip on a hairline. The logo's circular geometry sits behind the
+// right edge as a ghost.
 export const Hero = {
   tag: 'section',
   flow: 'y',
@@ -8,49 +12,144 @@ export const Hero = {
   minHeight: '92vh',
   padding: 'F C D',
   overflow: 'hidden',
+  scope: {},
   '@tabletS': { minHeight: 'auto', padding: 'E A C' },
 
-  // Radial gold wash behind the headline. Decorative only.
-  Glow: {
+  // Pointer feed for the field's lens — canvas uv space (0..1, y down),
+  // stored on scope so no state churn happens per mouse move.
+  onMousemove: (ev, el) => {
+    if (!el.node) return
+    const r = el.node.getBoundingClientRect()
+    el.scope.mx = (ev.clientX - r.left) / Math.max(1, r.width)
+    el.scope.my = (ev.clientY - r.top) / Math.max(1, r.height)
+  },
+
+  // A click drops a ripple into the field at the pointer.
+  onClick: (ev, el) => {
+    if (!el.node) return
+    const r = el.node.getBoundingClientRect()
+    el.scope.cx = (ev.clientX - r.left) / Math.max(1, r.width)
+    el.scope.cy = (ev.clientY - r.top) / Math.max(1, r.height)
+    const win = el.node.ownerDocument.defaultView
+    el.scope.clickStart = win && win.performance ? win.performance.now() : 0
+  },
+
+  HeroCanvas: {},
+
+  // Ghost mark — the arcs and diamond, oversized, cropped by the right edge.
+  Ghost: {
     position: 'absolute',
-    top: '-20%',
-    left: '50%',
-    width: 'I',
-    height: 'I',
-    transform: 'translateX(-50%)',
-    background:
-      'radial-gradient(circle, rgba(229,179,90,.16) 0%, rgba(229,179,90,0) 62%)',
-    pointerEvents: 'none'
+    top: '-10vw',
+    right: '-9vw',
+    pointerEvents: 'none',
+    color: 'slate.12',
+    '@dark': { color: 'mist.06' },
+    Icon: { name: 'logo', width: '46vw', height: '46vw', display: 'block' },
+    '@tabletS': { display: 'none' }
   },
 
   Inner: {
     flow: 'y',
     gap: 'C',
-    align: 'center center',
+    align: 'flex-start flex-start',
     width: '100%',
-    maxWidth: 'J',
+    maxWidth: '1120px',
     position: 'relative',
-    textAlign: 'center',
-    attr: { 'data-reveal': 'true' },
 
-    TopRow: {
+    Eyebrow: {
       flow: 'x',
-      align: 'center center',
+      align: 'center flex-start',
       gap: 'Z',
-      Logo: {},
-      ChipAccent: { text: 'Solana · Devnet' }
+      width: '100%',
+      animationName: 'fcReveal',
+      animationDuration: 'F',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
+
+      Diamond: {
+        tag: 'span',
+        flexShrink: '0',
+        width: 'X1',
+        height: 'X1',
+        background: 'accentInk',
+        transform: 'rotate(45deg)'
+      },
+      Label: {
+        tag: 'span',
+        fontSize: 'Y1',
+        fontWeight: '600',
+        letterSpacing: '.18em',
+        lineHeight: '1',
+        textTransform: 'uppercase',
+        color: 'caption',
+        text: 'Real-world asset platform · Solana'
+      },
+      Rule: {
+        flex: '1',
+        alignSelf: 'center',
+        borderTop: '1px dashed',
+        borderTopColor: 'hairline'
+      }
     },
 
     H1: {
-      fontFamily: 'Display',
-      fontSize: 'G',
-      lineHeight: '1.04',
-      fontWeight: '700',
-      letterSpacing: '-.035em',
+      fontFamily: 'Brand',
+      fontSize: 'K',
+      lineHeight: '.95',
+      fontWeight: '400',
+      letterSpacing: '.008em',
+      textTransform: 'uppercase',
       color: 'title',
       margin: '0',
-      text: 'Real-world assets, split into compliant fractions.',
-      '@tabletS': { fontSize: 'E' }
+      '@screenS': { fontSize: 'J' },
+      '@tabletL': { fontSize: 'G' },
+      '@mobileL': { fontSize: 'F' },
+
+      TopMask: {
+        tag: 'span',
+        display: 'block',
+        overflow: 'hidden',
+        Top: {
+          tag: 'span',
+          display: 'block',
+          lineHeight: '1.02',
+          color: 'accentInk',
+          text: 'Real assets,',
+          animationName: 'lineUp',
+          animationDuration: 'E',
+          animationDelay: 'A',
+          animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
+          animationFillMode: 'both',
+          '@reduceMotion': { animationName: 'none' }
+        }
+      },
+      MainMask: {
+        tag: 'span',
+        display: 'block',
+        overflow: 'hidden',
+        Main: {
+          tag: 'span',
+          display: 'block',
+          lineHeight: '1.02',
+          text: 'made liquid',
+          animationName: 'lineUp',
+          animationDuration: 'E',
+          animationDelay: 'B',
+          animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
+          animationFillMode: 'both',
+          '@reduceMotion': { animationName: 'none' },
+          Dot: {
+            tag: 'span',
+            display: 'inline-block',
+            width: '.11em',
+            height: '.11em',
+            background: 'mist',
+            transform: 'rotate(45deg)',
+            verticalAlign: '.07em',
+            marginLeft: '.12em'
+          }
+        }
+      }
     },
 
     P: {
@@ -59,6 +158,11 @@ export const Hero = {
       color: 'paragraph',
       margin: '0',
       maxWidth: 'I',
+      animationName: 'fcReveal',
+      animationDuration: 'F',
+      animationDelay: 'B',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
       text:
         'Fractyco issues asset-backed tokens on Solana. Every transfer clears a compliance hook, every position settles against a registry, and every payout distributes on-chain.',
       '@tabletS': { fontSize: 'A' }
@@ -66,9 +170,14 @@ export const Hero = {
 
     Actions: {
       flow: 'x',
-      align: 'center center',
+      align: 'center flex-start',
       gap: 'Z',
       flexWrap: 'wrap',
+      animationName: 'fcReveal',
+      animationDuration: 'F',
+      animationDelay: 'C',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
 
       Link: {
         href: 'https://fractyco--app.at.symbo.ls/signin',
@@ -110,14 +219,20 @@ export const Hero = {
 
     Stats: {
       flow: 'x',
-      align: 'center center',
-      gap: 'D',
+      align: 'flex-start flex-start',
+      gap: 'E',
       flexWrap: 'wrap',
       marginTop: 'B',
-      paddingTop: 'B',
+      paddingTop: 'B1',
       borderTop: '1px solid hairline',
       width: '100%',
       textAlign: 'left',
+      animationName: 'fcReveal',
+      animationDuration: 'F',
+      animationDelay: 'C1',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
+      '@tabletS': { gap: 'B' },
 
       StatCell: { state: { value: '4', label: 'Anchor programs' } },
       StatCell_1: { extends: 'StatCell', state: { value: 'SPL-2022', label: 'Token standard' } },

@@ -19,7 +19,9 @@ export const main = {
     width: '100%',
 
     Hero: {},
+    Ticker: {},
     HowSection: {},
+    AssetsSection: {},
     OfferingsSection: {},
     ComplianceSection: {},
     ChainSection: {},

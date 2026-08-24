@@ -15,6 +15,7 @@ All documentation is in [`docs/`](./docs):
 | --- | --- |
 | [SPEC.md](./docs/SPEC.md) | the full technical specification |
 | [SMBLS.md](./docs/SMBLS.md) | running, publishing and operating the Symbols toolchain — read before writing DOMQL |
+| [BRAND.md](./docs/BRAND.md) | the brand identity and how it maps onto the design system — read before styling anything |
 | [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | deploying programs, database, indexer and surfaces end to end |
 | [TODO.md](./docs/TODO.md) | product and frontend work |
 | [TODO_BACKEND.md](./docs/TODO_BACKEND.md) | what the live `aurc.app` backend uses, and what the rebuild must take over |
@@ -54,6 +55,10 @@ Dashboard: Overview, Portfolio, Marketplace, Payouts, Transactions, Wallet,
 Identity, and every Settings row except Email.
 Governance: Overview, Compliance, Subscriptions, Distributions, Market,
 Reconciliation, Audit, Roles, Authorities, Control plane, Emergency.
+
+> **Seeding:** `supabase/seeds/2026-08-25-demo-seed.sql` fills both tables
+> with the illustrative set (idempotent, DML only, rollback included) — apply
+> it in the Supabase SQL editor; see `supabase/seeds/README.md`.
 
 > **The two live pages also show placeholders right now.** `projects` and
 > `offerings` are readable but **empty**, and both loaders fall back to the

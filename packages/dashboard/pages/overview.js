@@ -64,7 +64,7 @@ export const overview = {
             Body: {
               flow: 'y',
               gap: 'Y',
-              Date: { tag: 'span', fontFamily: 'Mono', fontSize: 'C', color: 'gold', text: '2026-09-30' },
+              Date: { tag: 'span', fontFamily: 'Mono', fontSize: 'C', color: 'accentInk', text: '2026-09-30' },
               EmptyNote: { state: { text: 'The snapshot is taken at the epoch boundary. A transfer after the snapshot does not change the entitlement.' } }
             }
           }

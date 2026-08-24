@@ -7,8 +7,10 @@ export const MarketSection = {
   Inner: {
     SectionHeading: {
       state: {
+        num: '06',
         eyebrow: 'Secondary market',
-        title: 'Exit before the asset completes.',
+        titleTop: 'Exit before',
+        title: 'the asset completes.',
         lead:
           'A holder lists part of a position at a chosen price. A buyer fills it in whole or in part. The escrow releases the tokens, the seller receives stablecoin, and both portfolios update from the trade.'
       }

@@ -1,19 +1,30 @@
-// Wordmark — the aurc.app logo: lowercase "fractyco" set in Clash Display,
-// bold, uppercased and widely tracked, in the brand bronze.
+// Lockup from the brandbook: the circular mark — two open arcs holding the
+// value diamond — beside the FRACTYCO wordmark set in the condensed brand
+// face. Inherits `color` from its parent chrome; defaults to the title pair
+// so it flips navy/ivory with the theme on its own.
 export const Logo = {
   flow: 'x',
   align: 'center center',
+  gap: 'Y',
+  color: 'title',
+
+  Icon: {
+    name: 'logo',
+    fontSize: 'B1',
+    display: 'block',
+    flexShrink: '0'
+  },
 
   Word: {
     tag: 'span',
-    text: 'fractyco',
+    text: 'FRACTYCO',
     fontFamily: 'Brand',
-    fontSize: 'Z',
-    fontWeight: '700',
-    letterSpacing: '.18em',
-    textTransform: 'uppercase',
+    fontSize: 'A2',
+    fontWeight: '400',
+    letterSpacing: '.05em',
     lineHeight: '1',
     whiteSpace: 'nowrap',
-    color: 'bronze'
+    transform: 'translateY(1px)',
+    color: 'inherit'
   }
 }

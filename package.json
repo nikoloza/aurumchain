@@ -24,7 +24,8 @@
     "test:subscription": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/subscription.ts --timeout 100000",
     "test:tokenization": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/tokenization.ts --timeout 100000",
     "test:secondary-market": "cross-env NODE_OPTIONS=\"--import tsx\" mocha tests/secondary-market.ts --timeout 150000",
-    "test:full-flow": "cross-env NODE_OPTIONS=\"--import tsx\" bunx tsx tests/simulate-full-flow.ts"
+    "test:full-flow": "cross-env NODE_OPTIONS=\"--import tsx\" bunx tsx tests/simulate-full-flow.ts",
+    "start:brand": "bun run --filter @fractyco/brand start"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",

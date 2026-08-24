@@ -12,11 +12,11 @@ export default {
     to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }
   },
 
-  // Gold pulse for live indicators (open offering, pending settlement)
-  pulseGold: {
-    '0%': { boxShadow: '0 0 0 0 rgba(229,179,90,0.5)' },
-    '70%': { boxShadow: '0 0 0 12px rgba(229,179,90,0)' },
-    '100%': { boxShadow: '0 0 0 0 rgba(229,179,90,0)' }
+  // Slate pulse for live indicators (open offering, pending settlement)
+  pulseAccent: {
+    '0%': { boxShadow: '0 0 0 0 rgba(96,125,148,0.45)' },
+    '70%': { boxShadow: '0 0 0 12px rgba(96,125,148,0)' },
+    '100%': { boxShadow: '0 0 0 0 rgba(96,125,148,0)' }
   },
 
   // Sweep used on funding bars while a subscription settles
@@ -28,5 +28,30 @@ export default {
   spin: {
     from: { transform: 'rotate(0deg)' },
     to: { transform: 'rotate(360deg)' }
+  },
+
+  // Seamless ticker loop — the track holds two copies of its run
+  marquee: {
+    from: { transform: 'translate3d(0, 0, 0)' },
+    to: { transform: 'translate3d(-50%, 0, 0)' }
+  },
+
+  // Loading-wash breath for Skeleton placeholders
+  skeletonPulse: {
+    '0%': { opacity: '.45' },
+    '50%': { opacity: '1' },
+    '100%': { opacity: '.45' }
+  },
+
+  // Masked headline lines — the span rises out of an overflow-hidden mask
+  lineUp: {
+    from: { transform: 'translate3d(0, 112%, 0)' },
+    to: { transform: 'translate3d(0, 0, 0)' }
+  },
+
+  // Route-entry settle for the product shells
+  pageEnter: {
+    from: { opacity: '0', transform: 'translate3d(0, 10px, 0)' },
+    to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }
   }
 }

@@ -25,3 +25,7 @@ design.mp4
 # Generated Note copies of docs/ — rebuild with `bun run docs:sync`
 packages/landing/docs/
 tsconfig.tsbuildinfo
+
+# Claude Code — share settings, not session artifacts
+.claude/*
+!.claude/settings.json

@@ -5,7 +5,7 @@ export const Panel = {
   gap: 'A',
   width: '100%',
   padding: 'A',
-  borderRadius: 'A',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Head: {

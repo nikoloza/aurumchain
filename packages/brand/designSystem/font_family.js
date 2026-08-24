@@ -1,17 +1,20 @@
-// Grotesk display for headings, system sans for body, mono for every number.
-// Numeric columns must align, so the mono face is a first-class token here.
+// Brandbook roles: Inter for body and interface copy, Neue Haas Grotesk for
+// headings (Hanken Grotesk is the licensed-webfont stand-in and loads first
+// so metrics stay consistent everywhere), Anton for the condensed wordmark
+// and display moments, IBM Plex Mono for every figure — numeric columns must
+// align.
 //
-// `SpaceGrotesk` and `SpaceMono` are the @font-face family names generated from
-// the keys in font.js — keep the two files in step.
+// The keys in font.js generate the @font-face family names referenced here —
+// keep the two files in step.
 
 export default {
   Default: {
     isDefault: true,
     value: [
+      'Inter',
       'system-ui',
       '-apple-system',
       'BlinkMacSystemFont',
-      'Inter',
       '"Segoe UI"',
       'Roboto',
       'Helvetica',
@@ -19,30 +22,29 @@ export default {
     ],
     type: 'sans-serif'
   },
-  Brand: {
+  Display: {
     value: [
-      'ClashDisplay',
-      '"Clash Display"',
-      'system-ui',
-      'sans-serif'
+      'HankenGrotesk',
+      '"Neue Haas Grotesk Display Pro"',
+      '"Helvetica Neue"',
+      'Helvetica',
+      'Inter',
+      'Arial'
     ],
     type: 'sans-serif'
   },
-  Display: {
+  Brand: {
     value: [
-      'SpaceGrotesk',
-      'system-ui',
-      '-apple-system',
-      'BlinkMacSystemFont',
-      'Inter',
-      'Helvetica',
-      'Arial'
+      'Anton',
+      '"Arial Narrow"',
+      'Impact',
+      'sans-serif'
     ],
     type: 'sans-serif'
   },
   Mono: {
     value: [
-      'SpaceMono',
+      'IBMPlexMono',
       'ui-monospace',
       'SFMono-Regular',
       'Menlo',

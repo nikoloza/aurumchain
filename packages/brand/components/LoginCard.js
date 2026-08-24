@@ -63,7 +63,7 @@ export const LoginCard = {
     borderRadius: 'Z',
     background: 'red.14',
     border: '1px solid red.4',
-    color: '#ff8a86',
+    color: 'dangerInk',
     fontSize: 'Y1',
     fontWeight: '500',
     text: (el, s) => s.root.authError || ''
@@ -105,7 +105,7 @@ export const LoginCard = {
         outline: 'none',
         width: '100%',
         transition: 'border-color .15s ease, box-shadow .15s ease',
-        ':focus': { borderColor: 'gold', boxShadow: '0 0 0 3px rgba(229,179,90,.14)' },
+        ':focus': { borderColor: 'slate', boxShadow: '0 0 0 3px rgba(96,125,148,.2)' },
         onInput: (e, el, s) => {
           s.root.update({ signinEmail: e.target.value, authError: null }, { preventFetch: true })
         }
@@ -139,7 +139,7 @@ export const LoginCard = {
         outline: 'none',
         width: '100%',
         transition: 'border-color .15s ease, box-shadow .15s ease',
-        ':focus': { borderColor: 'gold', boxShadow: '0 0 0 3px rgba(229,179,90,.14)' },
+        ':focus': { borderColor: 'slate', boxShadow: '0 0 0 3px rgba(96,125,148,.2)' },
         onInput: (e, el, s) => {
           s.root.update({ signinPassword: e.target.value, authError: null }, { preventFetch: true })
         }

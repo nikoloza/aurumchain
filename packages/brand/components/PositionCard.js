@@ -4,7 +4,7 @@ export const PositionCard = {
   flow: 'y',
   gap: 'Z',
   padding: 'A',
-  borderRadius: 'A',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Head: {

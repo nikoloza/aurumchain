@@ -4,7 +4,7 @@ export const ProgramCard = {
   flow: 'y',
   gap: 'Z',
   padding: 'B',
-  borderRadius: 'B',
+  borderRadius: 'radiusCard',
   theme: 'card',
 
   Head: {
@@ -16,7 +16,7 @@ export const ProgramCard = {
       fontFamily: 'Mono',
       fontSize: 'Z1',
       fontWeight: '700',
-      color: 'gold',
+      color: 'accentInk',
       margin: '0',
       text: (el, s) => s.name || ''
     },
