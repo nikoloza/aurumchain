@@ -54,8 +54,10 @@ exist, or wrapper divs to hide broken behavior.
 
 ## Workflows
 
-- Surfaces: `bun run start:landing` (5040), `start:dashboard` (5041),
-  `start:governance` (5042); `bun run publish:all` to publish
+- Surfaces run through portless (stable .localhost URLs, `$PORT` injected):
+  `bun run start:landing` → fractyco.localhost:1355, `start:dashboard` →
+  fractyco-app.localhost:1355, `start:governance` → fractyco-gov.localhost:1355,
+  `start:brand` → fractyco-brand.localhost:1355; `bun run publish:all` to publish
 - Shared design system and component library live in `packages/brand` — extend
   there, not per-surface
 - Chain: `bun run sync-idl` after program changes; integration tests via

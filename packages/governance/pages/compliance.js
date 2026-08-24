@@ -6,13 +6,13 @@ export const compliance = {
 
   Column: {
     Body: {
-      StatRow: {
+      GovStatRow: {
         state: {
           tiles: [
-            { label: 'Awaiting review', value: '3', delta: 'oldest 4 days', tone: 'flat' },
-            { label: 'Approved, 30 days', value: '46', delta: '+12 on last month' },
-            { label: 'Rejected, 30 days', value: '5', delta: '9.8% of decisions', tone: 'down' },
-            { label: 'Verified wallets', value: '212', delta: 'on-chain records' }
+            { label: 'Awaiting review', to: 3, delta: 'oldest 4 days', tone: 'flat', revealDelay: '0s' },
+            { label: 'Approved, 30 days', to: 46, delta: '+12 on last month', revealDelay: '.07s' },
+            { label: 'Rejected, 30 days', to: 5, delta: '9.8% of decisions', tone: 'down', revealDelay: '.14s' },
+            { label: 'Verified wallets', to: 212, delta: 'on-chain records', revealDelay: '.21s' }
           ]
         }
       },
@@ -28,6 +28,13 @@ export const compliance = {
               { cells: [{ text: 'j.tanaka@example.com' }, { text: 'sms_2ac40e', mono: true }, { text: 'Japan' }, { text: '2026-08-16', mono: true }, { status: 'Pending' }] },
               { cells: [{ text: 'l.smith@example.com' }, { text: 'sms_1de77a', mono: true }, { text: 'United States' }, { text: '2026-08-10', mono: true }, { status: 'Rejected' }] }
             ]
+          },
+          GovEmptyState: {
+            show: (el, s) => !(s.rows || []).length,
+            state: {
+              title: 'Queue is clear',
+              caption: 'Every submitted identity has a decision. New submissions land here first.'
+            }
           }
         }
       },
@@ -38,7 +45,7 @@ export const compliance = {
         List: {
           flow: 'y',
           width: '100%',
-          childExtends: 'SwitchRow',
+          childExtends: 'GovSwitchRow',
           childrenAs: 'state',
           children: [
             {

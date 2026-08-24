@@ -15,14 +15,7 @@ export const Navbar = {
   borderBottom: '1px solid hairline',
   '@tabletS': { padding: 'Z A' },
 
-  Link: {
-    href: '/',
-    text: '',
-    display: 'inline-flex',
-    alignItems: 'center',
-    textDecoration: 'none',
-    Logo: {}
-  },
+  Logo: {},
 
   NavLinks: {
     tag: 'nav',
@@ -35,8 +28,9 @@ export const Navbar = {
     NavItem: { state: { anchor: 'how', target: 'HowSection', label: 'How it works' } },
     NavItem_1: { extends: 'NavItem', state: { anchor: 'offerings', target: 'OfferingsSection', label: 'Offerings' } },
     NavItem_2: { extends: 'NavItem', state: { anchor: 'compliance', target: 'ComplianceSection', label: 'Compliance' } },
-    NavItem_3: { extends: 'NavItem', state: { anchor: 'chain', target: 'ChainSection', label: 'On-chain' } },
-    NavItem_4: { extends: 'NavItem', state: { anchor: 'faq', target: 'FaqSection', label: 'FAQ' } }
+    NavItem_3: { extends: 'NavItem', state: { path: '/platform', label: 'Platform' } },
+    NavItem_4: { extends: 'NavItem', state: { path: '/company', label: 'Company' } },
+    NavItem_5: { extends: 'NavItem', state: { anchor: 'faq', target: 'FaqSection', label: 'FAQ' } }
   },
 
   Actions: {

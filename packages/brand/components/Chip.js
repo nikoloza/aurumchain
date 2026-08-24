@@ -12,5 +12,6 @@ export const Chip = {
   padding: 'W Z',
   borderRadius: 'radiusPill',
   whiteSpace: 'nowrap',
+  transition: 'background .25s ease, color .25s ease, border-color .25s ease',
   theme: 'chip'
 }

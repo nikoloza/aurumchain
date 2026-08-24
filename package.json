@@ -52,6 +52,7 @@
     "cross-env": "^10.1.0",
     "mocha": "^11.7.5",
     "parcel": "^2.16.4",
+    "portless": "^0.10.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"

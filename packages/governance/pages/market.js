@@ -6,13 +6,13 @@ export const market = {
 
   Column: {
     Body: {
-      StatRow: {
+      GovStatRow: {
         state: {
           tiles: [
-            { label: 'Fee', value: '50 bps', delta: 'cap 200 bps', tone: 'flat' },
-            { label: 'Fees collected', value: '$910', delta: '30 days' },
-            { label: 'Open orders', value: '14', delta: 'across 3 assets', tone: 'flat' },
-            { label: 'Paused projects', value: '1', delta: 'KGT-002', tone: 'down' }
+            { label: 'Fee', to: 50, suffix: ' bps', delta: 'cap 200 bps', tone: 'flat', revealDelay: '0s' },
+            { label: 'Fees collected', to: 910, prefix: '$', delta: '30 days', revealDelay: '.07s' },
+            { label: 'Open orders', to: 14, delta: 'across 3 assets', tone: 'flat', revealDelay: '.14s' },
+            { label: 'Paused projects', to: 1, delta: 'KGT-002', tone: 'down', revealDelay: '.21s' }
           ]
         }
       },

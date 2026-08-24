@@ -16,6 +16,26 @@ export const MarketSection = {
       }
     },
 
+    // The market in three figures — they count up as the band reveals.
+    Figures: {
+      flow: 'x',
+      align: 'stretch flex-start',
+      gap: '0',
+      width: '100%',
+      border: '1px solid hairline',
+      borderRadius: 'radiusCard',
+      overflow: 'hidden',
+      '@mobileL': { flow: 'y' },
+
+      childExtends: 'MarketFigure',
+      childrenAs: 'state',
+      children: [
+        { to: 75, suffix: ' bps', label: 'Taker fee, sent on-chain' },
+        { to: 100, suffix: '%', label: 'Of listed tokens held in escrow' },
+        { to: 24, suffix: '/7', label: 'Order book, no market hours' }
+      ]
+    },
+
     Row: {
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
@@ -49,5 +69,37 @@ export const MarketSection = {
         }
       }
     }
+  }
+}
+
+
+// One figure cell in the market band. state: { to, prefix, suffix, label }
+export const MarketFigure = {
+  flow: 'y',
+  gap: 'Y',
+  flex: '1',
+  padding: 'B',
+  borderRight: '1px solid hairline',
+  transition: 'background .3s ease',
+  ':hover': { background: 'veil' },
+  ':last-child': { borderRight: 'none' },
+  '@mobileL': { borderRight: 'none', borderBottom: '1px solid hairline' },
+
+  CountUp: {
+    fontFamily: 'Mono',
+    fontSize: 'E',
+    fontWeight: '600',
+    letterSpacing: '-.03em',
+    lineHeight: '1.05',
+    color: 'title',
+    '@tabletS': { fontSize: 'D' }
+  },
+
+  Label: {
+    tag: 'span',
+    fontSize: 'Z',
+    letterSpacing: '.04em',
+    color: 'caption',
+    text: (el, s) => s.label || ''
   }
 }

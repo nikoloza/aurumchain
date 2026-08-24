@@ -60,7 +60,11 @@ export const OfferingCard = {
       height: '100%',
       borderRadius: 'E',
       background: 'meter',
-      width: (el, s) => `${Math.min(100, Number(s.pct) || 0)}%`
+      // The meter draws itself once the section is revealed; anywhere
+      // without reveal state (the product shells) it renders settled.
+      width: (el, s) => (s.inView === false ? '0%' : `${Math.min(100, Number(s.pct) || 0)}%`),
+      transition: 'width 1.3s cubic-bezier(.22,.68,.24,.98) .35s',
+      '@reduceMotion': { transition: 'none' }
     }
   },
 

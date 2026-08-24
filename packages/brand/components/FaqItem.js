@@ -19,6 +19,9 @@ export const FaqItem = {
     cursor: 'pointer',
     textAlign: 'left',
     color: 'title',
+    transition: 'color .25s ease, padding-left .3s cubic-bezier(.22,.68,.24,.98)',
+    ':hover': { color: 'accentInk', paddingLeft: 'X1' },
+    '@reduceMotion': { ':hover': { paddingLeft: '0' } },
     attr: { 'aria-expanded': (el, s) => String(!!s.open) },
     onClick: (ev, el, s) => s.update({ open: !s.open }),
 

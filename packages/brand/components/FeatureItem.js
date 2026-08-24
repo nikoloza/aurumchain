@@ -5,6 +5,12 @@ export const FeatureItem = {
   gap: 'Z',
   alignItems: 'flex-start',
   listStyle: 'none',
+  padding: 'Z',
+  margin: '0 -Z',
+  borderRadius: 'radiusCard',
+  transition: 'background .25s ease, transform .25s ease',
+  ':hover': { background: 'veil', transform: 'translateX(4px)' },
+  '@reduceMotion': { ':hover': { transform: 'none' } },
 
   Tick: {
     flow: 'x',

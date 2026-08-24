@@ -6,13 +6,13 @@ export const controlPlane = {
 
   Column: {
     Body: {
-      StatRow: {
+      GovStatRow: {
         state: {
           tiles: [
-            { label: 'Programs live', value: '4', delta: 'devnet', tone: 'flat' },
-            { label: 'Active pauses', value: '1', delta: 'KGT-002 transfers', tone: 'down' },
-            { label: 'Pending approvals', value: '7', delta: '3 compliance, 4 subscriptions', tone: 'flat' },
-            { label: 'Audit rows, 24h', value: '128', delta: 'append-only' }
+            { label: 'Programs live', to: 4, delta: 'devnet', tone: 'flat', revealDelay: '0s' },
+            { label: 'Active pauses', to: 1, delta: 'KGT-002 transfers', tone: 'down', revealDelay: '.07s' },
+            { label: 'Pending approvals', to: 7, delta: '3 compliance, 4 subscriptions', tone: 'flat', revealDelay: '.14s' },
+            { label: 'Audit rows, 24h', to: 128, delta: 'append-only', revealDelay: '.21s' }
           ]
         }
       },
@@ -53,6 +53,13 @@ export const controlPlane = {
                 { cells: [{ text: 'Epoch 5 creation' }, { text: '1', mono: true }, { text: '—' }, { text: 'admin' }] },
                 { cells: [{ text: 'Mint authority revocation' }, { text: '1', mono: true }, { text: '9 days', mono: true }, { text: 'super_admin' }] }
               ]
+            },
+            GovEmptyState: {
+              show: (el, s) => !(s.rows || []).length,
+              state: {
+                title: 'Nothing waiting',
+                caption: 'Every queue is drained. New items land here the moment an action needs an authority holder.'
+              }
             }
           }
         }

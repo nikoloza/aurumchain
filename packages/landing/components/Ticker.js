@@ -1,21 +1,42 @@
-// Asset-class ticker under the hero — a slow seamless marquee in the mono
-// voice, diamond-separated. Decorative: hidden from assistive tech, frozen
-// for reduced motion, and the track holds two copies of the run so the -50%
-// loop never shows a seam.
+// Asset-class ticker under the hero — two slow marquee lanes running in
+// opposite directions, mono voice, diamond-separated. Decorative: hidden from
+// assistive tech, frozen for reduced motion, and each track holds two copies
+// of its run so the -50% loop never shows a seam.
 export const Ticker = {
+  flow: 'y',
   width: '100%',
   overflow: 'hidden',
   borderTop: '1px solid hairline',
   borderBottom: '1px solid hairline',
-  padding: 'Z1 0',
   attr: { 'aria-hidden': 'true' },
+
+  TickerLane: {},
+
+  // Counter-lane — the guarantees, drifting the other way, a shade quieter.
+  TickerLane_1: {
+    borderTop: '1px dashed hairline',
+    opacity: '.6',
+    Track: {
+      animationDirection: 'reverse',
+      animationDuration: '52s',
+      childExtends: 'TickerRunAlt'
+    }
+  }
+}
+
+// One marquee lane. The default run is the asset classes; the counter-lane
+// swaps the run and reverses the drift.
+export const TickerLane = {
+  width: '100%',
+  overflow: 'hidden',
+  padding: 'Z1 0',
 
   Track: {
     flow: 'x',
     align: 'center flex-start',
     width: 'max-content',
     animationName: 'marquee',
-    animationDuration: '36s',
+    animationDuration: '38s',
     animationTimingFunction: 'linear',
     animationIterationCount: 'infinite',
     ':hover': { animationPlayState: 'paused' },
@@ -40,9 +61,20 @@ export const TickerRun = {
     { label: 'Energy' },
     { label: 'Infrastructure' },
     { label: 'Agriculture' },
-    { label: 'Private credit' },
+    { label: 'Private credit' }
+  ]
+}
+
+// The counter-lane's run — what the platform guarantees, not what it holds.
+export const TickerRunAlt = {
+  extends: 'TickerRun',
+  children: [
     { label: 'Compliant fractions' },
-    { label: 'On-chain payouts' }
+    { label: 'On-chain payouts' },
+    { label: 'Supply-capped tokens' },
+    { label: 'Transfer-hook cleared' },
+    { label: 'T+0 settlement' },
+    { label: 'Registry enforced' }
   ]
 }
 

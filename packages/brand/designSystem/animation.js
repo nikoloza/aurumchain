@@ -53,5 +53,26 @@ export default {
   pageEnter: {
     from: { opacity: '0', transform: 'translate3d(0, 10px, 0)' },
     to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }
+  },
+
+  // Terminal caret in the settlement log
+  blink: {
+    '0%': { opacity: '1' },
+    '49%': { opacity: '1' },
+    '50%': { opacity: '0' },
+    '100%': { opacity: '0' }
+  },
+
+  // Slow ambient drift for decorative lattices on the navy bands
+  floatY: {
+    '0%': { transform: 'translate3d(0, 0, 0)' },
+    '50%': { transform: 'translate3d(0, -14px, 0)' },
+    '100%': { transform: 'translate3d(0, 0, 0)' }
+  },
+
+  // Scroll-cue line dropping through its mask
+  cueDrop: {
+    from: { transform: 'translateY(-110%)' },
+    to: { transform: 'translateY(110%)' }
   }
 }

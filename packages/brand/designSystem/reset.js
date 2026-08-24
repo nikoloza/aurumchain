@@ -26,6 +26,8 @@ export default {
     // the fragment jump entirely in this document — the URL gains the hash and
     // the page never moves. `auto` restores it.
     scrollBehavior: 'auto',
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(96, 125, 148, 0.4) transparent',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale'
   },
@@ -55,5 +57,18 @@ export default {
 
   '::selection': {
     background: 'rgba(168, 192, 207, 0.45)'
+  },
+
+  // No grey flash on touch taps — the components carry their own press states.
+  '*': {
+    WebkitTapHighlightColor: 'transparent'
+  },
+
+  // Brand-tinted scrollbars (slate thumb, transparent track).
+  '::-webkit-scrollbar': { width: '10px', height: '10px' },
+  '::-webkit-scrollbar-track': { background: 'transparent' },
+  '::-webkit-scrollbar-thumb': {
+    background: 'rgba(96, 125, 148, 0.35)',
+    borderRadius: '5px'
   }
 }

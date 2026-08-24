@@ -7,7 +7,8 @@
   "main": "./context.js",
   "sideEffects": true,
   "scripts": {
-    "start": "rm -rf .parcel-cache && smbls start --no-cache",
-    "build": "rm -rf .parcel-cache && smbls build"
+    "start": "portless fractyco-brand sh -c 'rm -rf .parcel-cache && smbls start --no-cache -p $PORT'",
+    "build": "rm -rf .parcel-cache && smbls build",
+    "start:port": "rm -rf .parcel-cache && smbls start --no-cache"
   }
 }

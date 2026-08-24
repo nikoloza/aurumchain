@@ -13,6 +13,11 @@ export const ClosingSection = {
     right: '-D',
     pointerEvents: 'none',
     color: 'mist.14',
+    animationName: 'floatY',
+    animationDuration: '9s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+    '@reduceMotion': { animationName: 'none' },
     Svg: {
       src: (el) => el.context.designSystem.svg.diamondGrid,
       display: 'block'

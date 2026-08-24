@@ -22,6 +22,8 @@ export const Hero = {
     const r = el.node.getBoundingClientRect()
     el.scope.mx = (ev.clientX - r.left) / Math.max(1, r.width)
     el.scope.my = (ev.clientY - r.top) / Math.max(1, r.height)
+    el.scope.cxr = ev.clientX
+    el.scope.cyr = ev.clientY
   },
 
   // A click drops a ripple into the field at the pointer.
@@ -36,17 +38,22 @@ export const Hero = {
 
   HeroCanvas: {},
 
-  // Ghost mark — the arcs and diamond, oversized, cropped by the right edge.
+  // Faint echo of the mark, aligned exactly under the particle canvas — the
+  // fractions above it read as the mark condensing out of the field. It is
+  // also the whole composition when WebGL is unavailable.
   Ghost: {
     position: 'absolute',
-    top: '-10vw',
-    right: '-9vw',
+    top: '4vh',
+    right: '-5vw',
     pointerEvents: 'none',
-    color: 'slate.12',
-    '@dark': { color: 'mist.06' },
+    color: 'slate.07',
+    '@dark': { color: 'mist.04' },
     Icon: { name: 'logo', width: '46vw', height: '46vw', display: 'block' },
     '@tabletS': { display: 'none' }
   },
+
+  // The mark, assembled from ~1k spring-loaded fractions (WebGL).
+  HeroMark: {},
 
   Inner: {
     flow: 'y',
@@ -238,6 +245,49 @@ export const Hero = {
       StatCell_1: { extends: 'StatCell', state: { value: 'SPL-2022', label: 'Token standard' } },
       StatCell_2: { extends: 'StatCell', state: { value: 'T+0', label: 'Payout settlement' } },
       StatCell_3: { extends: 'StatCell', state: { value: 'USDC', label: 'Settlement asset' } }
+    },
+
+    ScrollCue: {
+      flow: 'x',
+      align: 'center flex-start',
+      gap: 'Z',
+      marginTop: 'C',
+      animationName: 'fcReveal',
+      animationDuration: 'F',
+      animationDelay: 'D',
+      animationFillMode: 'both',
+      '@reduceMotion': { animationName: 'none' },
+      '@tabletS': { display: 'none' },
+
+      Mask: {
+        position: 'relative',
+        width: 'X',
+        height: 'C',
+        overflow: 'hidden',
+        borderLeft: '1px solid hairline',
+
+        Line: {
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          height: '100%',
+          borderLeft: '1px solid accentInk',
+          animationName: 'cueDrop',
+          animationDuration: '2.2s',
+          animationTimingFunction: 'cubic-bezier(.6,.05,.3,.95)',
+          animationIterationCount: 'infinite',
+          '@reduceMotion': { animationName: 'none' }
+        }
+      },
+      Label: {
+        tag: 'span',
+        fontFamily: 'Mono',
+        fontSize: 'Y1',
+        letterSpacing: '.2em',
+        textTransform: 'uppercase',
+        color: 'caption',
+        text: 'Scroll'
+      }
     }
   }
 }

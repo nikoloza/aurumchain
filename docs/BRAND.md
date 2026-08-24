@@ -112,6 +112,15 @@ caption 14, label 12) through the typography sequence (base 16, ratio 1.25).
   FA406/FA407). Deliberate: handlers run in a second realm where
   `changeGlobalTheme` targets the wrong document — see the comment block in
   `ThemeToggle.js`. These three criticals are accepted.
+- **Canvas bitmap sizing trips FA511** (`el.node.width = …` in
+  `HeroCanvas`/`HeroMark`, four criticals). Also accepted: a canvas backing
+  store has no CSS or attr equivalent that can track `clientWidth × dpr`
+  per frame — the assignment is canvas-API state, the same imperative surface
+  as the GL calls themselves, not framework-owned DOM. Everything else those
+  components touch goes through scope and `onFrame`.
+- **Dev servers cache the shared library** — after a `packages/brand` change,
+  restart the surfaces with `smbls start --fresh` (or `bun run start` twice);
+  `--no-cache` alone can still hit the runner's bundle cache.
 
 ## Publishing
 

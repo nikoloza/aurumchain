@@ -17,6 +17,10 @@ export const main = {
     tag: 'main',
     flow: 'y',
     width: '100%',
+    animationName: 'pageEnter',
+    animationDuration: 'D',
+    animationFillMode: 'both',
+    '@reduceMotion': { animationName: 'none' },
 
     Hero: {},
     Ticker: {},

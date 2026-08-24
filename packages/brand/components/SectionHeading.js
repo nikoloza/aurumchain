@@ -10,6 +10,7 @@ export const SectionHeading = {
   alignItems: 'flex-start',
 
   Eyebrow: {
+    order: '0',
     flow: 'x',
     align: 'center flex-start',
     gap: 'Z',
@@ -61,6 +62,7 @@ export const SectionHeading = {
   },
 
   H2: {
+    order: '1',
     fontFamily: 'Display',
     fontSize: 'E',
     lineHeight: '1.06',
@@ -85,6 +87,7 @@ export const SectionHeading = {
   },
 
   P: {
+    order: '2',
     fontSize: 'A',
     lineHeight: '1.6',
     color: 'paragraph',

@@ -77,7 +77,8 @@ export const SiteFooter = {
           {
             title: 'Company',
             links: [
-              { label: 'About', anchor: 'how' },
+              { label: 'Platform', url: '/platform' },
+              { label: 'About', url: '/company' },
               { label: 'Compliance', anchor: 'compliance' },
               { label: 'Contact', url: 'mailto:hello@fractyco.app' }
             ]

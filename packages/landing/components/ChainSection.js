@@ -77,6 +77,139 @@ export const ChainSection = {
           ]
         }
       }
-    }
+    },
+
+    TxLog: {}
   }
+}
+
+// The settlement path as it actually looks — a devnet log replaying one
+// subscription through all four programs. Always navy (explicit fills, like
+// every dark band here), mono voice, lines settling in sequence on reveal.
+export const TxLog = {
+  flow: 'y',
+  width: '100%',
+  borderRadius: 'radiusSheet',
+  background: 'navyDeep',
+  border: '1px solid',
+  borderColor: 'mist.14',
+  overflow: 'hidden',
+  boxShadow: '0 24px 60px rgba(4,20,32,.28)',
+
+  Head: {
+    flow: 'x',
+    align: 'center space-between',
+    padding: 'Z A',
+    borderBottom: '1px solid',
+    borderBottomColor: 'ivory.08',
+
+    Dots: {
+      flow: 'x',
+      gap: 'Y',
+      childExtends: 'TermDot',
+      children: [{}, {}, {}]
+    },
+    Title: {
+      tag: 'span',
+      fontFamily: 'Mono',
+      fontSize: 'Y1',
+      letterSpacing: '.14em',
+      textTransform: 'uppercase',
+      color: 'mist.6',
+      text: 'settlement — devnet'
+    },
+    Live: {
+      flow: 'x',
+      align: 'center center',
+      gap: 'Y',
+      Dot: {
+        tag: 'span',
+        width: 'X',
+        height: 'X',
+        borderRadius: 'E',
+        background: 'green+20',
+        animationName: 'pulseAccent',
+        animationDuration: '2.4s',
+        animationIterationCount: 'infinite',
+        '@reduceMotion': { animationName: 'none' }
+      },
+      Label: {
+        tag: 'span',
+        fontFamily: 'Mono',
+        fontSize: 'Y1',
+        letterSpacing: '.12em',
+        textTransform: 'uppercase',
+        color: 'green+20',
+        text: 'live'
+      }
+    }
+  },
+
+  Body: {
+    flow: 'y',
+    gap: 'Y',
+    padding: 'A B',
+    fontFamily: 'Mono',
+    fontSize: 'Z',
+    lineHeight: '1.7',
+    '@mobileL': { fontSize: 'Y1', padding: 'Z A' },
+
+    childExtends: 'TxLogLine',
+    childrenAs: 'state',
+    children: [
+      { delay: '.2s', tone: 'cmd', text: '$ fractyco settle --offering RBX-001 --epoch 14' },
+      { delay: '.5s', tone: 'ok', text: 'compliance_transfer ▸ destination wallet verified · hook cleared' },
+      { delay: '.8s', tone: 'ok', text: 'project_registry ▸ 12,400 RBX-001 minted → 7xKt…9fQ2' },
+      { delay: '1.1s', tone: 'ok', text: 'allocation_distribution ▸ epoch 14 snapshot sealed · 312 holders' },
+      { delay: '1.4s', tone: 'dim', text: 'payout 0.42 USDC / token · settlement T+0 · slot 289,441,102' }
+    ]
+  }
+}
+
+// One log line. state: { text, tone: 'cmd' | 'ok' | 'dim', delay }
+export const TxLogLine = {
+  tag: 'span',
+  display: 'block',
+  whiteSpace: 'pre-wrap',
+  opacity: '0',
+  transform: 'translate3d(0, 6px, 0)',
+  transition: (el, s) =>
+    'opacity .5s ease ' + (s.delay || '0s') + ', transform .5s cubic-bezier(.22,.68,.24,.98) ' + (s.delay || '0s'),
+  isInView: (el, s) => s.inView !== false,
+  '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
+  '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
+  text: (el, s) => s.text || '',
+
+  isCmd: (el, s) => s.tone === 'cmd',
+  '.isCmd': { color: 'ivory' },
+  isOk: (el, s) => s.tone === 'ok',
+  '.isOk': { color: 'mist' },
+  isDim: (el, s) => s.tone === 'dim',
+  '.isDim': { color: 'ivory.45' },
+
+  // The caret rides the last line.
+  Caret: {
+    tag: 'span',
+    display: 'inline-block',
+    width: '.55em',
+    height: '1em',
+    verticalAlign: '-.15em',
+    marginLeft: '.25em',
+    background: 'mist',
+    animationName: 'blink',
+    animationDuration: '1.1s',
+    animationIterationCount: 'infinite',
+    '@reduceMotion': { animationName: 'none' },
+    show: (el, s) => s.tone === 'dim'
+  }
+}
+
+
+// One dot in the terminal chrome.
+export const TermDot = {
+  tag: 'span',
+  width: 'X1',
+  height: 'X1',
+  borderRadius: 'E',
+  background: 'ivory.16'
 }

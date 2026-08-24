@@ -2,11 +2,27 @@
 // value diamond — beside the FRACTYCO wordmark set in the condensed brand
 // face. Inherits `color` from its parent chrome; defaults to the title pair
 // so it flips navy/ivory with the theme on its own.
+//
+// The lockup is always a way home: a real anchor to `/`, routed through the
+// framework. Hover widens the word's tracking a touch — the mark itself never
+// rotates or distorts (brandbook rule).
 export const Logo = {
+  tag: 'a',
   flow: 'x',
   align: 'center center',
   gap: 'Y',
   color: 'title',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  href: '/',
+  ariaLabel: 'Fractyco — home',
+  transition: 'opacity .25s ease, transform .2s ease',
+  ':active': { transform: 'scale(.98)' },
+
+  onClick: (ev, el) => {
+    ev.preventDefault()
+    el.router('/', el.getRoot())
+  },
 
   Icon: {
     name: 'logo',
@@ -25,6 +41,9 @@ export const Logo = {
     lineHeight: '1',
     whiteSpace: 'nowrap',
     transform: 'translateY(1px)',
-    color: 'inherit'
-  }
+    color: 'inherit',
+    transition: 'letter-spacing .4s cubic-bezier(.22,.68,.24,.98)'
+  },
+
+  ':hover': { opacity: '.92' }
 }

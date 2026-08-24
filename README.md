@@ -78,9 +78,9 @@ kept as the empty-state fallback.
 fractyco/
 ├── packages/         ← the entire front end, as Bun workspaces
 │   ├── brand/        design system + component library, shared by every surface
-│   ├── landing/      marketing site                     (port 5040)
-│   ├── dashboard/    investor application               (port 5041)
-│   └── governance/   operator and compliance console    (port 5042)
+│   ├── landing/      marketing site                     (fractyco.localhost)
+│   ├── dashboard/    investor application               (fractyco-app.localhost)
+│   └── governance/   operator and compliance console    (fractyco-gov.localhost)
 ├── programs/         the four Anchor programs (registry, compliance, distribution, market)
 ├── lib/              web3 + domain service layer (TypeScript) — from `main`, unchanged
 ├── tests/            on-chain integration tests (mocha/tsx) — `bun run test:*`
@@ -159,9 +159,9 @@ contract deployment, indexer — is in the deployment guide.
 ```sh
 # Surfaces (Symbols)
 bun start                      # every dev server
-bun run start:landing          # landing only          → :5040
-bun run start:dashboard        # investor app only     → :5041
-bun run start:governance       # governance only       → :5042
+bun run start:landing          # landing only     → http://fractyco.localhost:1355
+bun run start:dashboard        # investor app     → http://fractyco-app.localhost:1355
+bun run start:governance       # governance       → http://fractyco-gov.localhost:1355
 bun run build                  # production build per surface
 bun run publish:all            # publish surfaces + brand library
 

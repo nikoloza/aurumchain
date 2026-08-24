@@ -44,7 +44,7 @@ Two runtime facts that shape all handler code here:
 
 ```sh
 bun install            # once, from the repo root
-bun start              # all three dev servers (5040/5041/5042), prefixed logs
+bun start              # all dev servers via portless (fractyco/-app/-gov/-brand .localhost:1355)
 bun run start:dashboard      # a single surface
 ```
 
