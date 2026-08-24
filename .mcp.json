@@ -1,9 +1,16 @@
 {
   "mcpServers": {
     "symbols-mcp": {
+      "_comment": "symbols-mcp>=3.14.764 pins mcp<2 inside the package, so no --with mcp<2 is needed here. cryptography<49 stays: 49+ ships arm64-only wheels, so on Intel macOS uv source-builds it and fails against rustc <1.83.",
       "type": "stdio",
       "command": "uvx",
-      "args": ["--refresh", "--with", "mcp<2", "symbols-mcp"]
+      "args": [
+        "--from",
+        "symbols-mcp>=3.14.764",
+        "--with",
+        "cryptography<49",
+        "symbols-mcp"
+      ]
     }
   }
 }
