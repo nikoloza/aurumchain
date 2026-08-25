@@ -39,6 +39,9 @@ export default {
   slateInkDeep: '#2C4E68',
   // Section-wash fill as a single token pair (chips masking dashed rails)
   surfaceWash: ['ivoryDim', 'navy'],
+  // Card face as a token pair — for surfaces that need the panel ground
+  // without the card theme's border (joined bands, cell fills)
+  panel: ['white', 'navySoft'],
   // Sticky-navbar frost once the page scrolls (transparent at the very top)
   navWash: ['ivory.82', 'navyDeep.82'],
   // Active navigation wash + its ink

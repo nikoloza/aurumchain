@@ -12,7 +12,9 @@ export const SideGroup = {
     letterSpacing: '.12em',
     textTransform: 'uppercase',
     color: 'caption',
-    text: (el, s) => s.title || ''
+    text: (el, s) => s.title || '',
+    // Icon-strip rail: the group is separated by spacing alone.
+    '@tabletL': { display: 'none' }
   },
 
   Items: {

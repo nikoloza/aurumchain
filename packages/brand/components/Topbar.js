@@ -1,11 +1,13 @@
-// Page chrome above the content column: page title, and the account block.
+// Slim chrome above the content column: a mono breadcrumb (the page title
+// itself lives in the body's PageHead) and the account block. The network
+// pill moved to the rail's foot.
 export const Topbar = {
   tag: 'header',
   flow: 'x',
   align: 'center space-between',
   gap: 'A',
   width: '100%',
-  padding: 'Z B',
+  padding: 'Y B',
   theme: 'nav',
   borderBottom: '1px solid hairline',
   position: 'sticky',
@@ -13,24 +15,28 @@ export const Topbar = {
   zIndex: '20',
   backdropFilter: 'saturate(1.4) blur(12px)',
 
-  Titles: {
-    flow: 'y',
-    gap: '0',
+  Crumb: {
+    flow: 'x',
+    align: 'center flex-start',
+    gap: 'Y',
 
-    H1: {
-      margin: '0',
-      fontFamily: 'Display',
-      fontSize: 'B',
-      fontWeight: '700',
-      letterSpacing: '-.02em',
-      color: 'title',
-      text: (el, s) => s.root.pageTitle || ''
-    },
-    Sub: {
+    Diamond: {
       tag: 'span',
+      flexShrink: '0',
+      width: 'X',
+      height: 'X',
+      background: 'accentInk',
+      transform: 'rotate(45deg)'
+    },
+    Path: {
+      tag: 'span',
+      fontFamily: 'Mono',
       fontSize: 'Y1',
+      fontWeight: '600',
+      letterSpacing: '.14em',
+      textTransform: 'uppercase',
       color: 'caption',
-      text: (el, s) => s.root.pageLead || ''
+      text: (el, s) => s.root.pageTitle || ''
     }
   },
 
@@ -40,7 +46,6 @@ export const Topbar = {
     gap: 'Z',
 
     ThemeToggle: {},
-    NetworkPill: {},
 
     Account: {
       flow: 'x',
@@ -49,6 +54,8 @@ export const Topbar = {
       padding: 'X Z',
       borderRadius: 'E',
       theme: 'secondary',
+      // Phones: the email pill is the one thing the slim bar can spare.
+      '@mobileL': { display: 'none' },
 
       Dot: {
         width: 'Y',

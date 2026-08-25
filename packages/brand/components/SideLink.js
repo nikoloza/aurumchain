@@ -19,6 +19,10 @@ export const SideLink = {
   transition: 'background .18s ease, color .18s ease, transform .12s ease',
   ':hover': { background: 'veil', color: 'title' },
   ':active': { transform: 'scale(.985)' },
+  // Icon-strip rail below tabletL: square hit target, glyph centred, the
+  // native tooltip carries the hidden label.
+  '@tabletL': { align: 'center center', padding: 'Y' },
+  title: (el, s) => s.label || '',
 
   href: (el, s) => s.path,
   ariaCurrent: (el, s) => (s.root.route === s.path ? 'page' : null),
@@ -41,7 +45,7 @@ export const SideLink = {
     Icon: { name: (el, s) => s.icon || 'chart' }
   },
 
-  Label: { tag: 'span', text: (el, s) => s.label || '' },
+  Label: { tag: 'span', text: (el, s) => s.label || '', '@tabletL': { display: 'none' } },
 
   // Diamond marker — the brand's node shape, lit only on the active route.
   Marker: {
@@ -54,6 +58,7 @@ export const SideLink = {
     transform: 'rotate(45deg)',
     opacity: '0',
     transition: 'opacity .25s ease',
+    '@tabletL': { display: 'none' },
     isActive: (el, s) => s.root.route === s.path,
     '.isActive': { opacity: '1' }
   }

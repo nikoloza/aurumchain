@@ -97,6 +97,19 @@ Landing routes: `/` (the full editorial scroll) plus a dedicated page per
 menu item — `/how`, `/offerings`, `/compliance`, `/platform`, `/company`,
 `/faq` — each composed from the same section components under a `PageHero`.
 
+## App shell (dashboard & governance)
+
+Both product surfaces share one shell (`packages/brand`): a sticky left rail
+that collapses to an icon strip below `tabletL` (labels return as native
+tooltips), with the network pill and wallet address anchored to its bottom
+edge; a slim topbar carrying only a mono breadcrumb (diamond + page name)
+and the account block; and an editorial page head inside the content column —
+Display-face title over a dashed hairline — set by each page through
+`openPage`. The content column caps at `J` and centers. KPI figures sit in
+one joined band: tiles on the `panel` fill separated by `V`-wide seams that
+let the band's hairline ground read through, with the accent underline
+sweeping in on hover (same gesture as the landing's market figures).
+
 ## Interaction rules (enforced by review)
 
 - Every interactive element declares `:hover`, `:active`, `:focus-visible`

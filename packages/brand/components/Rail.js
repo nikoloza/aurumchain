@@ -25,15 +25,23 @@ export const Rail = {
   gap: 'A',
   flexShrink: '0',
   width: 'F2',
-  minHeight: '100vh',
+  height: '100vh',
   padding: 'A Z',
   theme: 'rail',
   borderRight: '1px solid hairline',
   position: 'sticky',
   top: '0',
-  '@tabletL': { display: 'none' },
+  overflowY: 'auto',
+  // Below tabletL the rail collapses to an icon strip instead of vanishing —
+  // SideGroup titles and SideLink labels hide themselves at the same break.
+  '@tabletL': { width: 'D', padding: 'A Y', alignItems: 'center' },
 
-  Head: { padding: 'X Z', Logo: {} },
+  Head: {
+    padding: 'X Z',
+    '@tabletL': { padding: 'X 0' },
+    // Icon strip keeps only the circular mark; the wordmark needs the width.
+    Logo: { Word: { '@tabletL': { display: 'none' } } }
+  },
 
   Groups: {
     flow: 'y',
@@ -42,5 +50,42 @@ export const Rail = {
     childExtends: 'SideGroup',
     childrenAs: 'state',
     children: (el, s) => s.root.nav || []
+  },
+
+  // Session context anchored to the bottom edge: which chain, which wallet.
+  Foot: {
+    marginTop: 'auto',
+    flow: 'y',
+    gap: 'Z',
+    width: '100%',
+    paddingTop: 'A',
+    borderTop: '1px dashed',
+    borderTopColor: 'hairline',
+    '@tabletL': { display: 'none' },
+
+    NetworkPill: { alignSelf: 'flex-start' },
+
+    Wallet: {
+      flow: 'x',
+      align: 'center flex-start',
+      gap: 'Y',
+      padding: '0 Z',
+      Dot: {
+        tag: 'span',
+        flexShrink: '0',
+        width: 'X',
+        height: 'X',
+        background: 'green',
+        transform: 'rotate(45deg)'
+      },
+      Addr: {
+        tag: 'span',
+        fontFamily: 'Mono',
+        fontSize: 'Y1',
+        letterSpacing: '.04em',
+        color: 'caption',
+        text: (el, s) => s.root.wallet || ''
+      }
+    }
   }
 }

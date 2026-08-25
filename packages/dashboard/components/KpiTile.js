@@ -8,16 +8,35 @@ export const KpiTile = {
   flow: 'y',
   gap: 'X',
   padding: 'A',
-  borderRadius: 'radiusCard',
-  theme: 'card',
+  position: 'relative',
+  overflow: 'hidden',
+  // Panel fill, no own border — the surrounding KpiRow supplies the frame and
+  // its 1px gaps read as hairline seams between tiles.
+  background: 'panel',
   transition: (el, s) =>
     'opacity .7s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') +
-    ', transform .25s ease, border-color .25s ease',
+    ', background .3s ease',
   opacity: '0',
   isRevealed: (el, s) => el.call('inheritedInView', s),
   '.isRevealed': { opacity: '1' },
-  ':hover': { transform: 'translateY(-2px)', borderColor: 'slate.45' },
-  '@reduceMotion': { opacity: '1', transition: 'none', ':hover': { transform: 'none' } },
+  // Hover: wash the tile and sweep the accent underline in, like the
+  // landing's market figures.
+  ':after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '0',
+    left: '0',
+    width: '100%',
+    height: 'W',
+    background: 'accentInk',
+    transform: 'scaleX(0)',
+    transformOrigin: 'left center',
+    transition: 'transform .4s cubic-bezier(.22,.68,.24,.98)'
+  },
+  // surfaceWash, not veil — the fill must stay opaque or the band's hairline
+  // ground reads through the tile.
+  ':hover': { background: 'surfaceWash', ':after': { transform: 'scaleX(1)' } },
+  '@reduceMotion': { opacity: '1', transition: 'none' },
 
   Eyebrow: {
     flow: 'x',
