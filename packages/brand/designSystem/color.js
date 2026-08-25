@@ -13,6 +13,14 @@ export default {
   mist: '#A8C0CF',        // ACCENT — mist blue, highlights and interface accents
   ivory: '#F5F2EC',       // NEUTRAL — soft ivory, the page ground in light
 
+  // ── Dark-scheme grounds ───────────────────────────────────────────────────
+  // Neutral graphite with a whisper of the slate hue. The dark scheme sits on
+  // these; the navy family stays the brand ACCENT there (bands, buttons,
+  // fills), so it reads as ink on gray rather than blue on blue.
+  charcoalDeep: '#131619',   // page background in dark
+  charcoal: '#1B2024',       // raised surface / rail in dark
+  charcoalSoft: '#262C31',   // card face in dark
+
   // ── Neutrals ──────────────────────────────────────────────────────────────
   white: '#ffffff',
   black: '#000000',
@@ -38,12 +46,12 @@ export default {
   slateInk: '#41647F',
   slateInkDeep: '#2C4E68',
   // Section-wash fill as a single token pair (chips masking dashed rails)
-  surfaceWash: ['ivoryDim', 'navy'],
+  surfaceWash: ['ivoryDim', 'charcoal'],
   // Card face as a token pair — for surfaces that need the panel ground
   // without the card theme's border (joined bands, cell fills)
-  panel: ['white', 'navySoft'],
+  panel: ['white', 'charcoalSoft'],
   // Sticky-navbar frost once the page scrolls (transparent at the very top)
-  navWash: ['ivory.82', 'navyDeep.82'],
+  navWash: ['ivory.82', 'charcoalDeep.82'],
   // Active navigation wash + its ink
   activeWash: ['mist.32', 'mist.12'],
   activeInk: ['#2C4E68', 'mist'],

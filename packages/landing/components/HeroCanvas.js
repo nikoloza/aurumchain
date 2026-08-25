@@ -353,7 +353,7 @@ export const HeroCanvas = {
           oreIndex[i + '_' + j + '_' + k] = id
           // Gold pockets — a phase field over the lattice keeps the nuggets
           // clustered into veins instead of scattered salt.
-          if (Math.sin(lx * 34 + ly * 21) + Math.cos(lz * 27 + lx * 15) > 0.55) goldMap[id] = 1
+          if (Math.sin(lx * 34 + ly * 21) + Math.cos(lz * 27 + lx * 15) > 0.35) goldMap[id] = 1
         }
       }
     }
@@ -780,7 +780,7 @@ export const HeroCanvas = {
           }
           fade[i] = (melt[i] > 0.5 ? 1 : underFade + (1 - underFade) * 0.35) * scrollFade
           // The gold glints — a slow irregular sparkle across the nuggets.
-          if (goldF[i]) fade[i] *= 0.82 + 0.34 * Math.sin(t * 2.2 + rand[i] * 9)
+          if (goldF[i]) fade[i] *= 0.92 + 0.5 * Math.sin(t * 2.2 + rand[i] * 9)
         } else {
           // Rigid constellations: settle home on intro, then breathe.
           const bx = Math.sin(t * 0.5 + rand[i] * 11) * 0.0035
@@ -914,7 +914,7 @@ export const HeroCanvas = {
       const B = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
       const L = [mixc(0.2, 0.659), mixc(0.32, 0.753), mixc(0.44, 0.812)]
       // The gold keeps its own light too — a touch brighter at depth.
-      const G = [mixc(0.72, 0.87), mixc(0.54, 0.68), mixc(0.2, 0.31)]
+      const G = [mixc(0.78, 1.0), mixc(0.58, 0.78), mixc(0.18, 0.26)]
       const alB = 0.66 + 0.06 * wf
       const aScale = 1.45 - 0.45 * wf
       gl.clear(gl.COLOR_BUFFER_BIT)
@@ -948,10 +948,13 @@ export const HeroCanvas = {
       gl.uniformMatrix4fv(H.uL.mvp, false, M)
       gl.drawArrays(gl.LINES, 0, (E - EG) * 2)
       gl.drawArrays(gl.LINES, E * 2, DN * 2)
-      // The veins — the gold-to-gold tail slice in its own ink.
+      // The veins — the gold-to-gold tail slice in its own ink, drawn
+      // hotter than the structural hairlines so the ore reads at a glance.
       gl.uniform3f(H.uL.colL, G[0], G[1], G[2])
+      gl.uniform1f(H.uL.aScale, aScale * 1.5)
       gl.drawArrays(gl.LINES, (E - EG) * 2, EG * 2)
       gl.uniform3f(H.uL.colL, L[0], L[1], L[2])
+      gl.uniform1f(H.uL.aScale, aScale)
       gl.uniformMatrix4fv(H.uL.mvp, false, S)
       gl.drawArrays(gl.LINES, (E + DN) * 2, (RING_SEGS + TRAIL_SEGS) * 2)
 

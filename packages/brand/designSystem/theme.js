@@ -1,30 +1,30 @@
 // ── Fractyco themes ─────────────────────────────────────────────────────────
 // Light is the brand's presentation ground (soft ivory, deep navy ink); dark
-// is the same identity inverted onto the navy. Surfaces stay flat — weight
+// sits on neutral graphite so the navy family stays the accent there. Surfaces stay flat — weight
 // comes from the navy, air from the ivory.
 
 export default {
   document: {
     '@light': { background: 'ivory', color: 'ink' },
-    '@dark': { background: 'navyDeep', color: 'ivory.92' }
+    '@dark': { background: 'charcoalDeep', color: 'ivory.92' }
   },
 
   // Page wash used to separate stacked sections
   surface: {
     '@light': { background: 'ivoryDim', color: 'ink' },
-    '@dark': { background: 'navy', color: 'ivory.86' }
+    '@dark': { background: 'charcoal', color: 'ivory.86' }
   },
 
   // Standard panel
   card: {
     '@light': { background: 'white', color: 'ink', border: '1px solid line' },
-    '@dark': { background: 'navySoft', color: 'ivory.9', border: '1px solid ivory.08' }
+    '@dark': { background: 'charcoalSoft', color: 'ivory.9', border: '1px solid ivory.08' }
   },
 
   // Focus panel — the one card in a row that carries the brand's weight
   accentCard: {
     '@light': { background: 'navy', color: 'ivory', border: '1px solid navy' },
-    '@dark': { background: 'navySoft', color: 'ivory', border: '1px solid mist.32' }
+    '@dark': { background: 'navy', color: 'ivory', border: '1px solid mist.32' }
   },
 
   // Primary action — navy on ivory; inverts to ivory on navy in dark
@@ -73,12 +73,12 @@ export default {
   // Application chrome
   nav: {
     '@light': { background: 'ivory.82', color: 'ink' },
-    '@dark': { background: 'navyDeep.82', color: 'ivory.92' }
+    '@dark': { background: 'charcoalDeep.82', color: 'ivory.92' }
   },
 
   rail: {
     '@light': { background: 'white', color: 'ink', border: '1px solid line' },
-    '@dark': { background: 'navy', color: 'ivory.86', border: '1px solid ivory.06' }
+    '@dark': { background: 'charcoal', color: 'ivory.86', border: '1px solid ivory.06' }
   },
 
   divider: {
