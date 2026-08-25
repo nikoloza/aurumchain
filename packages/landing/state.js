@@ -4,5 +4,7 @@ export default {
   // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
   themeMode: '',
   // Page-switch curtain stage: '' | 'cover' | 'reveal' — see RouteVeil.
-  veilStage: ''
+  veilStage: '',
+  // The hero's world — root state so the navbar's WorldSwitch drives it.
+  heroWorld: 'above'
 }

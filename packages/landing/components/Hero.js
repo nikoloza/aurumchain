@@ -16,10 +16,14 @@ export const Hero = {
   padding: 'E C',
   overflow: 'hidden',
   scope: {},
-  state: { world: 'above', webglOk: false },
-  background: 'transparent',
+  state: { webglOk: false },
+  // The worlds keep their own light regardless of the page scheme: the band
+  // is ivory above ground and navy underground in BOTH themes, and every
+  // ink inside the stacks is explicit for its world. The world itself lives
+  // on ROOT state — the navbar's WorldSwitch drives it.
+  background: 'ivory',
   transition: 'background .9s cubic-bezier(.22,.68,.24,.98)',
-  isUnder: (el, s) => s.world === 'under',
+  isUnder: (el, s) => s.root.heroWorld === 'under',
   '.isUnder': { background: 'navy' },
   '@tabletS': { minHeight: 'auto', padding: 'E A C' },
 
@@ -49,7 +53,6 @@ export const Hero = {
     right: '-9vw',
     pointerEvents: 'none',
     color: 'slate.1',
-    '@dark': { color: 'mist.05' },
     show: (el, s) => !s.webglOk,
     Icon: { name: 'logo', width: '46vw', height: '46vw', display: 'block' },
     '@tabletS': { display: 'none' }
@@ -64,7 +67,11 @@ export const Hero = {
     maxWidth: 'I2',
     position: 'relative',
 
+    // On phones the navbar has no room for the switcher, so it rides the
+    // top of the column instead — same root state, either instance works.
     WorldSwitch: {
+      display: 'none',
+      '@tabletS': { display: 'flex' },
       animationName: 'fcReveal',
       animationDuration: 'F',
       animationFillMode: 'both',
@@ -77,7 +84,7 @@ export const Hero = {
       gap: 'B2',
       align: 'center center',
       width: '100%',
-      show: (el, s) => s.world !== 'under',
+      show: (el, s) => s.root.heroWorld !== 'under',
 
       Eyebrow: {
         flow: 'x',
@@ -94,14 +101,14 @@ export const Hero = {
           maxWidth: 'D',
           alignSelf: 'center',
           borderTop: '1px dashed',
-          borderTopColor: 'hairline'
+          borderTopColor: 'line'
         },
         Diamond: {
           tag: 'span',
           flexShrink: '0',
           width: 'X1',
           height: 'X1',
-          background: 'accentInk',
+          background: 'slateInk',
           transform: 'rotate(45deg)'
         },
         Label: {
@@ -111,15 +118,15 @@ export const Hero = {
           letterSpacing: '.18em',
           lineHeight: '1',
           textTransform: 'uppercase',
-          color: 'caption',
-          text: 'Above ground · For investors'
+          color: 'muted',
+          text: 'For investors'
         },
         RuleR: {
           flex: '1',
           maxWidth: 'D',
           alignSelf: 'center',
           borderTop: '1px dashed',
-          borderTopColor: 'hairline'
+          borderTopColor: 'line'
         }
       },
 
@@ -130,7 +137,7 @@ export const Hero = {
         fontWeight: '400',
         letterSpacing: '.008em',
         textTransform: 'uppercase',
-        color: 'title',
+        color: 'navy',
         margin: '0',
         '@screenS': { fontSize: 'J' },
         '@tabletL': { fontSize: 'G' },
@@ -144,7 +151,7 @@ export const Hero = {
             tag: 'span',
             display: 'block',
             lineHeight: '1.02',
-            color: 'accentInk',
+            color: 'slateInk',
             text: 'Real assets,',
             animationName: 'lineUp',
             animationDuration: 'E',
@@ -186,7 +193,7 @@ export const Hero = {
       P: {
         fontSize: 'B',
         lineHeight: '1.55',
-        color: 'paragraph',
+        color: 'navy.76',
         margin: '0',
         maxWidth: 'I',
         animationName: 'fcReveal',
@@ -215,7 +222,7 @@ export const Hero = {
           text: '',
           textDecoration: 'none',
           display: 'inline-flex',
-          PillButton: { state: { tone: 'primary' }, text: 'Open an account' }
+          PillButton: { state: { tone: 'solid' }, text: 'Open an account' }
         },
         HowCta: {
           display: 'inline-flex',
@@ -234,7 +241,7 @@ export const Hero = {
             text: '',
             textDecoration: 'none',
             display: 'inline-flex',
-            PillButton: { state: { tone: 'secondary' }, text: 'See how it works' }
+            PillButton: { state: { tone: 'paper' }, text: 'See how it works' }
           }
         }
       },
@@ -246,7 +253,7 @@ export const Hero = {
         flexWrap: 'wrap',
         marginTop: 'Z',
         paddingTop: 'B1',
-        borderTop: '1px solid hairline',
+        borderTop: '1px solid line',
         width: '100%',
         textAlign: 'center',
         animationName: 'fcReveal',
@@ -256,6 +263,10 @@ export const Hero = {
         '@reduceMotion': { animationName: 'none' },
         '@tabletS': { gap: 'B' },
 
+        childProps: {
+          Value: { color: 'navy' },
+          Label: { color: 'muted' }
+        },
         StatCell: { align: 'center center', state: { value: '$326T', label: 'Real assets worldwide' } },
         StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'Minimum subscription' } },
         StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'Target annual yield' } },
@@ -269,7 +280,7 @@ export const Hero = {
       gap: 'B2',
       align: 'center center',
       width: '100%',
-      show: (el, s) => s.world === 'under',
+      show: (el, s) => s.root.heroWorld === 'under',
 
       Eyebrow: {
         flow: 'x',
@@ -304,7 +315,7 @@ export const Hero = {
           lineHeight: '1',
           textTransform: 'uppercase',
           color: 'ivory.6',
-          text: 'Underground · For asset owners'
+          text: 'For asset owners'
         },
         RuleR: {
           flex: '1',
@@ -499,14 +510,14 @@ export const Hero = {
       width: 'X',
       height: 'C',
       overflow: 'hidden',
-      borderLeft: '1px solid hairline',
+      borderLeft: '1px solid line',
 
       Line: {
         position: 'absolute',
         top: '0',
         left: '0',
         height: '100%',
-        borderLeft: '1px solid accentInk',
+        borderLeft: '1px solid slateInk',
         animationName: 'cueDrop',
         animationDuration: '2.2s',
         animationTimingFunction: 'cubic-bezier(.6,.05,.3,.95)',
@@ -520,9 +531,9 @@ export const Hero = {
       fontSize: 'Y1',
       letterSpacing: '.2em',
       textTransform: 'uppercase',
-      color: 'caption',
+      color: 'muted',
       transition: 'color .9s ease',
-      isUnder: (el, s) => s.world === 'under',
+      isUnder: (el, s) => s.root.heroWorld === 'under',
       '.isUnder': { color: 'ivory.5' },
       text: 'Scroll'
     }

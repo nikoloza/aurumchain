@@ -58,7 +58,7 @@ export const ValuesSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@mobileL': { gridTemplateColumns: '1fr' },
 
       childExtends: 'AssetTile',

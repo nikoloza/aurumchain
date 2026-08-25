@@ -47,6 +47,10 @@ export const NavItem = {
       const anchor = s.anchor || ''
       return loc ? `${loc.origin}${loc.pathname}#${anchor}` : `#${anchor}`
     },
-    text: (el, s) => s.label || ''
+    text: (el, s) => s.label || '',
+    // The current page's entry stays lit — the router writes `route` onto
+    // root state on every navigation.
+    isActive: (el, s) => !!s.path && s.root.route === s.path,
+    '.isActive': { color: 'title', background: 'veil' }
   }
 }

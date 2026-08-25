@@ -19,7 +19,7 @@ export const OfferingsSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
       '@mobileL': { gridTemplateColumns: '1fr' },
 

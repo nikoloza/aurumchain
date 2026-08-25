@@ -20,7 +20,7 @@ export const AssetsSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
       '@mobileL': { gridTemplateColumns: '1fr' },
 
@@ -42,9 +42,11 @@ export const AssetsSection = {
 export const AssetTile = {
   flow: 'y',
   gap: 'Z',
-  padding: 'B',
+  padding: 'B1',
+  position: 'relative',
   borderRadius: 'radiusCard',
   theme: 'card',
+  CardPin: {},
   transition: (el, s) => 'opacity .8s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') + ', transform .25s ease, border-color .25s ease',
   opacity: '0',
   isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },

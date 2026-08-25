@@ -14,6 +14,33 @@ export const SectionHeading = {
   width: '100%',
   maxWidth: 'I2',
   alignItems: 'flex-start',
+  position: 'relative',
+
+  // The section number as an editorial ghost — oversized, in the veil ink,
+  // settling behind the heading's top-right as the section reveals.
+  Watermark: {
+    tag: 'span',
+    position: 'absolute',
+    top: '-Z',
+    right: '0',
+    fontFamily: 'Brand',
+    fontSize: 'J',
+    lineHeight: '.8',
+    letterSpacing: '.02em',
+    color: 'veilStrong',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    attr: { 'aria-hidden': 'true' },
+    opacity: '0',
+    transform: 'translate3d(0, 10px, 0)',
+    transition: 'opacity .9s ease .3s, transform .9s cubic-bezier(.22,.68,.24,.98) .3s',
+    isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+    '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
+    '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
+    text: (el, s) => s.num || '',
+    show: (el, s) => !!s.num,
+    '@tabletS': { display: 'none' }
+  },
 
   Eyebrow: {
     order: '0',
@@ -85,7 +112,7 @@ export const SectionHeading = {
   H2: {
     order: '1',
     fontFamily: 'Display',
-    fontSize: 'E',
+    fontSize: 'E1',
     lineHeight: '1.06',
     fontWeight: '700',
     letterSpacing: '-.028em',

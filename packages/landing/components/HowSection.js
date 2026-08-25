@@ -88,7 +88,7 @@ export const HowSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
       '@mobileL': { gridTemplateColumns: '1fr' },
 

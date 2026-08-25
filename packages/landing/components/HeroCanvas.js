@@ -65,36 +65,36 @@ export const HeroCanvas = {
     }
 
     const pointProg = link(
-      'attribute vec3 p;attribute float r;attribute float m;attribute float f;attribute float g;' +
+      'attribute vec3 p;attribute float r;attribute float m;attribute float f;attribute float g;attribute float d;' +
       'uniform mat4 mvp;uniform float dpr;' +
-      'varying float vR;varying float vM;varying float vF;varying float vG;' +
+      'varying float vR;varying float vM;varying float vF;varying float vG;varying float vD;' +
       'void main(){' +
       'vec4 cp=mvp*vec4(p,1.0);' +
       'gl_Position=cp;' +
       'float w=max(0.4,cp.w);' +
       'gl_PointSize=(2.2+2.1*r)*(1.0+0.5*m)*dpr*(1.5/w);' +
-      'vR=r;vM=m;vF=f;' +
+      'vR=r;vM=m;vF=f;vD=d;' +
       'vG=g*clamp(1.65-0.4*w,0.22,1.0);}',
-      'precision mediump float;varying float vR;varying float vM;varying float vF;varying float vG;' +
-      'uniform vec3 colA;uniform vec3 colB;uniform float alBase;' +
+      'precision mediump float;varying float vR;varying float vM;varying float vF;varying float vG;varying float vD;' +
+      'uniform vec3 colA;uniform vec3 colB;uniform vec3 colG;uniform float alBase;' +
       'void main(){' +
       'vec2 q=gl_PointCoord*2.0-1.0;' +
       'float d=abs(q.x)+abs(q.y);' +
       'if(d>1.0)discard;' +
       'float soft=0.62-0.22*vM;' +
       'float edge=1.0-smoothstep(soft,1.0,d);' +
-      'vec3 col=mix(colA,colB,vM);' +
-      'float a=(alBase*(0.55+0.45*vR)+0.2*vM)*edge*vG;' +
+      'vec3 col=mix(mix(colA,colB,vM),colG,vD*0.9);' +
+      'float a=(alBase*(0.55+0.45*vR)+0.2*vM+0.14*vD)*edge*vG;' +
       'a*=mix(1.0,0.34,vF);' +
       'gl_FragColor=vec4(col*a,a);}'
     )
     const lineProg = link(
       'attribute vec3 p;attribute float a;' +
-      'uniform mat4 mvp;varying float vA;' +
+      'uniform mat4 mvp;uniform float aScale;varying float vA;' +
       'void main(){' +
       'vec4 cp=mvp*vec4(p,1.0);' +
       'gl_Position=cp;' +
-      'vA=a*clamp(1.65-0.4*max(0.4,cp.w),0.22,1.0);}',
+      'vA=a*aScale*clamp(1.65-0.4*max(0.4,cp.w),0.22,1.0);}',
       'precision mediump float;varying float vA;uniform vec3 colL;' +
       'void main(){gl_FragColor=vec4(colL*vA,vA);}'
     )
@@ -341,6 +341,7 @@ export const HeroCanvas = {
     const ocy = -0.42
     const oreStart = nodeGroup.length
     const oreIndex = {}
+    const goldMap = {}
     for (let i = -3; i <= 3; i++) {
       for (let j = -3; j <= 3; j++) {
         for (let k = -3; k <= 3; k++) {
@@ -348,11 +349,18 @@ export const HeroCanvas = {
           const ly = j * OSTEP
           const lz = k * OSTEP
           if (Math.abs(lx) + Math.abs(ly) + Math.abs(lz) > OR) continue
-          oreIndex[i + '_' + j + '_' + k] = addN(ocx + lx, ocy + ly, ocz + lz, 3)
+          const id = addN(ocx + lx, ocy + ly, ocz + lz, 3)
+          oreIndex[i + '_' + j + '_' + k] = id
+          // Gold pockets — a phase field over the lattice keeps the nuggets
+          // clustered into veins instead of scattered salt.
+          if (Math.sin(lx * 34 + ly * 21) + Math.cos(lz * 27 + lx * 15) > 0.55) goldMap[id] = 1
         }
       }
     }
     const oreEnd = nodeGroup.length
+    // Gold-to-gold edges (the veins) are appended AFTER every other edge, so
+    // the line pass can draw them as one gold-colored tail slice.
+    const goldEdges = []
     for (let i = -3; i <= 3; i++) {
       for (let j = -3; j <= 3; j++) {
         for (let k = -3; k <= 3; k++) {
@@ -361,12 +369,19 @@ export const HeroCanvas = {
           const r1 = oreIndex[(i + 1) + '_' + j + '_' + k]
           const r2 = oreIndex[i + '_' + (j + 1) + '_' + k]
           const r3 = oreIndex[i + '_' + j + '_' + (k + 1)]
-          if (r1 !== undefined) addE(a, r1, 3)
-          if (r2 !== undefined) addE(a, r2, 3)
-          if (r3 !== undefined) addE(a, r3, 3)
+          const put = (b) => {
+            if (b === undefined) return
+            if (goldMap[a] && goldMap[b]) goldEdges.push(a, b)
+            else addE(a, b, 3)
+          }
+          put(r1)
+          put(r2)
+          put(r3)
         }
       }
     }
+    const EG = goldEdges.length / 2
+    for (let e = 0; e < EG; e++) addE(goldEdges[e * 2], goldEdges[e * 2 + 1], 3)
     const topIdx = []
     for (let i = oreStart; i < oreEnd; i++) {
       if (nodes[i * 3 + 1] > ocy + 0.02) topIdx.push(i)
@@ -402,9 +417,11 @@ export const HeroCanvas = {
     const rand = new Float32Array(N)
     const free = new Float32Array(N)
     const fade = new Float32Array(N)
+    const goldF = new Float32Array(N)
     const mode = new Uint8Array(N)
     const aloftUntil = new Float32Array(N)
     const group = new Uint8Array(nodeGroup)
+    for (const idStr in goldMap) goldF[idStr] = 1
     for (let i = 0; i < N; i++) rand[i] = Math.random()
     for (let i = dustStart; i < N; i++) {
       free[i] = 1
@@ -430,6 +447,7 @@ export const HeroCanvas = {
     const fadeBuf = mkBuf(fade, true)
     const randBuf = mkBuf(rand, false)
     const freeBuf = mkBuf(free, false)
+    const goldBuf = mkBuf(goldF, false)
     const LE = E + DN + RING_SEGS + TRAIL_SEGS
     const linePos = new Float32Array(LE * 6)
     const lineAl = new Float32Array(LE * 2)
@@ -445,11 +463,11 @@ export const HeroCanvas = {
 
     el.scope.hc = {
       gl, pointProg, lineProg,
-      RX, RZ, CAM_DIST, N, E, DN, LE, RING_SEGS, TRAIL_SEGS,
+      RX, RZ, CAM_DIST, N, E, EG, DN, LE, RING_SEGS, TRAIL_SEGS,
       edges, edgeGroup, dash, topIdx, oreStart, oreEnd, dustStart,
       ocx, ocy, ocz, NFA,
-      home, pos, vel, melt, rand, free, fade, mode, aloftUntil, group,
-      drawPos, posBuf, meltBuf, fadeBuf, randBuf, freeBuf,
+      home, pos, vel, melt, rand, free, fade, goldF, mode, aloftUntil, group,
+      drawPos, posBuf, meltBuf, fadeBuf, randBuf, freeBuf, goldBuf,
       linePos, lineAl, linePosBuf, lineAlBuf,
       m0: new Float32Array(16),
       m1: new Float32Array(16),
@@ -459,6 +477,7 @@ export const HeroCanvas = {
         dpr: gl.getUniformLocation(pointProg, 'dpr'),
         colA: gl.getUniformLocation(pointProg, 'colA'),
         colB: gl.getUniformLocation(pointProg, 'colB'),
+        colG: gl.getUniformLocation(pointProg, 'colG'),
         alBase: gl.getUniformLocation(pointProg, 'alBase')
       },
       aP: {
@@ -466,11 +485,13 @@ export const HeroCanvas = {
         r: gl.getAttribLocation(pointProg, 'r'),
         m: gl.getAttribLocation(pointProg, 'm'),
         f: gl.getAttribLocation(pointProg, 'f'),
-        g: gl.getAttribLocation(pointProg, 'g')
+        g: gl.getAttribLocation(pointProg, 'g'),
+        d: gl.getAttribLocation(pointProg, 'd')
       },
       uL: {
         mvp: gl.getUniformLocation(lineProg, 'mvp'),
-        colL: gl.getUniformLocation(lineProg, 'colL')
+        colL: gl.getUniformLocation(lineProg, 'colL'),
+        aScale: gl.getUniformLocation(lineProg, 'aScale')
       },
       aL: {
         p: gl.getAttribLocation(lineProg, 'p'),
@@ -515,7 +536,7 @@ export const HeroCanvas = {
       const gate = introEase * introEase
 
       // ── camera: the switcher dives it below the plane; cursor tilts it ──
-      const under = el.state && el.state.world === 'under'
+      const under = el.state && el.state.root && el.state.root.heroWorld === 'under'
       H.wf += ((under ? 1 : 0) - H.wf) * 0.05
       const wf = H.wf
       const rect = el.node.getBoundingClientRect()
@@ -597,7 +618,7 @@ export const HeroCanvas = {
       const ringOn = ringAge > 0 && ringAge < 1.4
       const ringR = ringAge * 0.62
 
-      const { N, E, DN, RING_SEGS, TRAIL_SEGS, home, pos, vel, melt, rand, mode, aloftUntil, drawPos, group, fade, topIdx, dustStart, oreStart, oreEnd } = H
+      const { N, E, EG, DN, RING_SEGS, TRAIL_SEGS, home, pos, vel, melt, rand, mode, aloftUntil, drawPos, group, fade, goldF, topIdx, dustStart, oreStart, oreEnd } = H
       const aboveFade = 1 - 0.9 * wf
       const underFade = 0.3 + 0.7 * wf
       const scrollFade = 1 - 0.5 * Math.min(1, scroll * 1.1)
@@ -758,6 +779,8 @@ export const HeroCanvas = {
             vel[ix] = vx; vel[iy] = vy; vel[iz] = vz
           }
           fade[i] = (melt[i] > 0.5 ? 1 : underFade + (1 - underFade) * 0.35) * scrollFade
+          // The gold glints — a slow irregular sparkle across the nuggets.
+          if (goldF[i]) fade[i] *= 0.82 + 0.34 * Math.sin(t * 2.2 + rand[i] * 9)
         } else {
           // Rigid constellations: settle home on intro, then breathe.
           const bx = Math.sin(t * 0.5 + rand[i] * 11) * 0.0035
@@ -818,7 +841,7 @@ export const HeroCanvas = {
         linePos[o + 4] = dash[so + 4]
         linePos[o + 5] = dash[so + 5]
         const g = dash[so + 6]
-        const al = (g === 5 ? 0.34 : 0.24 * underFade) * gate * scrollFade
+        const al = (g === 5 ? 0.4 : 0.24 * underFade) * gate * scrollFade
         lineAl[(E + dIx) * 2] = al
         lineAl[(E + dIx) * 2 + 1] = al
       }
@@ -881,21 +904,19 @@ export const HeroCanvas = {
         lineAl[trailAlBase + k * 2 + 1] = al
       }
 
-      // Palette: page theme above ground, inverted at depth, blended by wf.
-      const dark = el.node.ownerDocument.documentElement.getAttribute('data-theme') === 'dark'
+      // Palette: theme-INVARIANT — the worlds keep their own light no matter
+      // the page scheme. Navy ink over the ivory band above ground, ivory
+      // and mist at depth, blended continuously by the camera; the line ink
+      // runs deeper than the sprites and its alpha eases off on the dive so
+      // the hairlines stay visible on ivory without blowing out on navy.
       const mixc = (a, b) => a + (b - a) * wf
-      let A, B, L, alB
-      if (dark) {
-        A = [0.659, 0.753, 0.812]
-        B = [0.45, 0.58, 0.68]
-        L = [0.659, 0.753, 0.812]
-        alB = 0.62 + 0.08 * wf
-      } else {
-        A = [mixc(0.031, 0.94), mixc(0.141, 0.95), mixc(0.224, 0.93)]
-        B = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
-        L = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
-        alB = 0.63 + 0.06 * wf
-      }
+      const A = [mixc(0.031, 0.94), mixc(0.141, 0.95), mixc(0.224, 0.93)]
+      const B = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
+      const L = [mixc(0.2, 0.659), mixc(0.32, 0.753), mixc(0.44, 0.812)]
+      // The gold keeps its own light too — a touch brighter at depth.
+      const G = [mixc(0.72, 0.87), mixc(0.54, 0.68), mixc(0.2, 0.31)]
+      const alB = 0.66 + 0.06 * wf
+      const aScale = 1.45 - 0.45 * wf
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       // Screen-ortho for the overlay slice: x∈[0,aspect]→[-1,1], y∈[0,1]→[1,-1].
@@ -910,6 +931,7 @@ export const HeroCanvas = {
 
       gl.useProgram(H.lineProg)
       gl.uniform3f(H.uL.colL, L[0], L[1], L[2])
+      gl.uniform1f(H.uL.aScale, aScale)
       if (H.aP.m >= 0) gl.disableVertexAttribArray(H.aP.m)
       if (H.aP.r >= 0) gl.disableVertexAttribArray(H.aP.r)
       if (H.aP.f >= 0) gl.disableVertexAttribArray(H.aP.f)
@@ -924,7 +946,12 @@ export const HeroCanvas = {
       gl.vertexAttribPointer(H.aL.a, 1, gl.FLOAT, false, 0, 0)
       gl.lineWidth(1)
       gl.uniformMatrix4fv(H.uL.mvp, false, M)
-      gl.drawArrays(gl.LINES, 0, (E + DN) * 2)
+      gl.drawArrays(gl.LINES, 0, (E - EG) * 2)
+      gl.drawArrays(gl.LINES, E * 2, DN * 2)
+      // The veins — the gold-to-gold tail slice in its own ink.
+      gl.uniform3f(H.uL.colL, G[0], G[1], G[2])
+      gl.drawArrays(gl.LINES, (E - EG) * 2, EG * 2)
+      gl.uniform3f(H.uL.colL, L[0], L[1], L[2])
       gl.uniformMatrix4fv(H.uL.mvp, false, S)
       gl.drawArrays(gl.LINES, (E + DN) * 2, (RING_SEGS + TRAIL_SEGS) * 2)
 
@@ -933,8 +960,9 @@ export const HeroCanvas = {
       gl.uniform1f(H.uP.dpr, dpr)
       gl.uniform3f(H.uP.colA, A[0], A[1], A[2])
       gl.uniform3f(H.uP.colB, B[0], B[1], B[2])
+      gl.uniform3f(H.uP.colG, G[0], G[1], G[2])
       gl.uniform1f(H.uP.alBase, alB * gate)
-      if (H.aL.a >= 0 && H.aL.a !== H.aP.r && H.aL.a !== H.aP.m && H.aL.a !== H.aP.f && H.aL.a !== H.aP.g) gl.disableVertexAttribArray(H.aL.a)
+      if (H.aL.a >= 0 && H.aL.a !== H.aP.r && H.aL.a !== H.aP.m && H.aL.a !== H.aP.f && H.aL.a !== H.aP.g && H.aL.a !== H.aP.d) gl.disableVertexAttribArray(H.aL.a)
       gl.bindBuffer(gl.ARRAY_BUFFER, H.posBuf)
       gl.bufferData(gl.ARRAY_BUFFER, drawPos, gl.DYNAMIC_DRAW)
       gl.enableVertexAttribArray(H.aP.p)
@@ -953,6 +981,9 @@ export const HeroCanvas = {
       gl.bindBuffer(gl.ARRAY_BUFFER, H.freeBuf)
       gl.enableVertexAttribArray(H.aP.f)
       gl.vertexAttribPointer(H.aP.f, 1, gl.FLOAT, false, 0, 0)
+      gl.bindBuffer(gl.ARRAY_BUFFER, H.goldBuf)
+      gl.enableVertexAttribArray(H.aP.d)
+      gl.vertexAttribPointer(H.aP.d, 1, gl.FLOAT, false, 0, 0)
       gl.drawArrays(gl.POINTS, 0, N)
     } catch (e) {}
   },

@@ -1,7 +1,9 @@
-// The world switcher — aurc.app's above-ground / underground toggle reborn.
-// Two equal segments over a sliding thumb; flipping it drives the Hero's
-// `world` state, which pans the WebGL camera below the horizon, turns the
-// band navy, and swaps the editorial column for the other audience.
+// The world switcher — above ground / underground, now living in the navbar
+// chrome. It drives ROOT state (`heroWorld`), which dives the hero's WebGL
+// camera below the surface, turns the band navy, and swaps the editorial
+// column for the other audience. As chrome it follows the page theme (the
+// hero band below keeps its own invariant light); the active segment carries
+// the wash, the idle one stays quiet.
 export const WorldSwitch = {
   position: 'relative',
   flow: 'x',
@@ -9,9 +11,6 @@ export const WorldSwitch = {
   borderRadius: 'radiusPill',
   border: '1px solid hairline',
   background: 'veil',
-  transition: 'border-color .6s ease, background .6s ease',
-  isUnder: (el, s) => s.world === 'under',
-  '.isUnder': { borderColor: 'ivory.2', background: 'ivory.06' },
 
   role: 'group',
   ariaLabel: 'Choose a world',
@@ -25,19 +24,19 @@ export const WorldSwitch = {
     width: '50%',
     borderRadius: 'radiusPill',
     background: 'activeWash',
-    transition: 'transform .45s cubic-bezier(.22,.68,.24,.98), background .6s ease',
-    isUnder: (el, s) => s.world === 'under',
-    '.isUnder': { transform: 'translateX(100%)', background: 'ivory.14' }
+    transition: 'transform .45s cubic-bezier(.22,.68,.24,.98)',
+    isUnder: (el, s) => s.root.heroWorld === 'under',
+    '.isUnder': { transform: 'translateX(100%)' }
   },
 
   Above: {
     tag: 'button',
     position: 'relative',
     flex: '1',
-    padding: 'Y B',
+    padding: 'Y A',
     fontSize: 'Y1',
     fontWeight: '600',
-    letterSpacing: '.14em',
+    letterSpacing: '.12em',
     textTransform: 'uppercase',
     whiteSpace: 'nowrap',
     background: 'transparent',
@@ -46,20 +45,20 @@ export const WorldSwitch = {
     color: 'activeInk',
     transition: 'color .45s ease',
     text: 'Above ground',
-    ariaPressed: (el, s) => String(s.world !== 'under'),
-    isUnder: (el, s) => s.world === 'under',
-    '.isUnder': { color: 'ivory.55' },
-    onClick: (ev, el, s) => s.update({ world: 'above' }, { preventFetch: true })
+    ariaPressed: (el, s) => String(s.root.heroWorld !== 'under'),
+    isUnder: (el, s) => s.root.heroWorld === 'under',
+    '.isUnder': { color: 'caption' },
+    onClick: (ev, el, s) => s.rootUpdate({ heroWorld: 'above' }, { preventFetch: true })
   },
 
   Under: {
     tag: 'button',
     position: 'relative',
     flex: '1',
-    padding: 'Y B',
+    padding: 'Y A',
     fontSize: 'Y1',
     fontWeight: '600',
-    letterSpacing: '.14em',
+    letterSpacing: '.12em',
     textTransform: 'uppercase',
     whiteSpace: 'nowrap',
     background: 'transparent',
@@ -68,9 +67,9 @@ export const WorldSwitch = {
     color: 'caption',
     transition: 'color .45s ease',
     text: 'Underground',
-    ariaPressed: (el, s) => String(s.world === 'under'),
-    isUnder: (el, s) => s.world === 'under',
-    '.isUnder': { color: 'ivory' },
-    onClick: (ev, el, s) => s.update({ world: 'under' }, { preventFetch: true })
+    ariaPressed: (el, s) => String(s.root.heroWorld === 'under'),
+    isUnder: (el, s) => s.root.heroWorld === 'under',
+    '.isUnder': { color: 'activeInk' },
+    onClick: (ev, el, s) => s.rootUpdate({ heroWorld: 'under' }, { preventFetch: true })
   }
 }

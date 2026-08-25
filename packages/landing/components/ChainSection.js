@@ -19,7 +19,7 @@ export const ChainSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletS': { gridTemplateColumns: '1fr' },
 
       ProgramCard: {

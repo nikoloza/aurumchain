@@ -48,6 +48,30 @@ export const PillButton = {
     ':active': { transform: 'scale(.98)', background: 'veilStrong' }
   },
 
+  // For the ivory band — explicit fills, independent of the page scheme
+  // (the mirror of inverse/outline, which serve the navy bands).
+  isSolid: (el, s) => s.tone === 'solid',
+  '.isSolid': {
+    background: 'navy',
+    color: 'ivory',
+    boxShadow: '0 1px 2px rgba(8,36,57,.16), 0 10px 26px rgba(8,36,57,.14)',
+    ':hover': {
+      transform: 'translateY(-2px)',
+      background: 'navySoft',
+      boxShadow: '0 2px 4px rgba(8,36,57,.2), 0 16px 34px rgba(8,36,57,.2)'
+    },
+    ':active': { transform: 'translateY(0) scale(.98)', background: 'navy' }
+  },
+
+  isPaper: (el, s) => s.tone === 'paper',
+  '.isPaper': {
+    background: 'white',
+    color: 'navy',
+    border: '1px solid line',
+    ':hover': { transform: 'translateY(-2px)', background: 'ivory' },
+    ':active': { transform: 'translateY(0) scale(.98)' }
+  },
+
   // For the navy bands — explicit fills, independent of the page scheme.
   isInverse: (el, s) => s.tone === 'inverse',
   '.isInverse': {

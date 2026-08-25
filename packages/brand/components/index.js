@@ -1,5 +1,6 @@
 // ── Primitives ──────────────────────────────────────────────────────────────
 export * from './Logo.js'
+export * from './CardPin.js'
 export * from './Chip.js'
 export * from './ChipAccent.js'
 export * from './StatusPill.js'

@@ -33,6 +33,12 @@ export default {
 
   // Accent ink — slate-family emphasis that stays legible on both grounds
   accentInk: ['#41647F', 'mist'],
+  // Theme-INVARIANT slate inks for surfaces that keep one ground in both
+  // schemes (the hero's ivory band, the world switch)
+  slateInk: '#41647F',
+  slateInkDeep: '#2C4E68',
+  // Section-wash fill as a single token pair (chips masking dashed rails)
+  surfaceWash: ['ivoryDim', 'navy'],
   // Sticky-navbar frost once the page scrolls (transparent at the very top)
   navWash: ['ivory.82', 'navyDeep.82'],
   // Active navigation wash + its ink

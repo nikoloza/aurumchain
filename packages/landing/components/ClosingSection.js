@@ -24,6 +24,27 @@ export const ClosingSection = {
     }
   },
 
+  // An echo of the hero's surface ellipse — a dashed ring turning slowly
+  // behind the call to action.
+  Ring: {
+    position: 'absolute',
+    top: '10%',
+    bottom: '12%',
+    left: '9%',
+    right: '9%',
+    border: '1px dashed',
+    borderColor: 'ivory.12',
+    borderRadius: '50%',
+    pointerEvents: 'none',
+    attr: { 'aria-hidden': 'true' },
+    animationName: 'spin',
+    animationDuration: '90s',
+    animationTimingFunction: 'linear',
+    animationIterationCount: 'infinite',
+    '@reduceMotion': { animationName: 'none' },
+    '@tabletS': { display: 'none' }
+  },
+
   Inner: {
     align: 'center center',
     textAlign: 'center',

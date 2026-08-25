@@ -4,7 +4,7 @@
 export const ProgramCard = {
   flow: 'y',
   gap: 'Z',
-  padding: 'B',
+  padding: 'B1',
   position: 'relative',
   overflow: 'hidden',
   borderRadius: 'radiusCard',
@@ -45,7 +45,31 @@ export const ProgramCard = {
       margin: '0',
       text: (el, s) => s.name || ''
     },
-    Chip: { text: 'Anchor' }
+    // Bespoke program mark — a diamond node and a mono caption, no borrowed
+    // chip chrome.
+    Badge: {
+      flow: 'x',
+      align: 'center center',
+      gap: 'Y',
+      flexShrink: '0',
+      Diamond: {
+        tag: 'span',
+        width: 'X',
+        height: 'X',
+        background: 'accentInk',
+        transform: 'rotate(45deg)'
+      },
+      Label: {
+        tag: 'span',
+        fontFamily: 'Mono',
+        fontSize: 'Y',
+        letterSpacing: '.16em',
+        textTransform: 'uppercase',
+        color: 'caption',
+        whiteSpace: 'nowrap',
+        text: 'Anchor program'
+      }
+    }
   },
 
   P: {

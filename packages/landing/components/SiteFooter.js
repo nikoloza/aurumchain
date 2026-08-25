@@ -59,10 +59,10 @@ export const SiteFooter = {
           {
             title: 'Product',
             links: [
-              { label: 'How it works', anchor: 'how' },
-              { label: 'Offerings', anchor: 'offerings' },
-              { label: 'Secondary market', anchor: 'market' },
-              { label: 'On-chain', anchor: 'chain' }
+              { label: 'How it works', url: '/how' },
+              { label: 'Offerings', url: '/offerings' },
+              { label: 'Compliance', url: '/compliance' },
+              { label: 'FAQ', url: '/faq' }
             ]
           },
           {
@@ -79,7 +79,6 @@ export const SiteFooter = {
             links: [
               { label: 'Platform', url: '/platform' },
               { label: 'About', url: '/company' },
-              { label: 'Compliance', anchor: 'compliance' },
               { label: 'Contact', url: 'mailto:hello@fractyco.app' }
             ]
           }

@@ -20,7 +20,7 @@ export const AuthoritySection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletS': { gridTemplateColumns: '1fr' },
 
       AuthorityCard: {
@@ -85,7 +85,7 @@ export const SettleSection = {
     Grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
       '@mobileL': { gridTemplateColumns: '1fr' },
 

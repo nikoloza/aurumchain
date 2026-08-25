@@ -2,9 +2,11 @@
 export const AuthorityCard = {
   flow: 'y',
   gap: 'Z',
-  padding: 'A',
+  padding: 'B',
+  position: 'relative',
   borderRadius: 'radiusCard',
   theme: 'card',
+  CardPin: {},
 
   Head: {
     flow: 'x',

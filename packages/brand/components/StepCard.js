@@ -2,9 +2,11 @@
 export const StepCard = {
   flow: 'y',
   gap: 'Z',
-  padding: 'B',
+  padding: 'B1',
+  position: 'relative',
   borderRadius: 'radiusCard',
   theme: 'card',
+  CardPin: {},
   transition: (el, s) => 'opacity .8s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') + ', transform .25s ease, border-color .25s ease',
   opacity: '0',
   isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },

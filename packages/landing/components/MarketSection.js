@@ -39,7 +39,7 @@ export const MarketSection = {
     Row: {
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 'A',
+      gap: 'A1',
       '@mobileL': { gridTemplateColumns: '1fr' },
 
       StepCard: {
@@ -73,15 +73,30 @@ export const MarketSection = {
 }
 
 
-// One figure cell in the market band. state: { to, prefix, suffix, label }
+// One figure cell in the market band — an accent underline sweeps in under
+// the figure on hover. state: { to, prefix, suffix, label }
 export const MarketFigure = {
   flow: 'y',
   gap: 'Y',
   flex: '1',
   padding: 'B',
+  position: 'relative',
+  overflow: 'hidden',
   borderRight: '1px solid hairline',
   transition: 'background .3s ease',
-  ':hover': { background: 'veil' },
+  ':after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '0',
+    left: '0',
+    width: '100%',
+    height: 'W',
+    background: 'accentInk',
+    transform: 'scaleX(0)',
+    transformOrigin: 'left center',
+    transition: 'transform .4s cubic-bezier(.22,.68,.24,.98)'
+  },
+  ':hover': { background: 'veil', ':after': { transform: 'scaleX(1)' } },
   ':last-child': { borderRight: 'none' },
   '@mobileL': { borderRight: 'none', borderBottom: '1px solid hairline' },
 

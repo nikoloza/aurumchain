@@ -16,6 +16,7 @@ All documentation is in [`docs/`](./docs):
 | [SPEC.md](./docs/SPEC.md) | the full technical specification |
 | [SMBLS.md](./docs/SMBLS.md) | running, publishing and operating the Symbols toolchain — read before writing DOMQL |
 | [BRAND.md](./docs/BRAND.md) | the brand identity and how it maps onto the design system — read before styling anything |
+| [DESIGN.md](./docs/DESIGN.md) | the applied design language — the hero ring-world, the motion system, section choreography, interaction rules |
 | [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | deploying programs, database, indexer and surfaces end to end |
 | [TODO.md](./docs/TODO.md) | product and frontend work |
 | [TODO_BACKEND.md](./docs/TODO_BACKEND.md) | what the live `aurc.app` backend uses, and what the rebuild must take over |
@@ -194,7 +195,7 @@ The Symbols surfaces replace the old React routes one-to-one.
 
 | Old (`main`) | Now | Surface |
 | --- | --- | --- |
-| `/`, `/projects`, `/about`, `/support` | `/`, in-page sections | landing |
+| `/`, `/projects`, `/about`, `/support` | `/`, `/how`, `/offerings`, `/compliance`, `/platform`, `/company`, `/faq` | landing |
 | `/login`, `/signup` | `/signin` | dashboard |
 | `/dashboard`, `/dashboard/portfolio` | `/`, `/portfolio` | dashboard |
 | `/dashboard/investments` | `/transactions` | dashboard |
