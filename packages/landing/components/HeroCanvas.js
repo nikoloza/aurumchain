@@ -1,24 +1,22 @@
-// The hero's WebGL — a living cross-section of the earth, after the
-// underground / above-ground idea from the product's first life (aurc.app).
-//
-// Below the dashed horizon sits the asset: an ore body drawn as a value
-// diamond — a triangular particle lattice joined by hairline edges, resting
-// among faint strata. Above the horizon is the market: liquid particles
-// drifting on the wind. Between them runs the whole business, on loop:
-// particles are extracted from the deposit, rise in a swaying column, clear
-// the horizon, live above ground as liquid, then settle back down and
-// re-crystallize into the lattice. The cursor drills below ground (touching
-// the deposit frees fractions) and is wind above it; a click is a
-// settlement ring that hurries the airborne home. On load the ore body
+// The hero's WebGL — one continuous cross-section of the earth, seen by a
+// camera that rides the world switcher. Above ground (camera at the surface)
+// the view is the market: liquid particles on the wind, the deposit's tip
+// just showing beneath the boundary at the foot of the band, extraction
+// arriving from below. Flip to underground and the camera sinks past the
+// horizon: strata and the ore body — a triangular particle lattice joined
+// by hairline edges — fill the view while the surface slips away overhead.
+// The circulation never stops in either view: fractions extracted off the
+// deposit rise in a swaying column, clear the boundary, live aloft, then
+// settle home and re-crystallize. The cursor drills below ground and is
+// wind above it; a click is a settlement ring; on load the deposit
 // assembles upward out of the deep.
 //
-// Raw WebGL1, two passes (GL_LINES: lattice edges + strata dashes, under
-// diamond point sprites). Attribute slots are global GL state, so each pass
-// disables the other's arrays. JS integration, ~450 particles. All browser
-// handles go through el.node.ownerDocument; the loop rides the framework's
-// onFrame tick; reduced motion renders the deposit frozen with no
-// circulation; no WebGL → the Hero's ghost mark shows instead (gated by the
-// webglOk state this component sets).
+// Raw WebGL1, two passes (GL_LINES under diamond sprites) with per-pass
+// attribute hygiene (slots are global GL state). Re-inits per node so
+// livesync hot-swaps never draw to a detached canvas. All browser handles
+// go through el.node.ownerDocument; the loop rides onFrame; reduced motion
+// renders the current view frozen (the camera still settles); no WebGL →
+// the Hero's ghost mark shows instead (gated by webglOk).
 export const HeroCanvas = {
   tag: 'canvas',
   position: 'absolute',
@@ -91,13 +89,13 @@ export const HeroCanvas = {
     )
     if (!pointProg || !lineProg) return
 
-    // ── world constants (height units; x runs 0..aspect) ──
-    const HZ = 0.6           // the horizon
-    const R = 0.24           // ore-body half-diagonal
-    const STEP = R / 12
+    // ── world constants (height units; the world is ~1.7 screens tall) ──
+    const HZ = 0.95            // the horizon, near the foot of the above view
+    const CAM_UNDER = 0.68     // camera depth in the underground view
+    const R = 0.26
+    const STEP = R / 11
     const vsp = STEP * 0.866
 
-    // ── the deposit: triangular lattice clipped to the L1 diamond ──
     const homes = []
     const index = {}
     const topIdx = []
@@ -128,14 +126,14 @@ export const HeroCanvas = {
       }
     }
     const NC = n
-    const NF = 90
-    const N = NC + NF
+    const NFA = 70             // market drifters, above ground
+    const NFD = 40             // deep drifters, below the strata
+    const N = NC + NFA + NFD
     const E = edges.length / 2
 
-    // ── strata: dashed horizontal beds under the horizon ──
     const strata = []
     for (let k = 1; k <= 3; k++) {
-      const y = HZ + 0.11 * k + 0.012 * (k % 2)
+      const y = HZ + 0.14 * k + 0.014 * (k % 2)
       for (let x = 0.05; x < 2.6; x += 0.085) {
         strata.push(x, y, x + 0.05, y, k)
       }
@@ -149,7 +147,7 @@ export const HeroCanvas = {
     const melt = new Float32Array(N)
     const rand = new Float32Array(N)
     const free = new Float32Array(N)
-    const mode = new Uint8Array(N)        // 0 crystal · 1 rising · 2 aloft · 3 returning
+    const mode = new Uint8Array(N)
     const aloftUntil = new Float32Array(N)
     for (let i = 0; i < N; i++) rand[i] = Math.random()
     for (let i = NC; i < N; i++) {
@@ -157,11 +155,12 @@ export const HeroCanvas = {
       melt[i] = 1
       mode[i] = 2
       home[i * 2] = Math.random() * 2.4
-      home[i * 2 + 1] = Math.random() * (HZ - 0.06)
+      home[i * 2 + 1] = i < NC + NFA
+        ? Math.random() * (HZ - 0.08)
+        : HZ + 0.08 + Math.random() * 0.62
       pos[i * 2] = home[i * 2]
       pos[i * 2 + 1] = home[i * 2 + 1]
     }
-    // Assembly: the ore body rises out of the deep.
     for (let i = 0; i < NC; i++) {
       pos[i * 2] = home[i * 2] + (Math.random() - 0.5) * 0.16
       pos[i * 2 + 1] = home[i * 2 + 1] + 0.22 + Math.random() * 0.38
@@ -193,7 +192,7 @@ export const HeroCanvas = {
 
     el.scope.hc = {
       gl, pointProg, lineProg,
-      HZ, R, NC, NF, N, E, SN, LE, edges, strata, topIdx,
+      HZ, CAM_UNDER, R, NC, NFA, NFD, N, E, SN, LE, edges, strata, topIdx,
       home, pos, vel, melt, rand, mode, aloftUntil,
       drawPos, posBuf, meltBuf, randBuf, freeBuf,
       linePos, lineAl, linePosBuf, lineAlBuf,
@@ -221,6 +220,7 @@ export const HeroCanvas = {
       t0: win.performance ? win.performance.now() : 0,
       reduced,
       win,
+      camY: 0,
       extracted: 0,
       extractCap: Math.round(NC * 0.18),
       extractAcc: 0,
@@ -229,7 +229,6 @@ export const HeroCanvas = {
       ringY: 0,
       seenClick: 0
     }
-    // The cross-section carries the identity now — retire the static ghost.
     s.update({ webglOk: true }, { preventFetch: true })
   },
 
@@ -254,13 +253,21 @@ export const HeroCanvas = {
       const intro = H.reduced ? 1 : Math.min(1, t / 1.5)
       const introEase = 1 - Math.pow(1 - intro, 3)
 
-      const HZ = H.HZ
-      const cx = aspect * 0.74
-      const cy = HZ + H.R + 0.05
+      // ── the camera rides the switcher ──
+      const under = el.state && el.state.world === 'under'
+      const camTarget = under ? H.CAM_UNDER : 0
+      H.camY += (camTarget - H.camY) * 0.055
+      const camY = H.camY
+      const wf = camY / H.CAM_UNDER   // 0 at the surface, 1 at depth
 
+      const HZ = H.HZ
+      const cx = aspect * 0.72
+      const cy = HZ + H.R + 0.11
+
+      // Pointer in world space: screen y plus the camera's depth.
       const rect = el.node.getBoundingClientRect()
       const mx = ((el.scope.cxr === undefined ? -1e4 : el.scope.cxr) - rect.left) / Math.max(1, rect.height)
-      const my = ((el.scope.cyr === undefined ? -1e4 : el.scope.cyr) - rect.top) / Math.max(1, rect.height)
+      const my = ((el.scope.cyr === undefined ? -1e4 : el.scope.cyr) - rect.top) / Math.max(1, rect.height) + camY
 
       if (el.scope.clickStart && el.scope.clickStart !== H.seenClick) {
         H.seenClick = el.scope.clickStart
@@ -279,7 +286,6 @@ export const HeroCanvas = {
       const { NC, N, pos, vel, home, melt, rand, mode, aloftUntil, drawPos, topIdx } = H
       const colSway = Math.sin(t * 0.8) * 0.014
 
-      // ── extraction scheduler: a steady trickle off the top of the deposit ──
       if (!H.reduced && intro >= 1) {
         H.extractAcc += 1
         if (H.extractAcc >= 5 && H.extracted < H.extractCap) {
@@ -290,7 +296,6 @@ export const HeroCanvas = {
             H.extracted++
           }
         }
-        // The cursor is a drill: touching the deposit frees fractions.
         if (my > HZ && H.extracted < H.extractCap + 6) {
           let drilled = 0
           for (let d = 0; d < 3; d++) {
@@ -313,17 +318,16 @@ export const HeroCanvas = {
         const ix = i * 2
         const iy = ix + 1
         const isFree = i >= NC
+        const isDeep = i >= NC + H.NFA
         let px = pos[ix]
         let py = pos[iy]
         const md = isFree ? 2 : mode[i]
         const hwx = isFree ? home[ix] : cx + home[ix] + breatheX
         const hwy = isFree ? home[iy] : cy + home[iy] + breatheY
 
-        // Melt follows the journey: airborne fractions are liquid.
         const mTarget = md === 0 ? 0 : 1
         const m0 = melt[i]
         melt[i] = isFree ? 1 : m0 + (mTarget - m0) * (mTarget > m0 ? 0.14 : 0.06)
-        const m = melt[i]
 
         if (H.reduced && !isFree) {
           px = hwx
@@ -334,12 +338,10 @@ export const HeroCanvas = {
           let vx = vel[ix]
           let vy = vel[iy]
           if (md === 0) {
-            // Seated in the lattice.
             const k = 0.1 + introEase * 0.06
             vx += (hwx - px) * k
             vy += (hwy - py) * k
           } else if (md === 1) {
-            // Rising toward the surface in the swaying column.
             const colX = cx + colSway + Math.sin(t * 5 + rand[i] * 12) * 0.008
             vx += (colX - px) * 0.02
             vy -= 0.00062
@@ -350,15 +352,20 @@ export const HeroCanvas = {
               aloftUntil[i] = t + 2.5 + rand[i] * 3.5
             }
           } else if (md === 2) {
-            // Aloft: the market wind. Free drifters live here forever.
-            const wind = Math.sin(py * 6.2 + t * 0.55) + 0.5 * Math.sin(py * 2.6 - t * 0.35)
-            vx += wind * 0.00075
-            vy += Math.cos(px * 4.2 + t * 0.5) * 0.00035
-            // Buoyancy holds the airborne above the boundary.
-            if (py > HZ - 0.03) vy -= 0.0009
-            if (py < 0.05) vy += 0.0006
-            // Cursor is wind above ground.
-            if (my < HZ) {
+            if (isDeep) {
+              // Deep drift: slow currents between the strata.
+              vx += Math.sin(py * 4.1 + t * 0.22) * 0.00028
+              vy += Math.cos(px * 3.3 + t * 0.18) * 0.00016
+              if (py < HZ + 0.06) vy += 0.0005
+              if (py > HZ + 0.72) vy -= 0.0005
+            } else {
+              const wind = Math.sin(py * 6.2 + t * 0.55) + 0.5 * Math.sin(py * 2.6 - t * 0.35)
+              vx += wind * 0.00075
+              vy += Math.cos(px * 4.2 + t * 0.5) * 0.00035
+              if (py > HZ - 0.03) vy -= 0.0009
+              if (py < 0.05) vy += 0.0006
+            }
+            if (my < HZ || isDeep) {
               const dxm = px - mx
               const dym = py - my
               const d2 = dxm * dxm + dym * dym
@@ -375,7 +382,6 @@ export const HeroCanvas = {
               if (px > aspect + 0.05) px -= aspect + 0.1
             }
           } else {
-            // Settling home: gravity, then the lattice takes it back.
             vy += 0.00055
             vx += (hwx - px) * 0.012
             if (py > hwy - 0.02 && Math.abs(px - hwx) < 0.03) {
@@ -385,7 +391,6 @@ export const HeroCanvas = {
               vy *= 0.3
             }
           }
-          // A settlement ring hurries the airborne home.
           if (ringOn && !isFree && (md === 2 || md === 3)) {
             const dxr = px - H.ringX
             const dyr = py - H.ringY
@@ -404,13 +409,13 @@ export const HeroCanvas = {
         }
         pos[ix] = px
         pos[iy] = py
-        // Depth parallax: the world above ground scrolls away faster.
-        const par = py < HZ ? scroll * 0.035 : scroll * 0.1
+        // Camera + depth parallax: the far side of the boundary lags a touch.
+        const cam = py < HZ ? camY * 1.04 : camY * 0.97
+        const par = py < HZ ? scroll * 0.1 : scroll * 0.035
         drawPos[ix] = px
-        drawPos[iy] = py - par
+        drawPos[iy] = py - cam - par
       }
 
-      // ── line geometry: lattice edges die with melt; strata sit steady ──
       const { E, SN, edges, strata, linePos, lineAl } = H
       const gate = introEase * introEase * introEase
       for (let e = 0; e < E; e++) {
@@ -429,26 +434,37 @@ export const HeroCanvas = {
         const so = sIx * 5
         const k = strata[so + 4]
         const drift = Math.sin(t * 0.2 + k * 2.1) * 0.006 - scroll * 0.02 * k
-        const par = scroll * 0.035
+        const cam = camY * 0.97 + scroll * 0.035
         linePos[o] = strata[so] + drift
-        linePos[o + 1] = strata[so + 1] - par
+        linePos[o + 1] = strata[so + 1] - cam
         linePos[o + 2] = strata[so + 2] + drift
-        linePos[o + 3] = strata[so + 3] - par
-        const al = (0.13 - k * 0.025) * gate
+        linePos[o + 3] = strata[so + 3] - cam
+        const al = (0.14 - k * 0.026) * gate
         lineAl[(E + sIx) * 2] = al
         lineAl[(E + sIx) * 2 + 1] = al
       }
 
+      // Palette: page theme above ground, always inverted at depth — the two
+      // blend with the camera so the dive recolors the world continuously.
       const dark = el.node.ownerDocument.documentElement.getAttribute('data-theme') === 'dark'
+      const mixc = (a, b) => a + (b - a) * wf
+      let A, B, L, alB
+      if (dark) {
+        A = [0.659, 0.753, 0.812]
+        B = [0.45, 0.58, 0.68]
+        L = [0.659, 0.753, 0.812]
+        alB = 0.62
+      } else {
+        A = [mixc(0.031, 0.94), mixc(0.141, 0.95), mixc(0.224, 0.93)]
+        B = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
+        L = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
+        alB = 0.58 + 0.06 * wf
+      }
       gl.clear(gl.COLOR_BUFFER_BIT)
 
-      // Pass 1 — hairlines. Disable the point pass's extra attribute slots
-      // first: enabled arrays are global GL state, and stale out-of-range
-      // pointers turn the line pass into garbage geometry.
       gl.useProgram(H.lineProg)
       gl.uniform2f(H.uL.scale, 1 / aspect, 1)
-      if (dark) gl.uniform3f(H.uL.colL, 0.659, 0.753, 0.812)
-      else gl.uniform3f(H.uL.colL, 0.376, 0.49, 0.58)
+      gl.uniform3f(H.uL.colL, L[0], L[1], L[2])
       if (H.aP.m >= 0) gl.disableVertexAttribArray(H.aP.m)
       if (H.aP.r >= 0) gl.disableVertexAttribArray(H.aP.r)
       if (H.aP.f >= 0) gl.disableVertexAttribArray(H.aP.f)
@@ -463,19 +479,12 @@ export const HeroCanvas = {
       gl.lineWidth(1)
       gl.drawArrays(gl.LINES, 0, H.LE * 2)
 
-      // Pass 2 — the particles.
       gl.useProgram(H.pointProg)
       gl.uniform2f(H.uP.scale, 1 / aspect, 1)
       gl.uniform1f(H.uP.dpr, dpr)
-      if (dark) {
-        gl.uniform3f(H.uP.colA, 0.659, 0.753, 0.812)
-        gl.uniform3f(H.uP.colB, 0.45, 0.58, 0.68)
-        gl.uniform1f(H.uP.alBase, 0.62)
-      } else {
-        gl.uniform3f(H.uP.colA, 0.031, 0.141, 0.224)
-        gl.uniform3f(H.uP.colB, 0.376, 0.49, 0.58)
-        gl.uniform1f(H.uP.alBase, 0.58)
-      }
+      gl.uniform3f(H.uP.colA, A[0], A[1], A[2])
+      gl.uniform3f(H.uP.colB, B[0], B[1], B[2])
+      gl.uniform1f(H.uP.alBase, alB)
       if (H.aL.a >= 0 && H.aL.a !== H.aP.r && H.aL.a !== H.aP.m && H.aL.a !== H.aP.f) gl.disableVertexAttribArray(H.aL.a)
       gl.bindBuffer(gl.ARRAY_BUFFER, H.posBuf)
       gl.bufferData(gl.ARRAY_BUFFER, drawPos, gl.DYNAMIC_DRAW)
