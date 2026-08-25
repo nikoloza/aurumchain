@@ -29,6 +29,7 @@ All documentation is in [`docs/`](./docs):
 | Landing | https://fractyco--landing.at.symbo.ls | Marketing site |
 | Dashboard | https://fractyco--app.at.symbo.ls | Investor application |
 | Governance | https://fractyco--governance.at.symbo.ls | Operator / compliance console |
+| Brand | https://fractyco--uikit.at.symbo.ls | Design-system reference (`packages/brand` published as the `uikit` library) |
 
 Staging and development follow the pattern
 `fractyco--<surface>--staging.at.symbo.ls` / `--development`. The dashboards
@@ -163,6 +164,7 @@ bun start                      # every dev server
 bun run start:landing          # landing only     → http://fractyco.localhost:1355
 bun run start:dashboard        # investor app     → http://fractyco-app.localhost:1355
 bun run start:governance       # governance       → http://fractyco-gov.localhost:1355
+bun run start:brand            # brand reference  → http://fractyco-brand.localhost:1355
 bun run build                  # production build per surface
 bun run publish:all            # publish surfaces + brand library
 

@@ -6,7 +6,10 @@ everything else is chain and backend (Anchor programs, `lib/` service layer,
 Supabase schema, integration tests).
 
 Read `README.md` first, then the docs it points to in `docs/` —
-`docs/SMBLS.md` is required reading before writing any DOMQL.
+`docs/SMBLS.md` is required reading before writing any DOMQL, and
+`docs/DESIGN.md` (the applied composition/motion language: the hero
+ring-world, the world switch driving the page scheme, section
+choreography, interaction rules) before styling or designing anything.
 
 ## Symbols MCP — MANDATORY
 
