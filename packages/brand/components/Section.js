@@ -2,11 +2,16 @@
 // every band on the page lines up on the same gutters.
 //
 // Sections reveal on first scroll into view: an IntersectionObserver flips
-// local state once and the Inner block settles up. State-driven (no class
-// mutation), disconnects after the first hit, and falls back to visible when
-// the observer is unavailable or the visitor prefers reduced motion. All
-// window access goes through el.node.ownerDocument — bare globals belong to
-// another realm in this runtime.
+// local state once and the Inner block settles up. The observer alone makes
+// the call — its first callback runs after layout, so a section already in
+// the viewport (deep link, short page) settles on that tick, while anything
+// below the fold waits for the scroll. Never decide from a synchronous
+// getBoundingClientRect here: onRender fires before layout and every rect
+// reads top 0, which silently pre-fires all the choreography. State-driven
+// (no class mutation), disconnects after the first hit, and falls back to
+// visible when the observer is unavailable or the visitor prefers reduced
+// motion. All window access goes through el.node.ownerDocument — bare
+// globals belong to another realm in this runtime.
 export const Section = {
   tag: 'section',
   flow: 'y',
@@ -25,13 +30,6 @@ export const Section = {
     let reduced = false
     try { reduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) {}
     if (reduced || !win.IntersectionObserver) {
-      el.scope.revealObs = null
-      s.update({ inView: true }, { preventFetch: true })
-      return
-    }
-    // Already in the viewport (deep link, short page) — settle immediately.
-    const rect = el.node.getBoundingClientRect()
-    if (rect.top < win.innerHeight * 0.85) {
       el.scope.revealObs = null
       s.update({ inView: true }, { preventFetch: true })
       return

@@ -6,14 +6,22 @@ export const overview = {
 
   Column: {
     Body: {
-      StatRow: {
-        state: {
-          tiles: [
-            { label: 'Portfolio value', value: '$48,120', delta: '+6.2% this quarter' },
-            { label: 'Invested', value: '$45,300', delta: '3 positions', tone: 'flat' },
-            { label: 'Payouts received', value: '$2,820', delta: '+$640 last epoch' },
-            { label: 'Unclaimed', value: '$640', delta: 'ready to claim' }
-          ]
+      KpiRow: {
+        state: { inView: false },
+        KpiTile: {
+          state: { revealDelay: '0s', label: 'Portfolio value', to: 48120, prefix: '$', delta: '+6.2% this quarter' }
+        },
+        KpiTile_1: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.07s', label: 'Invested', to: 45300, prefix: '$', delta: '3 positions', tone: 'flat' }
+        },
+        KpiTile_2: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.14s', label: 'Payouts received', to: 2820, prefix: '$', delta: '+$640 last epoch' }
+        },
+        KpiTile_3: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.21s', label: 'Unclaimed', to: 640, prefix: '$', delta: 'ready to claim' }
         }
       },
 
@@ -38,6 +46,13 @@ export const overview = {
                 { cells: [{ text: '2026-07-19', mono: true }, { text: 'Subscription' }, { text: 'RBX-001', mono: true }, { text: '−$12,500.00', mono: true }, { status: 'Pending' }] },
                 { cells: [{ text: '2026-07-04', mono: true }, { text: 'Wallet verified' }, { text: '—' }, { text: '—' }, { status: 'Verified' }] }
               ]
+            },
+            EmptyState: {
+              show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+              state: {
+                title: 'No activity yet',
+                caption: 'Subscriptions, payouts, and trades land here as they settle.'
+              }
             }
           }
         },

@@ -175,7 +175,7 @@ export const TxLogLine = {
   transform: 'translate3d(0, 6px, 0)',
   transition: (el, s) =>
     'opacity .5s ease ' + (s.delay || '0s') + ', transform .5s cubic-bezier(.22,.68,.24,.98) ' + (s.delay || '0s'),
-  isInView: (el, s) => s.inView !== false,
+  isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
   '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
   '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
   text: (el, s) => s.text || '',

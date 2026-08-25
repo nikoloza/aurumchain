@@ -17,6 +17,13 @@ export const transactions = {
               { cells: [{ text: '2026-07-21', mono: true }, { text: 'Investment' }, { text: '−$5,000.00', mono: true }, { text: 'USDC', mono: true }, { text: '8hLp…1Ws', mono: true }, { status: 'Completed' }] },
               { cells: [{ text: '2026-07-19', mono: true }, { text: 'Investment' }, { text: '−$12,500.00', mono: true }, { text: 'USDC', mono: true }, { text: '—' }, { status: 'Pending' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No transactions yet',
+              caption: 'Every deposit, subscription, payout, trade, and refund is recorded here.'
+            }
           }
         }
       }

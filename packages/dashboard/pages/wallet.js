@@ -14,6 +14,13 @@ export const wallet = {
             rows: [
               { cells: [{ text: '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4', mono: true }, { text: 'Solana devnet' }, { text: 'Phantom' }, { text: '2026-07-04', mono: true }, { status: 'Verified' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No wallet linked',
+              caption: 'Link a wallet and sign the server-issued nonce to verify ownership.'
+            }
           }
         },
         Actions: {
@@ -36,6 +43,13 @@ export const wallet = {
               { cells: [{ text: 'KGT-002', mono: true }, { text: '500.0000', mono: true }, { text: 'Es9v…nNYB', mono: true }, { status: 'Active' }] },
               { cells: [{ text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '9RqV…enjm', mono: true }, { status: 'Active' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No token balances',
+              caption: 'Tokens mint to your verified wallet once a subscription finalizes.'
+            }
           }
         }
       }

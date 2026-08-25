@@ -6,13 +6,13 @@ export const reconciliation = {
 
   Column: {
     Body: {
-      StatRow: {
+      GovStatRow: {
         state: {
           tiles: [
-            { label: 'Rows checked', value: '4,812', delta: 'last run 12 min ago', tone: 'flat' },
-            { label: 'In agreement', value: '4,809', delta: '99.94%' },
-            { label: 'Drifted', value: '3', delta: 'needs a decision', tone: 'down' },
-            { label: 'Last full sweep', value: '2026-08-17', delta: '02:00 UTC', tone: 'flat' }
+            { label: 'Rows checked', to: 4812, delta: 'last run 12 min ago', tone: 'flat', revealDelay: '0s' },
+            { label: 'In agreement', to: 4809, delta: '99.94%', revealDelay: '.07s' },
+            { label: 'Drifted', to: 3, delta: 'needs a decision', tone: 'down', revealDelay: '.14s' },
+            { label: 'Last full sweep', value: '2026-08-17', delta: '02:00 UTC', tone: 'flat', revealDelay: '.21s' }
           ]
         }
       },
@@ -27,6 +27,13 @@ export const reconciliation = {
               { cells: [{ text: 'position 2c77…', mono: true }, { text: 'total_tokens' }, { text: '556.0000', mono: true }, { text: '532.0000', mono: true }, { status: 'Pending' }] },
               { cells: [{ text: 'listing 91be…', mono: true }, { text: 'remaining' }, { text: '80.0000', mono: true }, { text: '56.0000', mono: true }, { status: 'Processing' }] }
             ]
+          },
+          GovEmptyState: {
+            show: (el, s) => !((s.parent && s.parent.rows) || []).length,
+            state: {
+              title: 'No drift',
+              caption: 'Every database row agrees with the chain as of the last sweep.'
+            }
           }
         },
         Actions: {

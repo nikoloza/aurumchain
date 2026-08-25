@@ -53,9 +53,10 @@ export const SectionHeading = {
       transformOrigin: 'left center',
       transform: 'scaleX(0)',
       transition: 'transform 1.1s cubic-bezier(.22,.68,.24,.98) .2s',
-      // Sections flip `inView` when scrolled to; anywhere without that state
-      // the rule stays drawn.
-      isInView: (el, s) => s.inView !== false,
+      // Sections flip `inView` when scrolled to. The heading's instance
+      // state is its own owner, so walk the state chain; anywhere without
+      // reveal state the rule stays drawn.
+      isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
       '.isInView': { transform: 'scaleX(1)' },
       '@reduceMotion': { transform: 'scaleX(1)', transition: 'none' }
     }

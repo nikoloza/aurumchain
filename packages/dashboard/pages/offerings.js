@@ -19,49 +19,62 @@ export const offerings = {
       List: {
         flow: 'y',
         gap: 'A',
+        scope: {},
+        state: { inView: false },
         show: (el, s) => !!s.root.backendOfferingsLoaded,
-        childExtends: 'OfferingRow',
+        // The rows arrive with the skeletons still up — arm the reveal here
+        // so the fades and the funding meters draw once the list is on.
+        onRender: (el, s) => {
+          const win = el.node && el.node.ownerDocument.defaultView
+          if (win && !el.scope.armed) {
+            el.scope.armed = true
+            win.setTimeout(() => s.update({ inView: true }, { preventFetch: true }), 180)
+          }
+        },
+        childExtends: 'OfferingItem',
         childrenAs: 'state',
         // Live rows from the platform Supabase; the illustrative set only
         // renders while the backend has no visible projects.
-        children: (el, s) =>
-          (s.root.backendOfferings && s.root.backendOfferings.length)
+        children: (el, s) => {
+          const rows = (s.root.backendOfferings && s.root.backendOfferings.length)
             ? s.root.backendOfferings
             : [
-          {
-            name: 'Riverbend Extraction',
-            symbol: 'RBX-001',
-            status: 'Funding',
-            price: '$25.00',
-            min: '$500',
-            raised: '$1.84M',
-            goal: '$2.40M',
-            pct: 77,
-            closes: '2026-09-15'
-          },
-          {
-            name: 'Kalgoorlie Tailings',
-            symbol: 'KGT-002',
-            status: 'Funding',
-            price: '$10.00',
-            min: '$250',
-            raised: '$620K',
-            goal: '$1.50M',
-            pct: 41,
-            closes: '2026-10-01'
-          },
-          {
-            name: 'Serra Verde Plant',
-            symbol: 'SVP-003',
-            status: 'Completed',
-            price: '$50.00',
-            min: '$1,000',
-            raised: '$3.10M',
-            goal: '$3.10M',
-            pct: 100,
-            closes: 'closed'
-          }
-        ]
+                {
+                  name: 'Riverbend Extraction',
+                  symbol: 'RBX-001',
+                  status: 'Funding',
+                  price: '$25.00',
+                  min: '$500',
+                  raised: '$1.84M',
+                  goal: '$2.40M',
+                  pct: 77,
+                  closes: '2026-09-15'
+                },
+                {
+                  name: 'Kalgoorlie Tailings',
+                  symbol: 'KGT-002',
+                  status: 'Funding',
+                  price: '$10.00',
+                  min: '$250',
+                  raised: '$620K',
+                  goal: '$1.50M',
+                  pct: 41,
+                  closes: '2026-10-01'
+                },
+                {
+                  name: 'Serra Verde Plant',
+                  symbol: 'SVP-003',
+                  status: 'Completed',
+                  price: '$50.00',
+                  min: '$1,000',
+                  raised: '$3.10M',
+                  goal: '$3.10M',
+                  pct: 100,
+                  closes: 'closed'
+                }
+              ]
+          return rows.map((o, i) => ({ ...o, revealDelay: `${(Math.min(i, 8) * 7) / 100}s` }))
+        }
       },
 
       EmptyNote: {

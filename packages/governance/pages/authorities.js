@@ -13,10 +13,22 @@ export const authorities = {
         '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
         '@mobileL': { gridTemplateColumns: '1fr' },
 
-        childExtends: 'AuthorityCard',
+        // Armed like GovStatRow — the flip staggers the cards' reveal.
+        scope: {},
+        state: { inView: false },
+        onRender: (el, s) => {
+          const win = el.node && el.node.ownerDocument.defaultView
+          if (win && !el.scope.armed) {
+            el.scope.armed = true
+            win.setTimeout(() => s.update({ inView: true }, { preventFetch: true }), 180)
+          }
+        },
+
+        childExtends: 'GovAuthorityCard',
         childrenAs: 'state',
         children: [
           {
+            revealDelay: '0s',
             role: 'Super admin',
             holder: '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4',
             scope: 'Sets the KYC bypass, transfers any authority, revokes the mint.',
@@ -24,6 +36,7 @@ export const authorities = {
             status: 'Active'
           },
           {
+            revealDelay: '.07s',
             role: 'Operational admin',
             holder: '4mNq8ZaWpKcHrTvBx2GdLeYs9UjRfXo1CvPnAiKtMbQe',
             scope: 'Creates projects, issues tokens, opens epochs, runs payouts.',
@@ -31,6 +44,7 @@ export const authorities = {
             status: 'Active'
           },
           {
+            revealDelay: '.14s',
             role: 'Compliance officer',
             holder: '2wXk6HqLmRtYvB9ZcNpJdFa4SgEu7oTiKrXbAyMnQfPd',
             scope: 'Approves identity, records verified wallets, revokes a wallet.',
@@ -38,6 +52,7 @@ export const authorities = {
             status: 'Active'
           },
           {
+            revealDelay: '.21s',
             role: 'Market authority',
             holder: '9RqVyvWA4ficqK351PoYh674mP1au4NmNzVM6LQcenjm',
             scope: 'Sets the market fee, the fee destination, and the project pause.',
@@ -45,6 +60,7 @@ export const authorities = {
             status: 'Active'
           },
           {
+            revealDelay: '.28s',
             role: 'Mint authority · RBX-001',
             holder: 'AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf',
             scope: 'Issues tokens for this project only.',
@@ -52,6 +68,7 @@ export const authorities = {
             status: 'Active'
           },
           {
+            revealDelay: '.35s',
             role: 'Mint authority · SVP-003',
             holder: '—',
             scope: 'Raise closed. Supply is now fixed.',

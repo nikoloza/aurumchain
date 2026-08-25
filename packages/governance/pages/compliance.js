@@ -30,7 +30,7 @@ export const compliance = {
             ]
           },
           GovEmptyState: {
-            show: (el, s) => !(s.rows || []).length,
+            show: (el, s) => !((s.parent && s.parent.rows) || []).length,
             state: {
               title: 'Queue is clear',
               caption: 'Every submitted identity has a decision. New submissions land here first.'

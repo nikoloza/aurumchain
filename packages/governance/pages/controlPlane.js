@@ -55,7 +55,7 @@ export const controlPlane = {
               ]
             },
             GovEmptyState: {
-              show: (el, s) => !(s.rows || []).length,
+              show: (el, s) => !((s.parent && s.parent.rows) || []).length,
               state: {
                 title: 'Nothing waiting',
                 caption: 'Every queue is drained. New items land here the moment an action needs an authority holder.'

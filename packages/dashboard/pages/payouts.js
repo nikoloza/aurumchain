@@ -6,14 +6,22 @@ export const payouts = {
 
   Column: {
     Body: {
-      StatRow: {
-        state: {
-          tiles: [
-            { label: 'Received to date', value: '$2,820', delta: '4 epochs' },
-            { label: 'Unclaimed', value: '$640', delta: 'ready now' },
-            { label: 'Next epoch', value: 'Sep 30', delta: 'epoch 5', tone: 'flat' },
-            { label: 'Average yield', value: '10.6%', delta: 'annualized' }
-          ]
+      KpiRow: {
+        state: { inView: false },
+        KpiTile: {
+          state: { revealDelay: '0s', label: 'Received to date', to: 2820, prefix: '$', delta: '4 epochs' }
+        },
+        KpiTile_1: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.07s', label: 'Unclaimed', to: 640, prefix: '$', delta: 'ready now' }
+        },
+        KpiTile_2: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.14s', label: 'Next epoch', value: 'Sep 30', delta: 'epoch 5', tone: 'flat' }
+        },
+        KpiTile_3: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.21s', label: 'Average yield', to: 10.6, decimals: 1, suffix: '%', delta: 'annualized' }
         }
       },
 
@@ -28,6 +36,13 @@ export const payouts = {
               { cells: [{ text: 'Epoch 3', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.60', mono: true }, { text: '$889.60', mono: true }, { status: 'Paid' }] },
               { cells: [{ text: 'Epoch 2', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.30', mono: true }, { text: '$722.80', mono: true }, { status: 'Paid' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No payouts yet',
+              caption: 'Records appear after the first epoch closes with you on the snapshot.'
+            }
           }
         }
       }

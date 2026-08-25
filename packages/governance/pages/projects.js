@@ -45,7 +45,7 @@ export const projects = {
         List: {
           flow: 'y',
           width: '100%',
-          childExtends: 'SwitchRow',
+          childExtends: 'GovSwitchRow',
           childrenAs: 'state',
           children: [
             {

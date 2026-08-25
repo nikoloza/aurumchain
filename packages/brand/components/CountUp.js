@@ -30,8 +30,16 @@ export const CountUp = {
       try { st.cuReduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) { st.cuReduced = false }
     }
     if (st.cuReduced) { st.cuDone = true; return }
-    // Waiting below the fold — hold at zero so the tween has somewhere to go.
-    if (s.inView === false) {
+    // Waiting below the fold — hold at zero so the tween has somewhere to
+    // go. `childrenAs: 'state'` gives this span its own state slice, so the
+    // section's reveal flag lives up the chain — walk it.
+    let iv
+    let st2 = s
+    while (st2) {
+      if (st2.inView !== undefined) { iv = st2.inView; break }
+      st2 = st2.parent
+    }
+    if (iv === false) {
       if (!st.cuArmed) {
         st.cuArmed = true
         s.update({ cuVal: 0 }, { preventFetch: true })
@@ -40,6 +48,7 @@ export const CountUp = {
     }
     // Never saw the hidden state (no Section parent, deep link): stay static.
     if (!st.cuArmed) { st.cuDone = true; return }
+    if (iv === undefined) { st.cuDone = true; return }
     const now = win.performance ? win.performance.now() : 0
     if (!st.cuT0) st.cuT0 = now
     const dur = (Number(s.duration) || 1.6) * 1000

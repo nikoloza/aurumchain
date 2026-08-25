@@ -12,12 +12,12 @@ export const audit = {
           state: {
             columns: ['Time', 'Event', 'Subject', 'Actor', 'Role'],
             rows: [
-              { cells: [{ text: '2026-08-17 09:41', mono: true }, { text: 'payout_completed' }, { text: 'epoch 4 · RBX-001', mono: true }, { text: 'admin@fractyco.example' }, { text: 'admin' }] },
-              { cells: [{ text: '2026-08-17 08:12', mono: true }, { text: 'kyc_approved' }, { text: 'a.kovacs@example.com' }, { text: 'kyc@fractyco.example' }, { text: 'compliance_officer' }] },
-              { cells: [{ text: '2026-08-16 17:55', mono: true }, { text: 'eligibility_changed' }, { text: 'registered → investment_eligible', mono: true }, { text: 'system' }, { text: 'user' }] },
-              { cells: [{ text: '2026-08-16 11:03', mono: true }, { text: 'wallet_verified' }, { text: '7cR…1nP', mono: true }, { text: 'kyc@fractyco.example' }, { text: 'compliance_officer' }] },
-              { cells: [{ text: '2026-08-15 14:20', mono: true }, { text: 'admin_action' }, { text: 'set_project_pause · KGT-002', mono: true }, { text: 'ops@fractyco.example' }, { text: 'super_admin' }] },
-              { cells: [{ text: '2026-08-14 10:08', mono: true }, { text: 'investment_completed' }, { text: 'sub 4471 · $8,000', mono: true }, { text: 'admin@fractyco.example' }, { text: 'admin' }] }
+              { cells: [{ text: '2026-08-17 09:41', mono: true }, { text: 'payout_completed', mono: true }, { text: 'epoch 4 · RBX-001', mono: true }, { text: 'admin@fractyco.example' }, { text: 'admin' }] },
+              { cells: [{ text: '2026-08-17 08:12', mono: true }, { text: 'kyc_approved', mono: true }, { text: 'a.kovacs@example.com' }, { text: 'kyc@fractyco.example' }, { text: 'compliance_officer' }] },
+              { cells: [{ text: '2026-08-16 17:55', mono: true }, { text: 'eligibility_changed', mono: true }, { text: 'registered → investment_eligible', mono: true }, { text: 'system' }, { text: 'user' }] },
+              { cells: [{ text: '2026-08-16 11:03', mono: true }, { text: 'wallet_verified', mono: true }, { text: '7cR…1nP', mono: true }, { text: 'kyc@fractyco.example' }, { text: 'compliance_officer' }] },
+              { cells: [{ text: '2026-08-15 14:20', mono: true }, { text: 'admin_action', mono: true }, { text: 'set_project_pause · KGT-002', mono: true }, { text: 'ops@fractyco.example' }, { text: 'super_admin' }] },
+              { cells: [{ text: '2026-08-14 10:08', mono: true }, { text: 'investment_completed', mono: true }, { text: 'sub 4471 · $8,000', mono: true }, { text: 'admin@fractyco.example' }, { text: 'admin' }] }
             ]
           }
         }

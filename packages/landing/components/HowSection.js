@@ -121,7 +121,7 @@ export const RailNode = {
   background: 'accentInk',
   transform: 'rotate(45deg) scale(0)',
   transition: (el, s) => 'transform .5s cubic-bezier(.34,1.5,.5,1) ' + (s.nodeDelay || '.3s'),
-  isInView: (el, s) => s.inView !== false,
+  isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
   '.isInView': { transform: 'rotate(45deg) scale(1)' },
   '@reduceMotion': { transform: 'rotate(45deg) scale(1)', transition: 'none' }
 }

@@ -14,7 +14,7 @@ export const emergency = {
         List: {
           flow: 'y',
           width: '100%',
-          childExtends: 'SwitchRow',
+          childExtends: 'GovSwitchRow',
           childrenAs: 'state',
           children: [
             {

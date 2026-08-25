@@ -6,14 +6,22 @@ export const marketplace = {
 
   Column: {
     Body: {
-      StatRow: {
-        state: {
-          tiles: [
-            { label: 'Open listings', value: '14', delta: 'across 3 assets', tone: 'flat' },
-            { label: 'Best bid', value: '$26.40', delta: 'RBX-001' },
-            { label: 'Volume, 30 days', value: '$182K', delta: '+18%' },
-            { label: 'Market fee', value: '50 bps', delta: 'to fee destination', tone: 'flat' }
-          ]
+      KpiRow: {
+        state: { inView: false },
+        KpiTile: {
+          state: { revealDelay: '0s', label: 'Open listings', to: 14, delta: 'across 3 assets', tone: 'flat' }
+        },
+        KpiTile_1: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.07s', label: 'Best bid', to: 26.4, decimals: 2, prefix: '$', delta: 'RBX-001' }
+        },
+        KpiTile_2: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.14s', label: 'Volume, 30 days', to: 182, prefix: '$', suffix: 'K', delta: '+18%' }
+        },
+        KpiTile_3: {
+          extends: 'KpiTile',
+          state: { revealDelay: '.21s', label: 'Market fee', to: 50, suffix: ' bps', delta: 'to fee destination', tone: 'flat' }
         }
       },
 
@@ -28,6 +36,13 @@ export const marketplace = {
               { cells: [{ text: 'KGT-002', mono: true }, { text: '7cR…1nP', mono: true }, { text: '900.0000', mono: true }, { text: '$10.85', mono: true }, { text: '900.0000', mono: true }, { status: 'Active' }] },
               { cells: [{ text: 'SVP-003', mono: true }, { text: '2wX…6hQ', mono: true }, { text: '80.0000', mono: true }, { text: '$52.00', mono: true }, { text: '0.0000', mono: true }, { status: 'Filled' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No open orders',
+              caption: 'Sell orders across every asset appear here the moment escrow accepts them.'
+            }
           }
         }
       },
@@ -41,6 +56,13 @@ export const marketplace = {
             rows: [
               { cells: [{ text: 'SVP-003', mono: true }, { text: '100.0000', mono: true }, { text: '$52.00', mono: true }, { text: '24.0000', mono: true }, { status: 'Active' }] }
             ]
+          },
+          EmptyState: {
+            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
+            state: {
+              title: 'No listings yet',
+              caption: 'List a position and it shows here while escrow holds the tokens.'
+            }
           }
         }
       }
