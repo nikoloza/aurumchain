@@ -64,7 +64,8 @@ export const ClosingSection = {
       '@tabletS': { fontSize: 'E' },
 
       // The band's headline rises out of masks when the section reveals —
-      // the same choreography as the hero, re-run at the close.
+      // the same choreography as the hero, re-run at the close — and its
+      // pitch follows the world: investors above ground, owners under it.
       TopMask: {
         tag: 'span',
         display: 'block',
@@ -78,7 +79,7 @@ export const ClosingSection = {
           isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
           '.isInView': { transform: 'translate3d(0, 0, 0)' },
           '@reduceMotion': { transform: 'none', transition: 'none' },
-          text: 'Open an account,'
+          text: (el, s) => (s.root.heroWorld === 'under' ? 'Your asset stays yours,' : 'Open an account,')
         }
       },
       MainMask: {
@@ -93,7 +94,7 @@ export const ClosingSection = {
           isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
           '.isInView': { transform: 'translate3d(0, 0, 0)' },
           '@reduceMotion': { transform: 'none', transition: 'none' },
-          text: 'see the offerings'
+          text: (el, s) => (s.root.heroWorld === 'under' ? 'its yield goes liquid' : 'see the offerings')
         }
       }
     },
@@ -104,15 +105,18 @@ export const ClosingSection = {
       lineHeight: '1.6',
       color: 'ivory.72',
       maxWidth: 'H+C',
-      text:
-        'Identity approval takes minutes. Wallet verification takes one signature. Subscription opens as soon as both clear.'
+      text: (el, s) =>
+        s.root.heroWorld === 'under'
+          ? 'The registry caps the supply, the hook clears every holder, and payout epochs settle in USDC. You keep custody; the chain keeps the books.'
+          : 'Identity approval takes minutes. Wallet verification takes one signature. Subscription opens as soon as both clear.'
     },
 
-    Actions: {
+    ActionsAbove: {
       flow: 'x',
       align: 'center center',
       gap: 'Z',
       flexWrap: 'wrap',
+      show: (el, s) => s.root.heroWorld !== 'under',
 
       Link: {
         href: 'https://fractyco--app.at.symbo.ls/signin',
@@ -127,6 +131,39 @@ export const ClosingSection = {
         textDecoration: 'none',
         display: 'inline-flex',
         PillButton: { state: { tone: 'outline' }, text: 'Talk to us' }
+      }
+    },
+
+    ActionsUnder: {
+      flow: 'x',
+      align: 'center center',
+      gap: 'Z',
+      flexWrap: 'wrap',
+      show: (el, s) => s.root.heroWorld === 'under',
+
+      Link: {
+        href: 'mailto:hello@fractyco.app',
+        text: '',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        PillButton: { state: { tone: 'inverse' }, text: 'Tokenize an asset' }
+      },
+      PlatformCta: {
+        display: 'inline-flex',
+        onClick: (ev, el) => {
+          ev.preventDefault()
+          el.call('routeVeil', '/platform')
+        },
+        Link: {
+          href: (el) => {
+            const loc = el.node && el.node.ownerDocument.location
+            return loc ? `${loc.origin}/platform` : '/platform'
+          },
+          text: '',
+          textDecoration: 'none',
+          display: 'inline-flex',
+          PillButton: { state: { tone: 'outline' }, text: 'Read the platform' }
+        }
       }
     }
   }

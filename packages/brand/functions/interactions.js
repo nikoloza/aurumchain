@@ -83,6 +83,28 @@ export const scrollToSection = function scrollToSection (anchor, instant) {
   return true
 }
 
+// Flips the landing's world — and with it the whole page. Above ground is
+// the ivory site, underground the navy one: the world writes the page
+// scheme (aurc.app-style), the hero band stays invariant as the anchor,
+// and every world-aware block reads `heroWorld` off root state. The choice
+// is deliberately NOT persisted — the manual ThemeToggle still overrides
+// until the next flip, and the saved preference wins on reload.
+export const setWorld = function setWorld (world) {
+  const el = this
+  const rs = el.getRootState()
+  if (rs.heroWorld === world) return
+  const next = world === 'under' ? 'dark' : 'light'
+  rs.update({ heroWorld: world, themeMode: next }, { preventFetch: true })
+  try {
+    const doc = el.node.ownerDocument
+    const root = doc.documentElement
+    if (root.getAttribute('data-theme') !== next) {
+      root.setAttribute('data-theme', next)
+      root.style.colorScheme = next
+    }
+  } catch (e) {}
+}
+
 // Routes through the navy curtain: root state stages the veil over the old
 // page, the router swaps content while it is covered, and the veil peels off
 // the new page. The stage lives on root state so the veil in the NEXT page

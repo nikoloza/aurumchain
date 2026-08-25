@@ -1,11 +1,13 @@
 // Sticky band. The page links and the theme switch live in a hamburger menu
 // next to the logo; the world switcher sits top-center (home only — it
 // drives the hero through root state); sign-in actions keep the right edge.
-// On the home page the bar is frosted from the very top — the hero band
-// beneath keeps its own light in both schemes, so the chrome must carry the
-// page theme itself. On inner pages it rides transparently over the page
-// hero and frosts once the page scrolls. Scroll and menu state are local;
-// the passive scroll listener writes at most one update per crossing.
+// At scroll 0 the bar is completely naked — no wash, no hairline, no blur —
+// floating over whatever sits beneath; the frost and border return on the
+// first scroll. Because the hero band keeps its own light in both schemes,
+// the controls follow the WORLD while they float over it (ink set on ivory,
+// ivory set on navy) and return to the theme pairs once frosted or on the
+// inner pages. Scroll and menu state are local; the passive scroll listener
+// writes at most one update per crossing.
 export const Navbar = {
   tag: 'header',
   flow: 'x',
@@ -17,12 +19,12 @@ export const Navbar = {
   zIndex: '50',
   padding: 'Z C',
   state: { scrolled: false, menuOpen: false },
-  background: (el, s) => (s.scrolled || (s.root.route || '/') === '/' ? 'navWash' : 'transparent'),
+  background: (el, s) => (s.scrolled ? 'navWash' : 'transparent'),
   borderBottom: '1px solid',
-  borderBottomColor: (el, s) => (s.scrolled || (s.root.route || '/') === '/' ? 'hairline' : 'transparent'),
+  borderBottomColor: (el, s) => (s.scrolled ? 'hairline' : 'transparent'),
   transition: 'background .45s ease, border-color .45s ease',
-  isFrosted: (el, s) => !!s.scrolled || (s.root.route || '/') === '/',
-  '.isFrosted': { backdropFilter: 'saturate(1.5) blur(14px)' },
+  isScrolled: (el, s) => !!s.scrolled,
+  '.isScrolled': { backdropFilter: 'saturate(1.5) blur(14px)' },
   '@tabletS': { padding: 'Z A' },
 
   onRender: (el, s) => {
@@ -69,9 +71,15 @@ export const Navbar = {
       background: 'transparent',
       color: 'caption',
       cursor: 'pointer',
-      transition: 'color .18s ease, background .18s ease',
+      transition: 'color .3s ease, background .18s ease, border-color .3s ease',
       ':hover': { color: 'title', background: 'veil' },
       ':active': { transform: 'scale(.94)' },
+      // Floating over the hero band the button follows the world, not the
+      // theme — the band is ivory above ground and navy under in BOTH schemes.
+      isOverAbove: (el, s) => !s.scrolled && (s.root.route || '/') === '/' && s.root.heroWorld !== 'under',
+      '.isOverAbove': { color: 'muted', borderColor: 'line', ':hover': { color: 'navy', background: 'navy.04' } },
+      isOverUnder: (el, s) => !s.scrolled && (s.root.route || '/') === '/' && s.root.heroWorld === 'under',
+      '.isOverUnder': { color: 'ivory.8', borderColor: 'ivory.25', ':hover': { color: 'ivory', background: 'ivory.08' } },
       type: 'button',
       ariaLabel: 'Menu',
       ariaExpanded: (el, s) => String(!!s.menuOpen),
@@ -89,7 +97,13 @@ export const Navbar = {
       }
     },
 
-    Logo: {}
+    Logo: {
+      color: (el, s) => {
+        if (s.scrolled || (s.root.route || '/') !== '/') return 'title'
+        return s.root.heroWorld === 'under' ? 'ivory' : 'navy'
+      },
+      transition: 'color .3s ease, opacity .25s ease, transform .2s ease'
+    }
   },
 
   // Top-center, home only — chrome placement, root-state wiring.
@@ -107,20 +121,55 @@ export const Navbar = {
     align: 'center center',
     gap: 'Z',
 
+    // While the naked bar floats over the hero the buttons wear the world's
+    // explicit tones (paper/solid on the ivory band, outline/inverse on the
+    // navy one) and fall back to the theme tones once frosted or on inner
+    // pages — the tone CONDITIONS are overridden per instance, the shared
+    // PillButton stays untouched.
     Link: {
       href: 'https://fractyco--app.at.symbo.ls/signin',
       text: '',
       display: 'inline-flex',
       textDecoration: 'none',
       '@mobileL': { display: 'none' },
-      PillButton: { state: { tone: 'secondary' }, text: 'Sign in' }
+      PillButton: {
+        state: { tone: 'secondary' },
+        isSecondary: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !!sc || (s.root.route || '/') !== '/'
+        },
+        isPaper: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !sc && (s.root.route || '/') === '/' && s.root.heroWorld !== 'under'
+        },
+        isOutline: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !sc && (s.root.route || '/') === '/' && s.root.heroWorld === 'under'
+        },
+        text: 'Sign in'
+      }
     },
     Link_1: {
       href: 'https://fractyco--app.at.symbo.ls/signin',
       text: '',
       display: 'inline-flex',
       textDecoration: 'none',
-      PillButton: { state: { tone: 'primary' }, text: 'Open an account' }
+      PillButton: {
+        state: { tone: 'primary' },
+        isPrimary: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !!sc || (s.root.route || '/') !== '/'
+        },
+        isSolid: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !sc && (s.root.route || '/') === '/' && s.root.heroWorld !== 'under'
+        },
+        isInverse: (el, s) => {
+          const sc = s.parent ? s.parent.scrolled : false
+          return !sc && (s.root.route || '/') === '/' && s.root.heroWorld === 'under'
+        },
+        text: 'Open an account'
+      }
     }
   },
 
