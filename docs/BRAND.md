@@ -81,11 +81,16 @@ caption 14, label 12) through the typography sequence (base 16, ratio 1.25).
 
 ## Motion & interaction
 
-- **Hero field** — `landing/components/HeroCanvas.js`: a raw-WebGL staggered
-  diamond lattice (no dependency) with a cursor lens, click ripples, scroll
-  parallax, and theme-aware flat color. Rides the framework's `onFrame` tick;
-  reduced motion freezes the ambient wave; no WebGL → the static ghost mark
-  stays.
+- **Hero crystal** — `landing/components/HeroCanvas.js`: the headline
+  performed in raw WebGL (no dependency). A value diamond stands as a
+  crystal — a triangular particle lattice joined by hairline edges — and a
+  slow melt front dissolves it into liquid particles that drift with a flow
+  field and re-crystallize. The cursor is heat (melts locally), a click is a
+  settlement ring (freezes what it crosses), and the crystal assembles from
+  scatter on load. Two draw passes (GL_LINES under diamond point sprites),
+  theme-aware flat color, scroll parallax, `onFrame` tick; reduced motion
+  renders it frozen; no WebGL → the Hero's ghost mark shows instead (gated
+  by the `webglOk` state the canvas sets).
 - **Entrances** — masked headline lines (`lineUp`), staggered card fades
   (`revealDelay` state per instance), section reveals via IntersectionObserver
   state on `Section`, dashed rules that draw themselves (`SectionHeading`).
@@ -113,7 +118,7 @@ caption 14, label 12) through the typography sequence (base 16, ratio 1.25).
   `changeGlobalTheme` targets the wrong document — see the comment block in
   `ThemeToggle.js`. These three criticals are accepted.
 - **Canvas bitmap sizing trips FA511** (`el.node.width = …` in
-  `HeroCanvas`/`HeroMark`, four criticals). Also accepted: a canvas backing
+  `HeroCanvas`, two criticals). Also accepted: a canvas backing
   store has no CSS or attr equivalent that can track `clientWidth × dpr`
   per frame — the assignment is canvas-API state, the same imperative surface
   as the GL calls themselves, not framework-owned DOM. Everything else those

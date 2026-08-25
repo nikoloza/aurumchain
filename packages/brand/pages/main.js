@@ -233,6 +233,107 @@ export const main = {
             { token: 'meter', label: 'meter' },
             { token: 'dangerInk', label: 'dangerInk' }
           ]
+        },
+
+        ModsNote: {
+          tag: 'span',
+          fontFamily: 'Mono',
+          fontSize: 'Y1',
+          letterSpacing: '.14em',
+          textTransform: 'uppercase',
+          color: 'caption',
+          marginTop: 'Z',
+          text: 'Every shade is a modifier — never a new hex'
+        },
+        Mods: {
+          flow: 'x',
+          align: 'center flex-start',
+          gap: 'Y',
+          flexWrap: 'wrap',
+
+          childExtends: 'BrandPair',
+          childrenAs: 'state',
+          children: [
+            { token: 'navy', label: 'navy' },
+            { token: 'navy.32', label: 'navy.32' },
+            { token: 'navy+24', label: 'navy+24' },
+            { token: 'navy-24', label: 'navy-24' },
+            { token: 'slate.45', label: 'slate.45' },
+            { token: 'mist.16', label: 'mist.16' }
+          ]
+        }
+      }
+    },
+
+    ScaleSection: {
+      extends: 'Section',
+      id: 'scale',
+
+      Inner: {
+        SectionHeading: {
+          state: {
+            num: '02',
+            eyebrow: 'Scale & shape',
+            titleTop: 'One ladder',
+            title: 'for space, type, and radius.',
+            lead:
+              'Spacing and type share the letter sequence (base 16, ratio 1.25) — em-relative, so everything breathes with the reading size. Radii are fixed pixels, so product geometry never drifts with the font.'
+          }
+        },
+
+        Split: {
+          display: 'grid',
+          gridTemplateColumns: '1fr 1.3fr',
+          gap: 'D',
+          alignItems: 'start',
+          '@tabletL': { gridTemplateColumns: '1fr' },
+
+          Ladder: {
+            flow: 'y',
+            gap: 'Z',
+            childExtends: 'ScaleBar',
+            childrenAs: 'state',
+            children: [
+              { token: 'X' },
+              { token: 'Y' },
+              { token: 'Z' },
+              { token: 'A' },
+              { token: 'B' },
+              { token: 'C' },
+              { token: 'D' },
+              { token: 'E' }
+            ]
+          },
+
+          Ramp: {
+            flow: 'y',
+            gap: 'Z',
+            childExtends: 'TypeRamp',
+            childrenAs: 'state',
+            children: [
+              { size: 'Y1', sample: 'Caption — 12/14' },
+              { size: 'Z', sample: 'Interface label' },
+              { size: 'A', sample: 'Body reading size' },
+              { size: 'B1', sample: 'Lead paragraph' },
+              { size: 'C1', sample: 'Section three' },
+              { size: 'E', sample: 'Display' }
+            ]
+          }
+        },
+
+        Radii: {
+          flow: 'x',
+          align: 'flex-start flex-start',
+          gap: 'C',
+          flexWrap: 'wrap',
+          childExtends: 'RadiusTile',
+          childrenAs: 'state',
+          children: [
+            { radius: 'radiusControl', label: 'radiusControl · 10' },
+            { radius: 'radiusCard', label: 'radiusCard · 16' },
+            { radius: 'radiusSheet', label: 'radiusSheet · 22' },
+            { radius: 'radiusPill', label: 'radiusPill' }
+          ]
         }
       }
     },
@@ -244,7 +345,7 @@ export const main = {
       Inner: {
         SectionHeading: {
           state: {
-            num: '02',
+            num: '03',
             eyebrow: 'Typography',
             titleTop: 'Condensed voice,',
             title: 'grotesk body, mono figures.'
@@ -275,7 +376,7 @@ export const main = {
       Inner: {
         SectionHeading: {
           state: {
-            num: '03',
+            num: '04',
             eyebrow: 'Brand logo',
             titleTop: 'The arcs and the diamond,',
             title: 'from the brandbook vectors.',
@@ -313,6 +414,100 @@ export const main = {
       }
     },
 
+    MotionSection: {
+      extends: 'Section',
+      id: 'motion',
+      theme: 'surface',
+
+      Inner: {
+        SectionHeading: {
+          state: {
+            num: '05',
+            eyebrow: 'Motion',
+            titleTop: 'Flat moves,',
+            title: 'never decoration.',
+            lead:
+              'Every keyframe lives in the design system and respects prefers-reduced-motion. No gradients, no blurs — opacity, transform, and time.'
+          }
+        },
+
+        Grid: {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: 'A',
+          '@tabletL': { gridTemplateColumns: 'repeat(3, 1fr)' },
+          '@mobileL': { gridTemplateColumns: 'repeat(2, 1fr)' },
+
+          childExtends: 'MotionTile',
+          childrenAs: 'state',
+          children: [
+            { anim: 'fcReveal', alt: true, dur: '1.4s' },
+            { anim: 'lineUp', alt: true, dur: '1.4s' },
+            { anim: 'skeletonPulse', dur: '1.6s' },
+            { anim: 'floatY', dur: '4s' },
+            { anim: 'pulseAccent', dur: '2.4s' },
+            { anim: 'blink', dur: '1.1s' }
+          ]
+        }
+      }
+    },
+
+    IconSection: {
+      extends: 'Section',
+      id: 'icons',
+
+      Inner: {
+        SectionHeading: {
+          state: {
+            num: '06',
+            eyebrow: 'Iconography',
+            titleTop: 'One stroke weight,',
+            title: 'twenty-five glyphs.',
+            lead:
+              'Rendered through Icon from designSystem/icons.js — 24-viewbox, currentColor, no fills. The mark itself is one of them.'
+          }
+        },
+
+        Grid: {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(8, 1fr)',
+          gap: 'Y',
+          '@tabletL': { gridTemplateColumns: 'repeat(5, 1fr)' },
+          '@mobileL': { gridTemplateColumns: 'repeat(3, 1fr)' },
+
+          childExtends: 'IconCell',
+          childrenAs: 'state',
+          children: [
+            { name: 'logo' },
+            { name: 'wallet' },
+            { name: 'chart' },
+            { name: 'layers' },
+            { name: 'shield' },
+            { name: 'exchange' },
+            { name: 'coins' },
+            { name: 'receipt' },
+            { name: 'document' },
+            { name: 'user' },
+            { name: 'users' },
+            { name: 'cog' },
+            { name: 'audit' },
+            { name: 'arrowRight' },
+            { name: 'arrowUp' },
+            { name: 'arrowDown' },
+            { name: 'check' },
+            { name: 'close' },
+            { name: 'chevronDown' },
+            { name: 'globe' },
+            { name: 'lock' },
+            { name: 'alert' },
+            { name: 'pause' },
+            { name: 'logout' },
+            { name: 'sun' }
+          ]
+        }
+      }
+    },
+
     ComponentSection: {
       extends: 'Section',
       id: 'components',
@@ -320,7 +515,7 @@ export const main = {
       Inner: {
         SectionHeading: {
           state: {
-            num: '04',
+            num: '07',
             eyebrow: 'Components',
             titleTop: 'The library,',
             title: 'wearing the identity.',
@@ -444,7 +639,7 @@ export const main = {
       Inner: {
         SectionHeading: {
           state: {
-            num: '05',
+            num: '08',
             eyebrow: 'The surfaces',
             titleTop: 'Same tokens,',
             title: 'three applications.'

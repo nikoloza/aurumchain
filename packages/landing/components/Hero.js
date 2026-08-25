@@ -13,47 +13,87 @@ export const Hero = {
   padding: 'F C D',
   overflow: 'hidden',
   scope: {},
+  state: { webglOk: false },
   '@tabletS': { minHeight: 'auto', padding: 'E A C' },
 
-  // Pointer feed for the field's lens — canvas uv space (0..1, y down),
-  // stored on scope so no state churn happens per mouse move.
+  // Pointer feed for the crystal — raw client coords on scope (the canvas
+  // derives its own space from them); no state churn per mouse move.
   onMousemove: (ev, el) => {
-    if (!el.node) return
-    const r = el.node.getBoundingClientRect()
-    el.scope.mx = (ev.clientX - r.left) / Math.max(1, r.width)
-    el.scope.my = (ev.clientY - r.top) / Math.max(1, r.height)
     el.scope.cxr = ev.clientX
     el.scope.cyr = ev.clientY
   },
 
-  // A click drops a ripple into the field at the pointer.
+  // A click drops a settlement ring that freezes the melt where it passes.
   onClick: (ev, el) => {
     if (!el.node) return
-    const r = el.node.getBoundingClientRect()
-    el.scope.cx = (ev.clientX - r.left) / Math.max(1, r.width)
-    el.scope.cy = (ev.clientY - r.top) / Math.max(1, r.height)
+    el.scope.cxr = ev.clientX
+    el.scope.cyr = ev.clientY
     const win = el.node.ownerDocument.defaultView
     el.scope.clickStart = win && win.performance ? win.performance.now() : 0
   },
 
   HeroCanvas: {},
 
-  // Faint echo of the mark, aligned exactly under the particle canvas — the
-  // fractions above it read as the mark condensing out of the field. It is
-  // also the whole composition when WebGL is unavailable.
+  // The boundary the canvas circulates through — dashed rule + mono labels
+  // naming the two worlds (after the product's first life at aurc.app).
+  Horizon: {
+    position: 'absolute',
+    top: '60%',
+    left: '0',
+    right: '0',
+    pointerEvents: 'none',
+    attr: { 'aria-hidden': 'true' },
+    '@tabletS': { display: 'none' },
+    animationName: 'fcReveal',
+    animationDuration: 'F',
+    animationDelay: 'D',
+    animationFillMode: 'both',
+    '@reduceMotion': { animationName: 'none' },
+
+    Rule: {
+      borderTop: '1px dashed',
+      borderTopColor: 'hairline',
+      width: '100%'
+    },
+    Above: {
+      tag: 'span',
+      position: 'absolute',
+      right: 'C',
+      bottom: 'Y',
+      fontFamily: 'Mono',
+      fontSize: 'Y',
+      letterSpacing: '.22em',
+      textTransform: 'uppercase',
+      color: 'caption',
+      text: 'Above ground — the market'
+    },
+    Below: {
+      tag: 'span',
+      position: 'absolute',
+      right: 'C',
+      top: 'Y',
+      fontFamily: 'Mono',
+      fontSize: 'Y',
+      letterSpacing: '.22em',
+      textTransform: 'uppercase',
+      color: 'accentInk',
+      text: 'Underground — the asset'
+    }
+  },
+
+  // The static ghost mark carries the composition only when WebGL is
+  // unavailable — the canvas flips `webglOk` once its crystal is running.
   Ghost: {
     position: 'absolute',
-    top: '4vh',
-    right: '-5vw',
+    top: '-10vw',
+    right: '-9vw',
     pointerEvents: 'none',
-    color: 'slate.07',
-    '@dark': { color: 'mist.04' },
+    color: 'slate.1',
+    '@dark': { color: 'mist.05' },
+    show: (el, s) => !s.webglOk,
     Icon: { name: 'logo', width: '46vw', height: '46vw', display: 'block' },
     '@tabletS': { display: 'none' }
   },
-
-  // The mark, assembled from ~1k spring-loaded fractions (WebGL).
-  HeroMark: {},
 
   Inner: {
     flow: 'y',
@@ -89,7 +129,7 @@ export const Hero = {
         lineHeight: '1',
         textTransform: 'uppercase',
         color: 'caption',
-        text: 'Real-world asset platform · Solana'
+        text: 'From underground to on-chain · Solana'
       },
       Rule: {
         flex: '1',
@@ -171,7 +211,7 @@ export const Hero = {
       animationFillMode: 'both',
       '@reduceMotion': { animationName: 'none' },
       text:
-        'Fractyco issues asset-backed tokens on Solana. Every transfer clears a compliance hook, every position settles against a registry, and every payout distributes on-chain.',
+        'Value starts underground — a mine, a plant, a field. Fractyco brings it above ground: compliant fractions on Solana, a registry that caps every supply, and payouts that settle back to your wallet.',
       '@tabletS': { fontSize: 'A' }
     },
 
@@ -241,10 +281,10 @@ export const Hero = {
       '@reduceMotion': { animationName: 'none' },
       '@tabletS': { gap: 'B' },
 
-      StatCell: { state: { value: '4', label: 'Anchor programs' } },
-      StatCell_1: { extends: 'StatCell', state: { value: 'SPL-2022', label: 'Token standard' } },
-      StatCell_2: { extends: 'StatCell', state: { value: 'T+0', label: 'Payout settlement' } },
-      StatCell_3: { extends: 'StatCell', state: { value: 'USDC', label: 'Settlement asset' } }
+      StatCell: { state: { value: '$326T', label: 'Real assets worldwide' } },
+      StatCell_1: { extends: 'StatCell', state: { value: '$250', label: 'Minimum subscription' } },
+      StatCell_2: { extends: 'StatCell', state: { value: '6–9%', label: 'Target annual yield' } },
+      StatCell_3: { extends: 'StatCell', state: { value: 'T+0', label: 'On-chain settlement' } }
     },
 
     ScrollCue: {
