@@ -4,6 +4,10 @@ export const Panel = {
   flow: 'y',
   gap: 'A',
   width: '100%',
+  // As a grid/flex child the panel must be allowed to shrink below its
+  // content's intrinsic width — otherwise a wide DataTable inflates the
+  // column and the page scrolls horizontally instead of the table.
+  minWidth: '0',
   padding: 'A',
   borderRadius: 'radiusCard',
   theme: 'card',
