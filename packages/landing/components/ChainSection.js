@@ -18,9 +18,9 @@ export const ChainSection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
+      // Container-driven 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(430px, 100%), 1fr))',
       gap: 'A1',
-      '@tabletS': { gridTemplateColumns: '1fr' },
 
       ProgramCard: {
         state: {

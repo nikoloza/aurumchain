@@ -19,10 +19,12 @@ export const AssetsSection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
+      // Container-driven: auto-fit sizes the deck 3 → 2 → 1 with no media
+      // queries — stacked max-width column rules proved cascade-fragile.
+      // (px inside the compound value: letter tokens don't resolve in
+      // minmax(), same precedent as the shadow values.)
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
       gap: 'A1',
-      '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
-      '@mobileL': { gridTemplateColumns: '1fr' },
 
       childExtends: 'AssetTile',
       childrenAs: 'state',

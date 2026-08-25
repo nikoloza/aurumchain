@@ -10,10 +10,10 @@ export const ComplianceSection = {
   Inner: {
     Split: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      // Container-driven 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(430px, 100%), 1fr))',
       gap: 'D',
       alignItems: 'start',
-      '@tabletL': { gridTemplateColumns: '1fr' },
 
       Lead: {
         flow: 'y',
@@ -104,6 +104,9 @@ export const HookFlow = {
     align: 'center space-between',
     gap: 'Z',
     width: '100%',
+    // Phones stack the three nodes; the rail and packet only make sense
+    // horizontally.
+    '@mobileL': { flow: 'y', align: 'center center', gap: 'Y' },
 
     // NB: named Track, not Rail — `Rail` is a registered brand component
     // (the dashboard sidebar) and a bare `Rail:` key would auto-extend it.
@@ -113,7 +116,8 @@ export const HookFlow = {
       right: '0',
       top: '50%',
       borderTop: '1px dashed',
-      borderTopColor: 'hairline'
+      borderTopColor: 'hairline',
+      '@mobileL': { display: 'none' }
     },
 
     // The packet — one clearance every few seconds.
@@ -127,6 +131,7 @@ export const HookFlow = {
       background: 'accentInk',
       transform: 'translate(-50%, -50%) rotate(45deg)',
       opacity: '0',
+      '@mobileL': { display: 'none' },
       isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
       '.isRevealed': {
         animationName: 'railGlide',

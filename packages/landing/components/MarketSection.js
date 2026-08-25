@@ -38,9 +38,9 @@ export const MarketSection = {
 
     Row: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
+      // Container-driven 3 → 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
       gap: 'A1',
-      '@mobileL': { gridTemplateColumns: '1fr' },
 
       StepCard: {
         state: {

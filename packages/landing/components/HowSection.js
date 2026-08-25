@@ -87,10 +87,11 @@ export const HowSection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      // Container-driven 4 → 2 → 1 — stacked max-width column rules proved
+      // cascade-fragile; px in minmax() since letter tokens don't resolve
+      // inside it.
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
       gap: 'A1',
-      '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
-      '@mobileL': { gridTemplateColumns: '1fr' },
 
       StepCard: {
         state: {

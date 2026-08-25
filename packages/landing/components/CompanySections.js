@@ -57,9 +57,9 @@ export const ValuesSection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
+      // Container-driven 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(380px, 100%), 1fr))',
       gap: 'A1',
-      '@mobileL': { gridTemplateColumns: '1fr' },
 
       childExtends: 'AssetTile',
       childrenAs: 'state',
@@ -129,6 +129,7 @@ export const Milestone = {
     tag: 'span',
     flexShrink: '0',
     width: 'F',
+    '@mobileL': { width: 'D' },
     fontFamily: 'Mono',
     fontSize: 'Z',
     fontWeight: '600',

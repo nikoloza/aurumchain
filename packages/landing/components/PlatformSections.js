@@ -19,9 +19,9 @@ export const AuthoritySection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
+      // Container-driven 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(430px, 100%), 1fr))',
       gap: 'A1',
-      '@tabletS': { gridTemplateColumns: '1fr' },
 
       AuthorityCard: {
         state: {
@@ -84,10 +84,9 @@ export const SettleSection = {
 
     Grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      // Container-driven 4 → 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
       gap: 'A1',
-      '@tabletL': { gridTemplateColumns: 'repeat(2, 1fr)' },
-      '@mobileL': { gridTemplateColumns: '1fr' },
 
       StepCard: {
         state: {
@@ -136,10 +135,10 @@ export const SafetySection = {
   Inner: {
     Split: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      // Container-driven 2 → 1 (see AssetsSection).
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(430px, 100%), 1fr))',
       gap: 'D',
       alignItems: 'start',
-      '@tabletL': { gridTemplateColumns: '1fr' },
 
       SectionHeading: {
         state: {
