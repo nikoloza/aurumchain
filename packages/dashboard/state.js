@@ -28,6 +28,8 @@ export default {
   appNoticeSeq: 0,
 
   route: '/',
+  // routeSoft (brand) raises this while the old page dips out.
+  pageLeave: false,
   pageTitle: 'Overview',
   pageLead: 'Your positions, payouts, and open subscriptions.',
 

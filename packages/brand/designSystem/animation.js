@@ -55,6 +55,19 @@ export default {
     to: { opacity: '1', transform: 'translate3d(0, 0, 0)' }
   },
 
+  // Route-exit dip for the product shells — the old page lifts out under
+  // routeSoft before the router swaps content
+  pageLeave: {
+    from: { opacity: '1', transform: 'translate3d(0, 0, 0)' },
+    to: { opacity: '0', transform: 'translate3d(0, -14px, 0)' }
+  },
+
+  // The page head's dashed rule drawing across on route entry
+  ruleDraw: {
+    from: { transform: 'scaleX(0)' },
+    to: { transform: 'scaleX(1)' }
+  },
+
   // Terminal caret in the settlement log
   blink: {
     '0%': { opacity: '1' },

@@ -32,7 +32,7 @@ export const SideLink = {
 
   onClick: (ev, el, s) => {
     ev.preventDefault()
-    el.router(s.path, el.getRoot())
+    el.call('routeSoft', s.path)
   },
 
   Glyph: {

@@ -26,32 +26,57 @@ export const ShellPage = {
       padding: 'B C',
       animationName: 'pageEnter',
       animationDuration: 'D',
-      animationTimingFunction: 'ease-out',
+      animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
       animationFillMode: 'both',
+      // routeSoft stages the exit: the old page dips out before the router
+      // swaps content under it. The leave animation re-declares animationName
+      // so the enter animation's fill releases the properties.
+      isLeaving: (el, s) => !!s.root.pageLeave,
+      '.isLeaving': {
+        animationName: 'pageLeave',
+        animationDuration: 'B',
+        animationTimingFunction: 'cubic-bezier(.55,0,.85,.4)',
+        animationFillMode: 'both'
+      },
       '@reduceMotion': { animationName: 'none' },
       '@screenS': { padding: 'B' },
       '@tabletS': { padding: 'A Z' },
 
       // Editorial page header — the topbar stays a slim breadcrumb, the page
-      // announces itself in the content column instead.
+      // announces itself in the content column instead. On entry the title
+      // rises out of its mask, the lead settles after it, and the dashed rule
+      // draws across — the same choreography grammar as the landing sections.
       PageHead: {
         flow: 'y',
         gap: 'Y',
         width: '100%',
-        paddingBottom: 'A',
-        borderBottom: '1px dashed',
-        borderBottomColor: 'hairline',
 
         H1: {
           margin: '0',
+          overflow: 'hidden',
           fontFamily: 'Display',
           fontSize: 'D',
           fontWeight: '700',
           letterSpacing: '-.03em',
           lineHeight: '1.05',
           color: 'title',
-          text: (el, s) => s.root.pageTitle || '',
-          '@tabletS': { fontSize: 'C1' }
+          '@tabletS': { fontSize: 'C1' },
+
+          Line: {
+            tag: 'span',
+            display: 'block',
+            // Descender room inside the mask, taken back outside it.
+            paddingBottom: '.1em',
+            marginBottom: '-.1em',
+            transform: 'translate3d(0, 112%, 0)',
+            animationName: 'lineUp',
+            animationDuration: 'E',
+            animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
+            animationFillMode: 'both',
+            animationDelay: '.06s',
+            '@reduceMotion': { animationName: 'none', transform: 'none' },
+            text: (el, s) => s.root.pageTitle || ''
+          }
         },
         Lead: {
           tag: 'span',
@@ -59,7 +84,28 @@ export const ShellPage = {
           lineHeight: '1.5',
           color: 'caption',
           maxWidth: 'I2',
+          opacity: '0',
+          animationName: 'fadeInUp',
+          animationDuration: 'E',
+          animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
+          animationFillMode: 'both',
+          animationDelay: '.2s',
+          '@reduceMotion': { animationName: 'none', opacity: '1' },
           text: (el, s) => s.root.pageLead || ''
+        },
+        Rule: {
+          width: '100%',
+          marginTop: 'Z',
+          borderTop: '1px dashed',
+          borderTopColor: 'hairline',
+          transform: 'scaleX(0)',
+          transformOrigin: 'left center',
+          animationName: 'ruleDraw',
+          animationDuration: 'F',
+          animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
+          animationFillMode: 'both',
+          animationDelay: '.28s',
+          '@reduceMotion': { animationName: 'none', transform: 'none' }
         }
       }
     }

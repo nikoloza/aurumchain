@@ -105,6 +105,30 @@ export const setWorld = function setWorld (world) {
   } catch (e) {}
 }
 
+// Soft route for the product shells: the current page dips out (the shell's
+// Body keys `.isLeaving` off `pageLeave` on root state), the router swaps
+// under it, and the new page plays its entrance choreography. Reduced motion
+// routes instantly.
+export const routeSoft = function routeSoft (path) {
+  const el = this
+  const root = el.getRoot()
+  const rs = el.getRootState()
+  const doc = el.node && el.node.ownerDocument
+  const win = doc && doc.defaultView
+  const go = () => el.router(path, root, {}, { scrollToTop: true, scrollToOptions: { behavior: 'instant' } })
+  if (!win) { go(); return }
+  if (doc.location && doc.location.pathname === path) return
+  if (rs.pageLeave) return
+  let reduced = false
+  try { reduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) {}
+  if (reduced) { go(); return }
+  rs.update({ pageLeave: true }, { preventFetch: true })
+  win.setTimeout(() => {
+    go()
+    rs.update({ pageLeave: false }, { preventFetch: true })
+  }, 180)
+}
+
 // Routes through the navy curtain: root state stages the veil over the old
 // page, the router swaps content while it is covered, and the veil peels off
 // the new page. The stage lives on root state so the veil in the NEXT page

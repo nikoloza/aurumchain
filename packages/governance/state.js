@@ -24,6 +24,8 @@ export default {
   wallet: 'gov · 7STXs2…uSk4',
 
   route: '/',
+  // routeSoft (brand) raises this while the old page dips out.
+  pageLeave: false,
   pageTitle: 'Control plane',
   pageLead: 'Who holds which authority, and what is currently paused.',
 
