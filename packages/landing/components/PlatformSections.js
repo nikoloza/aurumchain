@@ -161,6 +161,7 @@ export const SafetySection = {
 
         FeatureItem: {
           state: {
+            revealDelay: '.1s',
             title: 'Two pause switches',
             body: 'A global flag halts every transfer on the platform; a per-project flag halts one asset. Both are checked inside the hook, so a paused token simply refuses to move.'
           }
@@ -168,6 +169,7 @@ export const SafetySection = {
         FeatureItem_1: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.22s',
             title: 'Lockups enforced on-chain',
             body: 'A subscription can carry a lockup window. Until it passes, the transfer hook rejects any move out of the wallet — including to the secondary market.'
           }
@@ -175,6 +177,7 @@ export const SafetySection = {
         FeatureItem_2: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.34s',
             title: 'Mint revocation is final',
             body: 'When a raise closes, revoke_mint_authority burns the power to issue. The supply cap stops being a promise and becomes a property of the chain.'
           }
@@ -182,6 +185,7 @@ export const SafetySection = {
         FeatureItem_3: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.46s',
             title: 'Everything lands in the audit trail',
             body: 'Every authority action is a transaction with a signer, a slot, and an account trail. The governance console reads the same records you can read on any explorer.'
           }

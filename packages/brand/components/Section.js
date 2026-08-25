@@ -17,7 +17,7 @@ export const Section = {
   flow: 'y',
   align: 'center center',
   width: '100%',
-  padding: 'F C',
+  padding: 'E1 C',
   scope: {},
   state: { inView: false },
   '@tabletS': { padding: 'D A' },
@@ -53,11 +53,11 @@ export const Section = {
 
   Inner: {
     flow: 'y',
-    gap: 'D',
+    gap: 'C2',
     width: '100%',
     maxWidth: '1120px',
     opacity: '0',
-    transform: 'translate3d(0, 26px, 0)',
+    transform: 'translate3d(0, 20px, 0)',
     transition: 'opacity .7s cubic-bezier(.22,.68,.24,.98), transform .7s cubic-bezier(.22,.68,.24,.98)',
     isInView: (el, s) => s.inView,
     '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },

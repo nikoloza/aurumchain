@@ -4,12 +4,14 @@
 // just showing beneath the boundary at the foot of the band, extraction
 // arriving from below. Flip to underground and the camera sinks past the
 // horizon: strata and the ore body — a triangular particle lattice joined
-// by hairline edges — fill the view while the surface slips away overhead.
-// The circulation never stops in either view: fractions extracted off the
-// deposit rise in a swaying column, clear the boundary, live aloft, then
-// settle home and re-crystallize. The cursor drills below ground and is
-// wind above it; a click is a settlement ring; on load the deposit
-// assembles upward out of the deep.
+// by hairline edges — fill the view while the surface slips away overhead,
+// with a second, smaller pocket glinting deeper down. The circulation never
+// stops in either view: fractions extracted off the deposit rise in a
+// swaying column, clear the boundary, live aloft, then settle home and
+// re-crystallize. The cursor drills below ground and is wind above it — a
+// fading slipstream rides it in both worlds; a click lands a visible
+// settlement ring (an expanding diamond outline) that hurries the airborne
+// home; on load the deposit assembles upward out of the deep.
 //
 // Raw WebGL1, two passes (GL_LINES under diamond sprites) with per-pass
 // attribute hygiene (slots are global GL state). Re-inits per node so
@@ -63,7 +65,7 @@ export const HeroCanvas = {
       'void main(){' +
       'vec2 q=vec2(p.x*scale.x*2.0-1.0,1.0-p.y*2.0);' +
       'gl_Position=vec4(q,0.0,1.0);' +
-      'gl_PointSize=(2.1+1.9*r)*(1.0+0.5*m)*dpr;' +
+      'gl_PointSize=(2.3+2.0*r)*(1.0+0.5*m)*dpr;' +
       'vR=r;vM=m;vF=f;}',
       'precision mediump float;varying float vR;varying float vM;varying float vF;' +
       'uniform vec3 colA;uniform vec3 colB;uniform float alBase;' +
@@ -96,6 +98,7 @@ export const HeroCanvas = {
     const STEP = R / 11
     const vsp = STEP * 0.866
 
+    // Main deposit — triangular lattice, diamond footprint, extractable.
     const homes = []
     const index = {}
     const topIdx = []
@@ -126,19 +129,58 @@ export const HeroCanvas = {
       }
     }
     const NC = n
-    const NFA = 70             // market drifters, above ground
-    const NFD = 40             // deep drifters, below the strata
-    const N = NC + NFA + NFD
+
+    // Second pocket — a smaller crystal body deeper down and to the left.
+    // Never extracted, never drilled; it breathes in place and parallaxes
+    // with the strata, giving the underground view a second landmark.
+    const R2 = 0.105
+    const STEP2 = R2 / 5
+    const vsp2 = STEP2 * 0.866
+    const pocketIndex = {}
+    for (let row = -12; row <= 12; row++) {
+      for (let col = -12; col <= 12; col++) {
+        const hx = col * STEP2 + (((row % 2) + 2) % 2) * STEP2 * 0.5
+        const hy = row * vsp2
+        if (Math.abs(hx) + Math.abs(hy) > R2) continue
+        pocketIndex[row + '_' + col] = n
+        homes.push(hx, hy)
+        n++
+      }
+    }
+    for (let row = -12; row <= 12; row++) {
+      for (let col = -12; col <= 12; col++) {
+        const a = pocketIndex[row + '_' + col]
+        if (a === undefined) continue
+        const right = pocketIndex[row + '_' + (col + 1)]
+        const even = ((row % 2) + 2) % 2 === 0
+        const dl = pocketIndex[(row + 1) + '_' + (even ? col - 1 : col)]
+        const dr = pocketIndex[(row + 1) + '_' + (even ? col : col + 1)]
+        if (right !== undefined) edges.push(a, right)
+        if (dl !== undefined) edges.push(a, dl)
+        if (dr !== undefined) edges.push(a, dr)
+      }
+    }
+    const NP = n - NC
+    const NFA = 84             // market drifters, above ground
+    const NFD = 52             // deep drifters, below the strata
+    const N = n + NFA + NFD
     const E = edges.length / 2
 
+    // Strata — four drifting hairlines banding the underground.
     const strata = []
-    for (let k = 1; k <= 3; k++) {
-      const y = HZ + 0.14 * k + 0.014 * (k % 2)
+    for (let k = 1; k <= 4; k++) {
+      const y = HZ + 0.115 * k + 0.014 * (k % 2)
       for (let x = 0.05; x < 2.6; x += 0.085) {
         strata.push(x, y, x + 0.05, y, k)
       }
     }
     const SN = strata.length / 5
+
+    // Line budget: lattice edges + strata + the settlement ring + the
+    // cursor slipstream. Ring and trail rewrite their slots every frame.
+    const RING_SEGS = 36
+    const TRAIL_MAX = 14
+    const TRAIL_SEGS = TRAIL_MAX - 1
 
     const home = new Float32Array(N * 2)
     home.set(homes)
@@ -150,18 +192,18 @@ export const HeroCanvas = {
     const mode = new Uint8Array(N)
     const aloftUntil = new Float32Array(N)
     for (let i = 0; i < N; i++) rand[i] = Math.random()
-    for (let i = NC; i < N; i++) {
+    for (let i = NC + NP; i < N; i++) {
       free[i] = 1
       melt[i] = 1
       mode[i] = 2
       home[i * 2] = Math.random() * 2.4
-      home[i * 2 + 1] = i < NC + NFA
+      home[i * 2 + 1] = i < NC + NP + NFA
         ? Math.random() * (HZ - 0.08)
         : HZ + 0.08 + Math.random() * 0.62
       pos[i * 2] = home[i * 2]
       pos[i * 2 + 1] = home[i * 2 + 1]
     }
-    for (let i = 0; i < NC; i++) {
+    for (let i = 0; i < NC + NP; i++) {
       pos[i * 2] = home[i * 2] + (Math.random() - 0.5) * 0.16
       pos[i * 2 + 1] = home[i * 2 + 1] + 0.22 + Math.random() * 0.38
     }
@@ -177,7 +219,7 @@ export const HeroCanvas = {
     const meltBuf = mkBuf(melt, true)
     const randBuf = mkBuf(rand, false)
     const freeBuf = mkBuf(free, false)
-    const LE = E + SN
+    const LE = E + SN + RING_SEGS + TRAIL_SEGS
     const linePos = new Float32Array(LE * 4)
     const lineAl = new Float32Array(LE * 2)
     const linePosBuf = mkBuf(linePos, true)
@@ -192,7 +234,8 @@ export const HeroCanvas = {
 
     el.scope.hc = {
       gl, pointProg, lineProg,
-      HZ, CAM_UNDER, R, NC, NFA, NFD, N, E, SN, LE, edges, strata, topIdx,
+      HZ, CAM_UNDER, R, NC, NP, NFA, NFD, N, E, SN, LE, RING_SEGS, TRAIL_SEGS,
+      edges, strata, topIdx,
       home, pos, vel, melt, rand, mode, aloftUntil,
       drawPos, posBuf, meltBuf, randBuf, freeBuf,
       linePos, lineAl, linePosBuf, lineAlBuf,
@@ -227,7 +270,8 @@ export const HeroCanvas = {
       ringAt: -1e9,
       ringX: 0,
       ringY: 0,
-      seenClick: 0
+      seenClick: 0,
+      trail: []
     }
     s.update({ webglOk: true }, { preventFetch: true })
   },
@@ -263,11 +307,15 @@ export const HeroCanvas = {
       const HZ = H.HZ
       const cx = aspect * 0.72
       const cy = HZ + H.R + 0.11
+      const cx2 = aspect * 0.3       // the deep pocket's center
+      const cy2 = HZ + 0.5
 
       // Pointer in world space: screen y plus the camera's depth.
       const rect = el.node.getBoundingClientRect()
-      const mx = ((el.scope.cxr === undefined ? -1e4 : el.scope.cxr) - rect.left) / Math.max(1, rect.height)
-      const my = ((el.scope.cyr === undefined ? -1e4 : el.scope.cyr) - rect.top) / Math.max(1, rect.height) + camY
+      const sx = ((el.scope.cxr === undefined ? -1e4 : el.scope.cxr) - rect.left) / Math.max(1, rect.height)
+      const sy = ((el.scope.cyr === undefined ? -1e4 : el.scope.cyr) - rect.top) / Math.max(1, rect.height)
+      const mx = sx
+      const my = sy + camY
 
       if (el.scope.clickStart && el.scope.clickStart !== H.seenClick) {
         H.seenClick = el.scope.clickStart
@@ -277,14 +325,32 @@ export const HeroCanvas = {
       }
       const ringAge = (now - H.ringAt) / 1000
       const ringOn = ringAge > 0 && ringAge < 1.4
-      const ringR = ringAge * 0.9
+      const ringR = ringAge * 0.62
 
       const scroll = Math.max(0, Math.min(1.5, (el.node.ownerDocument.documentElement.scrollTop || 0) / Math.max(1, win.innerHeight)))
       const breatheX = Math.sin(t * 0.4) * 0.003
       const breatheY = Math.cos(t * 0.31) * 0.003
 
-      const { NC, N, pos, vel, home, melt, rand, mode, aloftUntil, drawPos, topIdx } = H
+      const { NC, NP, N, pos, vel, home, melt, rand, mode, aloftUntil, drawPos, topIdx } = H
+      const NSOLID = NC + NP
       const colSway = Math.sin(t * 0.8) * 0.014
+
+      // The cursor slipstream — screen-space breadcrumbs with an age, drawn
+      // as a fading polyline in the line pass. Reset cleanly off-canvas.
+      if (!H.reduced) {
+        const inside = sx > -0.05 && sx < aspect + 0.05 && sy > 0.02 && sy < 0.98
+        if (inside) {
+          const last = H.trail[H.trail.length - 1]
+          const dxT = last ? sx - last.x : 1
+          const dyT = last ? sy - last.y : 1
+          if (!last || dxT * dxT + dyT * dyT > 0.00003) {
+            H.trail.push({ x: sx, y: sy, t })
+            if (H.trail.length > 14) H.trail.shift()
+          }
+        } else if (H.trail.length) {
+          H.trail.shift()
+        }
+      }
 
       if (!H.reduced && intro >= 1) {
         H.extractAcc += 1
@@ -317,13 +383,14 @@ export const HeroCanvas = {
       for (let i = 0; i < N; i++) {
         const ix = i * 2
         const iy = ix + 1
-        const isFree = i >= NC
-        const isDeep = i >= NC + H.NFA
+        const isPocket = i >= NC && i < NSOLID
+        const isFree = i >= NSOLID
+        const isDeep = i >= NSOLID + H.NFA
         let px = pos[ix]
         let py = pos[iy]
         const md = isFree ? 2 : mode[i]
-        const hwx = isFree ? home[ix] : cx + home[ix] + breatheX
-        const hwy = isFree ? home[iy] : cy + home[iy] + breatheY
+        const hwx = isFree ? home[ix] : (isPocket ? cx2 : cx) + home[ix] + breatheX
+        const hwy = isFree ? home[iy] : (isPocket ? cy2 : cy) + home[iy] + breatheY
 
         const mTarget = md === 0 ? 0 : 1
         const m0 = melt[i]
@@ -391,7 +458,7 @@ export const HeroCanvas = {
               vy *= 0.3
             }
           }
-          if (ringOn && !isFree && (md === 2 || md === 3)) {
+          if (ringOn && i < NC && (md === 2 || md === 3)) {
             const dxr = px - H.ringX
             const dyr = py - H.ringY
             const dr = Math.sqrt(dxr * dxr + dyr * dyr)
@@ -416,7 +483,7 @@ export const HeroCanvas = {
         drawPos[iy] = py - cam - par
       }
 
-      const { E, SN, edges, strata, linePos, lineAl } = H
+      const { E, SN, RING_SEGS, TRAIL_SEGS, edges, strata, linePos, lineAl } = H
       const gate = introEase * introEase * introEase
       for (let e = 0; e < E; e++) {
         const a = edges[e * 2]
@@ -425,7 +492,11 @@ export const HeroCanvas = {
         linePos[e * 4 + 1] = drawPos[a * 2 + 1]
         linePos[e * 4 + 2] = drawPos[b * 2]
         linePos[e * 4 + 3] = drawPos[b * 2 + 1]
-        const al = (1 - melt[a]) * (1 - melt[b]) * gate * 0.5
+        // The ore body shimmers — a slow phase wave across the lattice; the
+        // deep pocket runs a step quieter.
+        const shimmer = 0.82 + 0.18 * Math.sin(t * 0.6 + (home[a * 2] + home[a * 2 + 1]) * 9)
+        const body = a >= H.NC ? 0.44 : 0.5
+        const al = (1 - melt[a]) * (1 - melt[b]) * gate * body * shimmer
         lineAl[e * 2] = al
         lineAl[e * 2 + 1] = al
       }
@@ -433,15 +504,69 @@ export const HeroCanvas = {
         const o = (E + sIx) * 4
         const so = sIx * 5
         const k = strata[so + 4]
-        const drift = Math.sin(t * 0.2 + k * 2.1) * 0.006 - scroll * 0.02 * k
+        const drift = Math.sin(t * 0.2 + k * 2.1) * 0.007 - scroll * 0.02 * k
         const cam = camY * 0.97 + scroll * 0.035
         linePos[o] = strata[so] + drift
         linePos[o + 1] = strata[so + 1] - cam
         linePos[o + 2] = strata[so + 2] + drift
         linePos[o + 3] = strata[so + 3] - cam
-        const al = (0.14 - k * 0.026) * gate
+        const al = (0.24 - k * 0.035) * gate
         lineAl[(E + sIx) * 2] = al
         lineAl[(E + sIx) * 2 + 1] = al
+      }
+
+      // The settlement ring — an expanding diamond outline at the click.
+      const ringBase = (E + SN) * 4
+      const ringAlBase = (E + SN) * 2
+      const ringFade = ringOn ? (1 - ringAge / 1.4) * 0.5 * gate : 0
+      const ringCam = H.ringY < HZ ? camY * 1.04 : camY * 0.97
+      const rr = ringR + 0.02
+      for (let k = 0; k < RING_SEGS; k++) {
+        const o = ringBase + k * 4
+        if (!ringFade) {
+          linePos[o] = linePos[o + 1] = linePos[o + 2] = linePos[o + 3] = 0
+          lineAl[ringAlBase + k * 2] = 0
+          lineAl[ringAlBase + k * 2 + 1] = 0
+          continue
+        }
+        const a0 = (k / RING_SEGS) * Math.PI * 2
+        const a1 = ((k + 1) / RING_SEGS) * Math.PI * 2
+        const c0 = Math.cos(a0); const s0 = Math.sin(a0)
+        const c1 = Math.cos(a1); const s1 = Math.sin(a1)
+        const n0 = Math.abs(c0) + Math.abs(s0)
+        const n1 = Math.abs(c1) + Math.abs(s1)
+        linePos[o] = H.ringX + (c0 / n0) * rr
+        linePos[o + 1] = H.ringY + (s0 / n0) * rr - ringCam
+        linePos[o + 2] = H.ringX + (c1 / n1) * rr
+        linePos[o + 3] = H.ringY + (s1 / n1) * rr - ringCam
+        lineAl[ringAlBase + k * 2] = ringFade
+        lineAl[ringAlBase + k * 2 + 1] = ringFade
+      }
+
+      // The slipstream — consecutive breadcrumbs, newest brightest. Drawn in
+      // screen space so it rides the cursor through either world.
+      const trailBase = (E + SN + RING_SEGS) * 4
+      const trailAlBase = (E + SN + RING_SEGS) * 2
+      for (let k = 0; k < TRAIL_SEGS; k++) {
+        const o = trailBase + k * 4
+        const p0 = H.trail[k]
+        const p1 = H.trail[k + 1]
+        let al = 0
+        if (p0 && p1) {
+          const seg = (p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y)
+          const age = t - p1.t
+          if (seg < 0.02 && age < 0.9) {
+            al = (1 - age / 0.9) * ((k + 1) / TRAIL_SEGS) * 0.3 * gate
+          }
+          linePos[o] = p0.x
+          linePos[o + 1] = p0.y
+          linePos[o + 2] = p1.x
+          linePos[o + 3] = p1.y
+        } else {
+          linePos[o] = linePos[o + 1] = linePos[o + 2] = linePos[o + 3] = 0
+        }
+        lineAl[trailAlBase + k * 2] = al
+        lineAl[trailAlBase + k * 2 + 1] = al
       }
 
       // Palette: page theme above ground, always inverted at depth — the two
@@ -453,12 +578,12 @@ export const HeroCanvas = {
         A = [0.659, 0.753, 0.812]
         B = [0.45, 0.58, 0.68]
         L = [0.659, 0.753, 0.812]
-        alB = 0.62
+        alB = 0.62 + 0.08 * wf
       } else {
         A = [mixc(0.031, 0.94), mixc(0.141, 0.95), mixc(0.224, 0.93)]
         B = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
         L = [mixc(0.376, 0.659), mixc(0.49, 0.753), mixc(0.58, 0.812)]
-        alB = 0.58 + 0.06 * wf
+        alB = 0.63 + 0.06 * wf
       }
       gl.clear(gl.COLOR_BUFFER_BIT)
 

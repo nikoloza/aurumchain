@@ -74,5 +74,19 @@ export default {
   cueDrop: {
     from: { transform: 'translateY(-110%)' },
     to: { transform: 'translateY(110%)' }
+  },
+
+  // A diamond gliding once along the state-machine rail after it draws
+  railGlide: {
+    '0%': { left: '0%', opacity: '0' },
+    '10%': { opacity: '1' },
+    '88%': { opacity: '1' },
+    '100%': { left: '100%', opacity: '0' }
+  },
+
+  // Hard-edged scan strip sweeping a live funding bar — flat color, no gradient
+  barSweep: {
+    from: { left: '-16%' },
+    to: { left: '112%' }
   }
 }

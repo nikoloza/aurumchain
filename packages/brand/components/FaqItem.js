@@ -1,6 +1,6 @@
-// One expandable question. state: { q, a, open }
+// One expandable question. state: { n, q, a, open }
 // `open` is local to the row, so rows expand independently — the same idiom
-// the shared-library Accordion uses.
+// the shared-library Accordion uses. `n` is the optional mono index.
 export const FaqItem = {
   tag: 'article',
   flow: 'y',
@@ -25,8 +25,22 @@ export const FaqItem = {
     attr: { 'aria-expanded': (el, s) => String(!!s.open) },
     onClick: (ev, el, s) => s.update({ open: !s.open }),
 
+    Num: {
+      tag: 'span',
+      flexShrink: '0',
+      width: 'B2',
+      fontFamily: 'Mono',
+      fontSize: 'Z',
+      fontWeight: '600',
+      letterSpacing: '.08em',
+      color: 'accentInk',
+      text: (el, s) => s.n || '',
+      show: (el, s) => !!s.n
+    },
+
     Q: {
       tag: 'span',
+      flex: '1',
       fontFamily: 'Display',
       fontSize: 'A',
       fontWeight: '600',
@@ -50,6 +64,8 @@ export const FaqItem = {
     tag: 'p',
     margin: '0',
     maxWidth: '720px',
+    // Indented past the index so the answer aligns with its question.
+    paddingLeft: (el, s) => (s.n ? 'B2+Z' : '0'),
     fontSize: 'Z1',
     lineHeight: '1.65',
     color: 'paragraph',

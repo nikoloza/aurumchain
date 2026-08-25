@@ -95,26 +95,34 @@ export const MilestonesSection = {
       childExtends: 'Milestone',
       childrenAs: 'state',
       children: [
-        { when: '2024 Q4', what: 'First registry program on devnet — supply caps enforced on mint', done: true },
-        { when: '2025 Q2', what: 'Transfer hook clears its first compliant transfer end-to-end', done: true },
-        { when: '2025 Q4', what: 'Distribution epochs pay 312 devnet holders from one snapshot', done: true },
-        { when: '2026 Q1', what: 'Secondary market escrow fills its first partial order', done: true },
-        { when: '2026 Q3', what: 'Program audit of all four programs', done: false },
-        { when: '2026 Q4', what: 'Mainnet — first regulated offering opens', done: false }
+        { revealDelay: '0s', when: '2024 Q4', what: 'First registry program on devnet — supply caps enforced on mint', done: true },
+        { revealDelay: '.08s', when: '2025 Q2', what: 'Transfer hook clears its first compliant transfer end-to-end', done: true },
+        { revealDelay: '.16s', when: '2025 Q4', what: 'Distribution epochs pay 312 devnet holders from one snapshot', done: true },
+        { revealDelay: '.24s', when: '2026 Q1', what: 'Secondary market escrow fills its first partial order', done: true },
+        { revealDelay: '.32s', when: '2026 Q3', what: 'Program audit of all four programs', done: false },
+        { revealDelay: '.4s', when: '2026 Q4', what: 'Mainnet — first regulated offering opens', done: false }
       ]
     }
   }
 }
 
-// One milestone row. state: { when, what, done }
+// One milestone row. state: { when, what, done, revealDelay }
 export const Milestone = {
   flow: 'x',
   align: 'baseline flex-start',
   gap: 'B',
   padding: 'A 0',
   borderBottom: '1px dashed hairline',
-  transition: 'background .25s ease, padding .3s ease',
+  opacity: '0',
+  transform: 'translate3d(-10px, 0, 0)',
+  transition: (el, s) =>
+    'opacity .7s ease ' + (s.revealDelay || '0s') +
+    ', transform .7s cubic-bezier(.22,.68,.24,.98) ' + (s.revealDelay || '0s') +
+    ', background .25s ease, padding .3s ease',
+  isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+  '.isRevealed': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
   ':hover': { background: 'veil', paddingLeft: 'Z' },
+  '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
   '@mobileL': { gap: 'Z' },
 
   When: {

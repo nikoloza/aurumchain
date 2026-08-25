@@ -269,18 +269,9 @@ export const Hero = {
         HowCta: {
           display: 'inline-flex',
           state: { anchor: 'how' },
-          // Inline, through el.node.ownerDocument — see components/NavItem.js.
           onClick: (ev, el, s) => {
             ev.preventDefault()
-            const doc = el.node.ownerDocument
-            const target = doc.getElementById(s.anchor)
-            if (!target) return
-            const root = doc.documentElement
-            const header = doc.querySelector('header')
-            root.scrollTop =
-              root.scrollTop +
-              target.getBoundingClientRect().top -
-              ((header ? header.offsetHeight : 80) + 16)
+            el.call('scrollToSection', s.anchor)
           },
           Link: {
             // Same-document absolute URL — Link then leaves the click to the
@@ -463,10 +454,15 @@ export const Hero = {
           display: 'inline-flex',
           onClick: (ev, el) => {
             ev.preventDefault()
-            el.router('/platform', el.getRoot())
+            el.call('routeVeil', '/platform')
           },
           Link: {
-            href: '/platform',
+            // Fully qualified so RouterLink leaves the click to the wrapper —
+            // a relative href would route instantly and skip the veil.
+            href: (el) => {
+              const loc = el.node && el.node.ownerDocument.location
+              return loc ? `${loc.origin}/platform` : '/platform'
+            },
             text: '',
             textDecoration: 'none',
             display: 'inline-flex',

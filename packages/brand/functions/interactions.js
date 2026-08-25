@@ -59,3 +59,52 @@ export const magnetReset = function magnetReset (ev) {
   if (ev && ev.relatedTarget && el.node.contains(ev.relatedTarget)) return
   el.setNodeStyles({ transform: '' })
 }
+
+// Scrolls the document to a section anchor, keeping the sticky header out of
+// the way. Smooth by default; pass `instant` (or prefer reduced motion) for a
+// jump. Returns whether the anchor exists in the current document, so callers
+// can fall back to routing first.
+export const scrollToSection = function scrollToSection (anchor, instant) {
+  const el = this
+  if (!el.node) return false
+  const doc = el.node.ownerDocument
+  const win = doc && doc.defaultView
+  if (!win) return false
+  const target = doc.getElementById(anchor)
+  if (!target) return false
+  let reduced = false
+  try { reduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) {}
+  const header = doc.querySelector('header')
+  const top =
+    (doc.documentElement.scrollTop || 0) +
+    target.getBoundingClientRect().top -
+    ((header ? header.offsetHeight : 80) + 16)
+  win.scrollTo({ top, behavior: instant || reduced ? 'auto' : 'smooth' })
+  return true
+}
+
+// Routes through the navy curtain: root state stages the veil over the old
+// page, the router swaps content while it is covered, and the veil peels off
+// the new page. The stage lives on root state so the veil in the NEXT page
+// mounts already covered — no flash between documents. Surfaces without a
+// RouteVeil in the tree still navigate; the stage writes are just inert.
+export const routeVeil = function routeVeil (path) {
+  const el = this
+  const root = el.getRoot()
+  const rs = el.getRootState()
+  const doc = el.node && el.node.ownerDocument
+  const win = doc && doc.defaultView
+  const go = () => el.router(path, root, {}, { scrollToTop: true, scrollToOptions: { behavior: 'instant' } })
+  if (!win) { go(); return }
+  if (doc.location && doc.location.pathname === path) return
+  if (rs.veilStage === 'cover') return
+  let reduced = false
+  try { reduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) {}
+  if (reduced) { go(); return }
+  rs.update({ veilStage: 'cover' }, { preventFetch: true })
+  win.setTimeout(() => {
+    go()
+    win.setTimeout(() => rs.update({ veilStage: 'reveal' }, { preventFetch: true }), 90)
+    win.setTimeout(() => rs.update({ veilStage: '' }, { preventFetch: true }), 760)
+  }, 460)
+}

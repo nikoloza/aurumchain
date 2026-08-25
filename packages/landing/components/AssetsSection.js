@@ -51,7 +51,12 @@ export const AssetTile = {
   '.isRevealed': { opacity: '1' },
   '@reduceMotion': { opacity: '1', transition: 'none' },
   onMousemove: (ev, el) => el.call('tiltCard', ev),
-  onMouseout: (ev, el) => el.call('tiltReset', ev),
+  onMouseover: (ev, el, s) => { if (!s.hovered) s.update({ hovered: true }, { preventFetch: true }) },
+  onMouseout: (ev, el, s) => {
+    el.call('tiltReset', ev)
+    if (ev.relatedTarget && el.node && el.node.contains(ev.relatedTarget)) return
+    if (s.hovered) s.update({ hovered: false }, { preventFetch: true })
+  },
   ':hover': { transform: 'translateY(-3px)', borderColor: 'slate.45' },
 
   Glyph: {
@@ -62,6 +67,12 @@ export const AssetTile = {
     borderRadius: 'radiusControl',
     background: 'activeWash',
     color: 'accentInk',
+    transition: 'background .3s ease, color .3s ease, transform .35s cubic-bezier(.34,1.5,.5,1)',
+    // Tile hover flips the glyph to the accent and pops it. State-driven —
+    // a child key can't live inside the tile's ':hover', and the hoisted
+    // ':hover &' form matches ANY hovered ancestor (body included).
+    isHovered: (el, s) => !!s.hovered,
+    '.isHovered': { background: 'accentInk', color: 'ivory', transform: 'scale(1.08) rotate(-4deg)' },
     Icon: { name: (el, s) => s.icon || 'layers', fontSize: 'A2' }
   },
 

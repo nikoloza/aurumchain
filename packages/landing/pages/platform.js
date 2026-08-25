@@ -14,6 +14,7 @@ export const platform = {
       'The authority model, the settlement path, and the safety controls behind Fractyco tokenized assets on Solana.'
   },
 
+  RouteVeil: {},
   Navbar: {},
 
   Main: {

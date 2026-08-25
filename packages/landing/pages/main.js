@@ -11,6 +11,7 @@ export const main = {
       'Fractyco tokenizes real-world assets. Investors buy compliant fractions, hold them on Solana, and receive on-chain payouts.'
   },
 
+  RouteVeil: {},
   Navbar: {},
 
   Main: {

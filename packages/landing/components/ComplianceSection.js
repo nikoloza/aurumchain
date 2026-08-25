@@ -32,6 +32,7 @@ export const ComplianceSection = {
 
         FeatureItem: {
           state: {
+            revealDelay: '.1s',
             title: 'A transfer hook on every movement',
             body:
               'The token uses the SPL Token-2022 transfer hook. Each transfer calls the compliance program, which validates the wallet, the pause flags, and the lockup window before it allows the move.'
@@ -40,6 +41,7 @@ export const ComplianceSection = {
         FeatureItem_1: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.22s',
             title: 'Eligibility as the single source of truth',
             body:
               'One eligibility record per account holds the can-invest, can-withdraw, and can-receive-payout flags. The application reads that record, never a display tier.'
@@ -48,6 +50,7 @@ export const ComplianceSection = {
         FeatureItem_2: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.34s',
             title: 'Wallet ownership proven by signature',
             body:
               'A wallet links only after the holder signs a server-issued nonce. The signature and its timestamp stay on the wallet-link record.'
@@ -56,6 +59,7 @@ export const ComplianceSection = {
         FeatureItem_3: {
           extends: 'FeatureItem',
           state: {
+            revealDelay: '.46s',
             title: 'An append-only audit trail',
             body:
               'Identity decisions, eligibility changes, subscriptions, and payouts write an immutable audit row that carries the actor, the role, and the before and after state.'

@@ -1,6 +1,12 @@
 // Section lead-in in the brandbook's editorial voice: a numbered eyebrow on a
 // dashed rule with a diamond node, then a two-tone headline — the opening
 // phrase in slate, the payoff in the title ink — and a supporting line.
+//
+// The whole block choreographs on the owning Section's reveal: the diamond
+// pops, the eyebrow fades in as the rule draws itself, the headline lines
+// rise out of overflow masks the way the hero's do, and the lead settles
+// last. Every gate walks the state chain for `inView`, so anywhere without
+// reveal state (product shells, deep links) the heading renders settled.
 // state: { num, eyebrow, titleTop, title, lead }
 export const SectionHeading = {
   flow: 'y',
@@ -22,7 +28,11 @@ export const SectionHeading = {
       width: 'X1',
       height: 'X1',
       background: 'accentInk',
-      transform: 'rotate(45deg)'
+      transform: 'rotate(45deg) scale(0)',
+      transition: 'transform .5s cubic-bezier(.34,1.5,.5,1) .05s',
+      isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+      '.isInView': { transform: 'rotate(45deg) scale(1)' },
+      '@reduceMotion': { transform: 'rotate(45deg) scale(1)', transition: 'none' }
     },
     Num: {
       tag: 'span',
@@ -32,6 +42,11 @@ export const SectionHeading = {
       letterSpacing: '.14em',
       lineHeight: '1',
       color: 'accentInk',
+      opacity: '0',
+      transition: 'opacity .6s ease .12s',
+      isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+      '.isInView': { opacity: '1' },
+      '@reduceMotion': { opacity: '1', transition: 'none' },
       text: (el, s) => s.num || '',
       show: (el, s) => !!s.num
     },
@@ -43,6 +58,11 @@ export const SectionHeading = {
       lineHeight: '1',
       textTransform: 'uppercase',
       color: 'caption',
+      opacity: '0',
+      transition: 'opacity .6s ease .18s',
+      isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+      '.isInView': { opacity: '1' },
+      '@reduceMotion': { opacity: '1', transition: 'none' },
       text: (el, s) => s.eyebrow || ''
     },
     Rule: {
@@ -73,17 +93,44 @@ export const SectionHeading = {
     margin: '0',
     '@tabletS': { fontSize: 'C1' },
 
-    Top: {
+    // Each line lives in an overflow mask and rises into place. The masks
+    // carry a compensating pad so descenders never clip against the tight
+    // display line-height.
+    TopMask: {
       tag: 'span',
       display: 'block',
-      color: 'accentInk',
-      text: (el, s) => s.titleTop || '',
-      show: (el, s) => !!s.titleTop
+      overflow: 'hidden',
+      paddingBottom: '.1em',
+      marginBottom: '-.1em',
+      show: (el, s) => !!s.titleTop,
+      Top: {
+        tag: 'span',
+        display: 'block',
+        color: 'accentInk',
+        transform: 'translate3d(0, 112%, 0)',
+        transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .1s',
+        isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+        '.isInView': { transform: 'translate3d(0, 0, 0)' },
+        '@reduceMotion': { transform: 'none', transition: 'none' },
+        text: (el, s) => s.titleTop || ''
+      }
     },
-    Main: {
+    MainMask: {
       tag: 'span',
       display: 'block',
-      text: (el, s) => s.title || ''
+      overflow: 'hidden',
+      paddingBottom: '.1em',
+      marginBottom: '-.1em',
+      Main: {
+        tag: 'span',
+        display: 'block',
+        transform: 'translate3d(0, 112%, 0)',
+        transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .22s',
+        isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+        '.isInView': { transform: 'translate3d(0, 0, 0)' },
+        '@reduceMotion': { transform: 'none', transition: 'none' },
+        text: (el, s) => s.title || ''
+      }
     }
   },
 
@@ -94,6 +141,12 @@ export const SectionHeading = {
     color: 'paragraph',
     margin: '0',
     maxWidth: 'I',
+    opacity: '0',
+    transform: 'translate3d(0, 12px, 0)',
+    transition: 'opacity .7s ease .38s, transform .7s cubic-bezier(.22,.68,.24,.98) .38s',
+    isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+    '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
+    '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
     text: (el, s) => s.lead || '',
     show: (el, s) => !!s.lead
   }

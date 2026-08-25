@@ -2,5 +2,7 @@
 // local `open` flag and every other section is static.
 export default {
   // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
-  themeMode: ''
+  themeMode: '',
+  // Page-switch curtain stage: '' | 'cover' | 'reveal' — see RouteVeil.
+  veilStage: ''
 }

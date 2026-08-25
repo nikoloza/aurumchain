@@ -24,6 +24,7 @@ export const ChainSection = {
 
       ProgramCard: {
         state: {
+          revealDelay: '0s',
           name: 'project_registry',
           purpose:
             'Creates projects, binds the mint, caps supply per round, issues tokens directly to an investor wallet, and revokes the mint authority when the raise closes.',
@@ -40,6 +41,7 @@ export const ChainSection = {
       ProgramCard_1: {
         extends: 'ProgramCard',
         state: {
+          revealDelay: '.1s',
           name: 'compliance_transfer',
           purpose:
             'Records verified wallets, validates every transfer through the SPL transfer hook, and holds the subscription record from commitment to settlement.',
@@ -56,6 +58,7 @@ export const ChainSection = {
       ProgramCard_2: {
         extends: 'ProgramCard',
         state: {
+          revealDelay: '.2s',
           name: 'allocation_distribution',
           purpose:
             'Opens a payout epoch at a fixed profit per token, then pays each holder against a balance snapshot taken at the epoch boundary.',
@@ -65,6 +68,7 @@ export const ChainSection = {
       ProgramCard_3: {
         extends: 'ProgramCard',
         state: {
+          revealDelay: '.3s',
           name: 'secondary_market',
           purpose:
             'Escrows a seller position behind a sell order, fills orders against stablecoin, and takes a fee in basis points. Trades still clear the compliance hook.',

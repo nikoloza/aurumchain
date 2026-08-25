@@ -13,6 +13,7 @@ export const company = {
       'Fractyco builds the asset layer for real things: compliant fractions of real-world assets, settled on Solana.'
   },
 
+  RouteVeil: {},
   Navbar: {},
 
   Main: {

@@ -97,7 +97,13 @@ export const OfferingsSection = {
     Note: {
       tag: 'p',
       margin: '0',
+      width: '100%',
+      paddingTop: 'Z',
+      borderTop: '1px dashed',
+      borderTopColor: 'hairline',
+      fontFamily: 'Mono',
       fontSize: 'Y1',
+      letterSpacing: '.04em',
       color: 'caption',
       text:
         'The figures above are illustrative devnet data. Live offerings appear in the investor application after identity approval.'

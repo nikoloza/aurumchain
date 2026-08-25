@@ -42,6 +42,29 @@ export const HowSection = {
         '@reduceMotion': { transform: 'scaleX(1)', transition: 'none' }
       },
 
+      // Once the rail has drawn, a diamond glides its full length once —
+      // the account moving through the state machine.
+      RailGlide: {
+        tag: 'span',
+        position: 'absolute',
+        top: '50%',
+        left: '0%',
+        width: 'X1',
+        height: 'X1',
+        background: 'accentInk',
+        transform: 'translate(-50%, -50%) rotate(45deg)',
+        opacity: '0',
+        isInView: (el, s) => s.inView !== false,
+        '.isInView': {
+          animationName: 'railGlide',
+          animationDuration: '2.8s',
+          animationDelay: '1.5s',
+          animationTimingFunction: 'cubic-bezier(.45,.05,.35,.95)',
+          animationFillMode: 'both'
+        },
+        '@reduceMotion': { animationName: 'none' }
+      },
+
       Nodes: {
         position: 'relative',
         flow: 'x',

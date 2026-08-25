@@ -41,7 +41,21 @@ export const OfferingCard = {
     },
 
     ChipAccent: {
-      text: (el, s) => s.status || ''
+      text: (el, s) => s.status || '',
+      // A live offering carries a breathing node before its label.
+      Dot: {
+        tag: 'span',
+        order: '-1',
+        width: 'X',
+        height: 'X',
+        borderRadius: 'E',
+        background: 'currentColor',
+        animationName: 'pulseAccent',
+        animationDuration: '2.4s',
+        animationIterationCount: 'infinite',
+        '@reduceMotion': { animationName: 'none' },
+        show: (el, s) => (s.status || '').toLowerCase() === 'funding'
+      }
     }
   },
 
@@ -60,6 +74,7 @@ export const OfferingCard = {
       height: '100%',
       borderRadius: 'E',
       background: 'meter',
+      overflow: 'hidden',
       // The meter draws itself once the section is revealed; anywhere
       // without reveal state (the product shells) it renders settled.
       width: (el, s) => {
@@ -73,7 +88,26 @@ export const OfferingCard = {
         return `${Math.min(100, Number(s.pct) || 0)}%`
       },
       transition: 'width 1.3s cubic-bezier(.22,.68,.24,.98) .35s',
-      '@reduceMotion': { transition: 'none' }
+      '@reduceMotion': { transition: 'none' },
+
+      // Hard-edged scan strip riding a live meter — flat, no gradient.
+      Sheen: {
+        tag: 'span',
+        position: 'absolute',
+        top: '0',
+        bottom: '0',
+        left: '-16%',
+        width: 'A2',
+        background: 'white.35',
+        transform: 'skewX(-18deg)',
+        animationName: 'barSweep',
+        animationDuration: '3.4s',
+        animationDelay: '1.8s',
+        animationTimingFunction: 'cubic-bezier(.6,.05,.4,.95)',
+        animationIterationCount: 'infinite',
+        '@reduceMotion': { animationName: 'none' },
+        show: (el, s) => (s.status || '').toLowerCase() === 'funding'
+      }
     }
   },
 

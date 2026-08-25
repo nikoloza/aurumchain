@@ -42,8 +42,39 @@ export const ClosingSection = {
       maxWidth: 'I2',
       '@tabletS': { fontSize: 'E' },
 
-      Top: { tag: 'span', display: 'block', color: 'mist', text: 'Open an account,' },
-      Main: { tag: 'span', display: 'block', text: 'see the offerings' }
+      // The band's headline rises out of masks when the section reveals —
+      // the same choreography as the hero, re-run at the close.
+      TopMask: {
+        tag: 'span',
+        display: 'block',
+        overflow: 'hidden',
+        Top: {
+          tag: 'span',
+          display: 'block',
+          color: 'mist',
+          transform: 'translate3d(0, 112%, 0)',
+          transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .1s',
+          isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+          '.isInView': { transform: 'translate3d(0, 0, 0)' },
+          '@reduceMotion': { transform: 'none', transition: 'none' },
+          text: 'Open an account,'
+        }
+      },
+      MainMask: {
+        tag: 'span',
+        display: 'block',
+        overflow: 'hidden',
+        Main: {
+          tag: 'span',
+          display: 'block',
+          transform: 'translate3d(0, 112%, 0)',
+          transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .22s',
+          isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+          '.isInView': { transform: 'translate3d(0, 0, 0)' },
+          '@reduceMotion': { transform: 'none', transition: 'none' },
+          text: 'see the offerings'
+        }
+      }
     },
 
     P: {

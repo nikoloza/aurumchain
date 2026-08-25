@@ -33,6 +33,8 @@ export default {
 
   // Accent ink — slate-family emphasis that stays legible on both grounds
   accentInk: ['#41647F', 'mist'],
+  // Sticky-navbar frost once the page scrolls (transparent at the very top)
+  navWash: ['ivory.82', 'navyDeep.82'],
   // Active navigation wash + its ink
   activeWash: ['mist.32', 'mist.12'],
   activeInk: ['#2C4E68', 'mist'],
