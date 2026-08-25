@@ -1,17 +1,19 @@
-// Opening band — one section, two worlds, after aurc.app's world toggle.
-// The switcher pans the WebGL camera through the earth's cross-section and
-// swaps the editorial column between the two audiences: above ground the
-// investor story on the ivory page, underground the asset-owner story on a
-// navy band. Each stack remounts on the flip, so the masked headline and
-// staggered reveals re-choreograph every time the world changes.
+// Opening band — one full-viewport section, two worlds. The editorial column
+// sits dead-center inside the WebGL ring-world (see HeroCanvas): a compact
+// torus web hugs the copy, Tbilisi's skyline stands on the far arc of the
+// surface ellipse, and the underground holdings hang beneath the same plane.
+// The switcher dives the camera below the surface, turns the band navy, and
+// swaps the editorial column for the other audience. Each stack remounts on
+// the flip, so the masked headline and staggered reveals re-choreograph
+// every time the world changes.
 export const Hero = {
   tag: 'section',
   flow: 'y',
   align: 'center center',
   position: 'relative',
   width: '100%',
-  minHeight: '92vh',
-  padding: 'F C D',
+  minHeight: '100vh',
+  padding: 'E C',
   overflow: 'hidden',
   scope: {},
   state: { world: 'above', webglOk: false },
@@ -21,8 +23,8 @@ export const Hero = {
   '.isUnder': { background: 'navy' },
   '@tabletS': { minHeight: 'auto', padding: 'E A C' },
 
-  // Pointer feed for the cross-section — raw client coords on scope (the
-  // canvas derives world space from them); no state churn per mouse move.
+  // Pointer feed for the ring-world — raw client coords on scope (the canvas
+  // derives screen and world space from them); no state churn per mouse move.
   onMousemove: (ev, el) => {
     el.scope.cxr = ev.clientX
     el.scope.cyr = ev.clientY
@@ -39,68 +41,8 @@ export const Hero = {
 
   HeroCanvas: {},
 
-  // The boundary the camera dives through. Its CSS position mirrors the
-  // canvas camera's endpoints (95% at the surface, 27% at depth) on the
-  // same clock, so the dashed line rides the descent.
-  Horizon: {
-    position: 'absolute',
-    top: '95%',
-    left: '0',
-    right: '0',
-    pointerEvents: 'none',
-    attr: { 'aria-hidden': 'true' },
-    transition: 'top .9s cubic-bezier(.22,.68,.24,.98)',
-    isUnder: (el, s) => s.world === 'under',
-    '.isUnder': { top: '27%' },
-    '@tabletS': { display: 'none' },
-    animationName: 'fcReveal',
-    animationDuration: 'F',
-    animationDelay: 'D',
-    animationFillMode: 'both',
-    '@reduceMotion': { animationName: 'none' },
-
-    Rule: {
-      borderTop: '1px dashed',
-      borderTopColor: 'hairline',
-      width: '100%',
-      transition: 'border-color .9s ease',
-      isUnder: (el, s) => s.world === 'under',
-      '.isUnder': { borderTopColor: 'ivory.25' }
-    },
-    Above: {
-      tag: 'span',
-      position: 'absolute',
-      right: 'C',
-      bottom: 'Y',
-      fontFamily: 'Mono',
-      fontSize: 'Y',
-      letterSpacing: '.22em',
-      textTransform: 'uppercase',
-      color: 'caption',
-      transition: 'color .9s ease',
-      isUnder: (el, s) => s.world === 'under',
-      '.isUnder': { color: 'ivory.6' },
-      text: 'Above ground — the market'
-    },
-    Below: {
-      tag: 'span',
-      position: 'absolute',
-      right: 'C',
-      top: 'Y',
-      fontFamily: 'Mono',
-      fontSize: 'Y',
-      letterSpacing: '.22em',
-      textTransform: 'uppercase',
-      color: 'accentInk',
-      transition: 'color .9s ease',
-      isUnder: (el, s) => s.world === 'under',
-      '.isUnder': { color: 'mist' },
-      text: 'Underground — the asset'
-    }
-  },
-
   // The static ghost mark carries the composition only when WebGL is
-  // unavailable — the canvas flips `webglOk` once the cross-section runs.
+  // unavailable — the canvas flips `webglOk` once the ring-world runs.
   Ghost: {
     position: 'absolute',
     top: '-10vw',
@@ -115,10 +57,11 @@ export const Hero = {
 
   Inner: {
     flow: 'y',
-    gap: 'C',
-    align: 'flex-start flex-start',
+    gap: 'B2',
+    align: 'center center',
+    textAlign: 'center',
     width: '100%',
-    maxWidth: '1120px',
+    maxWidth: 'I2',
     position: 'relative',
 
     WorldSwitch: {
@@ -131,14 +74,14 @@ export const Hero = {
     // ── the investor story, above ground ──
     ContentAbove: {
       flow: 'y',
-      gap: 'C',
-      align: 'flex-start flex-start',
+      gap: 'B2',
+      align: 'center center',
       width: '100%',
       show: (el, s) => s.world !== 'under',
 
       Eyebrow: {
         flow: 'x',
-        align: 'center flex-start',
+        align: 'center center',
         gap: 'Z',
         width: '100%',
         animationName: 'fcReveal',
@@ -146,6 +89,13 @@ export const Hero = {
         animationFillMode: 'both',
         '@reduceMotion': { animationName: 'none' },
 
+        RuleL: {
+          flex: '1',
+          maxWidth: 'D',
+          alignSelf: 'center',
+          borderTop: '1px dashed',
+          borderTopColor: 'hairline'
+        },
         Diamond: {
           tag: 'span',
           flexShrink: '0',
@@ -164,8 +114,9 @@ export const Hero = {
           color: 'caption',
           text: 'Above ground · For investors'
         },
-        Rule: {
+        RuleR: {
           flex: '1',
+          maxWidth: 'D',
           alignSelf: 'center',
           borderTop: '1px dashed',
           borderTopColor: 'hairline'
@@ -250,7 +201,7 @@ export const Hero = {
 
       Actions: {
         flow: 'x',
-        align: 'center flex-start',
+        align: 'center center',
         gap: 'Z',
         flexWrap: 'wrap',
         animationName: 'fcReveal',
@@ -290,14 +241,14 @@ export const Hero = {
 
       Stats: {
         flow: 'x',
-        align: 'flex-start flex-start',
-        gap: 'E',
+        align: 'flex-start center',
+        gap: 'D',
         flexWrap: 'wrap',
-        marginTop: 'B',
+        marginTop: 'Z',
         paddingTop: 'B1',
         borderTop: '1px solid hairline',
         width: '100%',
-        textAlign: 'left',
+        textAlign: 'center',
         animationName: 'fcReveal',
         animationDuration: 'F',
         animationDelay: 'C1',
@@ -305,24 +256,24 @@ export const Hero = {
         '@reduceMotion': { animationName: 'none' },
         '@tabletS': { gap: 'B' },
 
-        StatCell: { state: { value: '$326T', label: 'Real assets worldwide' } },
-        StatCell_1: { extends: 'StatCell', state: { value: '$250', label: 'Minimum subscription' } },
-        StatCell_2: { extends: 'StatCell', state: { value: '6–9%', label: 'Target annual yield' } },
-        StatCell_3: { extends: 'StatCell', state: { value: 'T+0', label: 'On-chain settlement' } }
+        StatCell: { align: 'center center', state: { value: '$326T', label: 'Real assets worldwide' } },
+        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'Minimum subscription' } },
+        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'Target annual yield' } },
+        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: 'T+0', label: 'On-chain settlement' } }
       }
     },
 
     // ── the asset-owner story, underground (navy band; explicit inks) ──
     ContentUnder: {
       flow: 'y',
-      gap: 'C',
-      align: 'flex-start flex-start',
+      gap: 'B2',
+      align: 'center center',
       width: '100%',
       show: (el, s) => s.world === 'under',
 
       Eyebrow: {
         flow: 'x',
-        align: 'center flex-start',
+        align: 'center center',
         gap: 'Z',
         width: '100%',
         animationName: 'fcReveal',
@@ -330,6 +281,13 @@ export const Hero = {
         animationFillMode: 'both',
         '@reduceMotion': { animationName: 'none' },
 
+        RuleL: {
+          flex: '1',
+          maxWidth: 'D',
+          alignSelf: 'center',
+          borderTop: '1px dashed',
+          borderTopColor: 'ivory.2'
+        },
         Diamond: {
           tag: 'span',
           flexShrink: '0',
@@ -348,8 +306,9 @@ export const Hero = {
           color: 'ivory.6',
           text: 'Underground · For asset owners'
         },
-        Rule: {
+        RuleR: {
           flex: '1',
+          maxWidth: 'D',
           alignSelf: 'center',
           borderTop: '1px dashed',
           borderTopColor: 'ivory.2'
@@ -434,7 +393,7 @@ export const Hero = {
 
       Actions: {
         flow: 'x',
-        align: 'center flex-start',
+        align: 'center center',
         gap: 'Z',
         flexWrap: 'wrap',
         animationName: 'fcReveal',
@@ -473,15 +432,15 @@ export const Hero = {
 
       Stats: {
         flow: 'x',
-        align: 'flex-start flex-start',
-        gap: 'E',
+        align: 'flex-start center',
+        gap: 'D',
         flexWrap: 'wrap',
-        marginTop: 'B',
+        marginTop: 'Z',
         paddingTop: 'B1',
         borderTop: '1px solid',
         borderTopColor: 'ivory.16',
         width: '100%',
-        textAlign: 'left',
+        textAlign: 'center',
         animationName: 'fcReveal',
         animationDuration: 'F',
         animationDelay: 'C1',
@@ -490,75 +449,82 @@ export const Hero = {
         '@tabletS': { gap: 'B' },
 
         StatCell: {
+          align: 'center center',
           state: { value: '6', label: 'Asset classes live' },
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         },
         StatCell_1: {
           extends: 'StatCell',
+          align: 'center center',
           state: { value: '100%', label: 'Supply-capped issues' },
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         },
         StatCell_2: {
           extends: 'StatCell',
+          align: 'center center',
           state: { value: '75 bps', label: 'Secondary-market fee' },
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         },
         StatCell_3: {
           extends: 'StatCell',
+          align: 'center center',
           state: { value: '4', label: 'Anchor programs' },
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         }
       }
-    },
+    }
+  },
 
-    ScrollCue: {
-      flow: 'x',
-      align: 'center flex-start',
-      gap: 'Z',
-      marginTop: 'C',
-      animationName: 'fcReveal',
-      animationDuration: 'F',
-      animationDelay: 'D',
-      animationFillMode: 'both',
-      '@reduceMotion': { animationName: 'none' },
-      '@tabletS': { display: 'none' },
+  ScrollCue: {
+    flow: 'x',
+    align: 'center center',
+    gap: 'Z',
+    position: 'absolute',
+    bottom: 'B',
+    left: '0',
+    right: '0',
+    animationName: 'fcReveal',
+    animationDuration: 'F',
+    animationDelay: 'D',
+    animationFillMode: 'both',
+    '@reduceMotion': { animationName: 'none' },
+    '@tabletS': { display: 'none' },
 
-      Mask: {
-        position: 'relative',
-        width: 'X',
-        height: 'C',
-        overflow: 'hidden',
-        borderLeft: '1px solid hairline',
+    Mask: {
+      position: 'relative',
+      width: 'X',
+      height: 'C',
+      overflow: 'hidden',
+      borderLeft: '1px solid hairline',
 
-        Line: {
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          height: '100%',
-          borderLeft: '1px solid accentInk',
-          animationName: 'cueDrop',
-          animationDuration: '2.2s',
-          animationTimingFunction: 'cubic-bezier(.6,.05,.3,.95)',
-          animationIterationCount: 'infinite',
-          '@reduceMotion': { animationName: 'none' }
-        }
-      },
-      Label: {
-        tag: 'span',
-        fontFamily: 'Mono',
-        fontSize: 'Y1',
-        letterSpacing: '.2em',
-        textTransform: 'uppercase',
-        color: 'caption',
-        transition: 'color .9s ease',
-        isUnder: (el, s) => s.world === 'under',
-        '.isUnder': { color: 'ivory.5' },
-        text: 'Scroll'
+      Line: {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        height: '100%',
+        borderLeft: '1px solid accentInk',
+        animationName: 'cueDrop',
+        animationDuration: '2.2s',
+        animationTimingFunction: 'cubic-bezier(.6,.05,.3,.95)',
+        animationIterationCount: 'infinite',
+        '@reduceMotion': { animationName: 'none' }
       }
+    },
+    Label: {
+      tag: 'span',
+      fontFamily: 'Mono',
+      fontSize: 'Y1',
+      letterSpacing: '.2em',
+      textTransform: 'uppercase',
+      color: 'caption',
+      transition: 'color .9s ease',
+      isUnder: (el, s) => s.world === 'under',
+      '.isUnder': { color: 'ivory.5' },
+      text: 'Scroll'
     }
   }
 }
