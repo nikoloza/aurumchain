@@ -22,6 +22,11 @@ export default {
   network: 'Devnet',
   wallet: '7STXs2…uSk4',
 
+  // ── Transient app notice — raised by appNotify, rendered by AppToast ─────
+  appNotice: '',
+  appNoticeOn: false,
+  appNoticeSeq: 0,
+
   route: '/',
   pageTitle: 'Overview',
   pageLead: 'Your positions, payouts, and open subscriptions.',

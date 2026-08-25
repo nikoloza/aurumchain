@@ -39,13 +39,7 @@ export const portfolio = {
             { revealDelay: '.16s', name: 'Serra Verde Plant', symbol: 'SVP-003', tokens: '556.0000', invested: '$27,800', avg: '$50.00', ret: '+6.9%' }
           ]
         },
-        onRender: (el, s) => {
-          const win = el.node && el.node.ownerDocument.defaultView
-          if (win && !el.scope.armed) {
-            el.scope.armed = true
-            win.setTimeout(() => s.update({ inView: true }, { preventFetch: true }), 180)
-          }
-        },
+        onRender: (el) => el.call('armReveal'),
 
         Items: {
           flow: 'y',
@@ -56,8 +50,8 @@ export const portfolio = {
         },
 
         EmptyState: {
-          show: (el, s) => { let st = s; while (st) { if (st.positions !== undefined) return !(st.positions && st.positions.length); st = st.parent } return false },
           state: {
+            watch: 'positions',
             title: 'No positions yet',
             caption: 'Subscribe to an open offering and the holding settles here on finalization.'
           }

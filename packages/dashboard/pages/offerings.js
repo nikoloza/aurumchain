@@ -24,13 +24,7 @@ export const offerings = {
         show: (el, s) => !!s.root.backendOfferingsLoaded,
         // The rows arrive with the skeletons still up — arm the reveal here
         // so the fades and the funding meters draw once the list is on.
-        onRender: (el, s) => {
-          const win = el.node && el.node.ownerDocument.defaultView
-          if (win && !el.scope.armed) {
-            el.scope.armed = true
-            win.setTimeout(() => s.update({ inView: true }, { preventFetch: true }), 180)
-          }
-        },
+        onRender: (el) => el.call('armReveal'),
         childExtends: 'OfferingItem',
         childrenAs: 'state',
         // Live rows from the platform Supabase; the illustrative set only
@@ -81,7 +75,9 @@ export const offerings = {
         state: {
           text: 'Subscription commits stablecoin and opens a subscription record. An operator finalizes it, and the registry then mints the tokens to your verified wallet.'
         }
-      }
+      },
+
+      AppToast: {}
     }
   }
 }

@@ -38,7 +38,6 @@ export const payouts = {
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No payouts yet',
               caption: 'Records appear after the first epoch closes with you on the snapshot.'

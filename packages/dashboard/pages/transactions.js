@@ -19,7 +19,6 @@ export const transactions = {
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No transactions yet',
               caption: 'Every deposit, subscription, payout, trade, and refund is recorded here.'

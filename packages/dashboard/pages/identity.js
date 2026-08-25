@@ -10,6 +10,7 @@ export const identity = {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: 'A',
+        alignItems: 'start',
         '@tabletL': { gridTemplateColumns: '1fr' },
 
         Panel: {
@@ -33,11 +34,15 @@ export const identity = {
           state: { title: 'Permissions', lead: 'Derived from the eligibility state and cached as flags.' },
           Flags: {
             flow: 'y',
-            gap: 'Z',
-            Invest: { flow: 'x', align: 'center space-between', K: { tag: 'span', fontSize: 'Z', color: 'paragraph', text: 'Can invest' }, StatusPill: { state: { status: 'Approved' } } },
-            Withdraw: { flow: 'x', align: 'center space-between', K: { tag: 'span', fontSize: 'Z', color: 'paragraph', text: 'Can withdraw' }, StatusPill: { state: { status: 'Approved' } } },
-            Payout: { flow: 'x', align: 'center space-between', K: { tag: 'span', fontSize: 'Z', color: 'paragraph', text: 'Can receive payouts' }, StatusPill: { state: { status: 'Approved' } } },
-            Transfer: { flow: 'x', align: 'center space-between', K: { tag: 'span', fontSize: 'Z', color: 'paragraph', text: 'Lockup' }, StatusPill: { state: { status: 'Completed' } } }
+            width: '100%',
+            childExtends: 'FlagRow',
+            childrenAs: 'state',
+            children: [
+              { text: 'Can invest', status: 'Approved' },
+              { text: 'Can withdraw', status: 'Approved' },
+              { text: 'Can receive payouts', status: 'Approved' },
+              { text: 'Lockup', status: 'Completed' }
+            ]
           }
         }
       }

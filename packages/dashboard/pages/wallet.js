@@ -12,11 +12,10 @@ export const wallet = {
           state: {
             columns: ['Address', 'Chain', 'Type', 'Linked', 'Status'],
             rows: [
-              { cells: [{ text: '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4', mono: true }, { text: 'Solana devnet' }, { text: 'Phantom' }, { text: '2026-07-04', mono: true }, { status: 'Verified' }] }
+              { cells: [{ text: '7STXs2…uSk4', mono: true }, { text: 'Solana devnet' }, { text: 'Phantom' }, { text: '2026-07-04', mono: true }, { status: 'Verified' }] }
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No wallet linked',
               caption: 'Link a wallet and sign the server-issued nonce to verify ownership.'
@@ -27,8 +26,15 @@ export const wallet = {
           flow: 'x',
           gap: 'Z',
           paddingTop: 'Z',
-          ActionButton: { text: 'Link another wallet' },
-          ActionButton_1: { extends: 'ActionButton', state: { tone: 'secondary' }, text: 'Re-verify' }
+          // Linking signs a server-issued nonce through the wallet adapter —
+          // not wired on the preview, so both actions acknowledge instead.
+          ActionButton: { text: 'Link another wallet', onClick: (e, el) => el.call('appNotify') },
+          ActionButton_1: {
+            extends: 'ActionButton',
+            state: { tone: 'secondary' },
+            text: 'Re-verify',
+            onClick: (e, el) => el.call('appNotify')
+          }
         }
       },
 
@@ -45,14 +51,15 @@ export const wallet = {
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No token balances',
               caption: 'Tokens mint to your verified wallet once a subscription finalizes.'
             }
           }
         }
-      }
+      },
+
+      AppToast: {}
     }
   }
 }

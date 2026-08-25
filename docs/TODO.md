@@ -56,3 +56,22 @@ Backend and API work is tracked separately in
       it up on `fractyco--*.at.symbo.ls`.
 - [ ] A stale dev server is holding port 5040 on the iMac, so `bun start`
       shifts the landing surface to 5043 — `lsof -ti :5040 | xargs kill`.
+
+## Brand-library follow-ups (from the 2026-08-25 dashboard audit)
+- [ ] **No navigation below 1366px** — `Rail` is `display: none` at
+      `@tabletL` with no substitute, so the dashboard becomes unnavigable on
+      tablets. Needs a mobile drawer / topbar menu in `packages/brand`
+      (the landing's hamburger pattern is the obvious donor).
+- [ ] `DataCell` / `HeadCell` `minWidth: 'F'` (~178px per column) is too
+      aggressive — six-column tables exceed most laptops. Suggest `'E'` or
+      per-column mins plus a right-align flag for numeric columns.
+- [ ] `loadOfferings` (brand `functions/backend.js`) maps `location, country`
+      into the `closes` field — live rows would read "closes Perth,
+      Australia". Map a real close date.
+- [ ] `ActionButton` has no canonical `:disabled` state and the primitives
+      lack `:focus-visible` (currently rescued by a raw-hex rule in each
+      surface's `index.html`) — both belong on the brand primitives
+      (Rule 65).
+- [ ] Add payout **Claim** and marketplace listing **Cancel** row actions —
+      the page copy promises both — once the backend writes exist
+      ([TODO_BACKEND.md](./TODO_BACKEND.md)).

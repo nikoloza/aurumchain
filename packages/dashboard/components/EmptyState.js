@@ -1,8 +1,20 @@
 // Centered blank slate for any list with nothing to show — the brand's value
 // diamond drifting over one title line and one caption line. The keyframe
 // rides a wrapper so the float never overwrites the diamond's rotation.
-// state: { title, caption }
+// It shows itself: `watch` names the list key ('rows' by default) and the
+// component walks the state chain for it, so a call site declares only its
+// copy. state: { title, caption, watch }
 export const EmptyState = {
+  show: (el, s) => {
+    const key = s.watch || 'rows'
+    let st = s
+    while (st) {
+      if (st[key] !== undefined) return !(st[key] && st[key].length)
+      st = st.parent
+    }
+    return false
+  },
+
   flow: 'y',
   align: 'center center',
   gap: 'Z',

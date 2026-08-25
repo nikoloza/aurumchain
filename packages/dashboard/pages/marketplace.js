@@ -38,7 +38,6 @@ export const marketplace = {
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No open orders',
               caption: 'Sell orders across every asset appear here the moment escrow accepts them.'
@@ -58,7 +57,6 @@ export const marketplace = {
             ]
           },
           EmptyState: {
-            show: (el, s) => { let st = s; while (st) { if (st.rows !== undefined) return !(st.rows && st.rows.length); st = st.parent } return false },
             state: {
               title: 'No listings yet',
               caption: 'List a position and it shows here while escrow holds the tokens.'

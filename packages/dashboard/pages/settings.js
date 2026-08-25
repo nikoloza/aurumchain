@@ -2,7 +2,7 @@ export const settings = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Settings — Fractyco' },
   onRender: (el) =>
-    el.call('openPage', '/settings', 'Settings', 'Profile, notifications, and network.'),
+    el.call('openPage', '/settings', 'Settings', 'Profile and network.'),
 
   Column: {
     Body: {

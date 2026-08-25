@@ -3,6 +3,7 @@ import state from './state.js'
 import config from './config.js'
 import sharedLibraries from './sharedLibraries.js'
 import * as components from './components/index.js'
+import * as functions from './functions/index.js'
 import pages from './pages/index.js'
 
 export default {
@@ -11,5 +12,6 @@ export default {
   state,
   sharedLibraries,
   components,
+  functions,
   pages
 }
