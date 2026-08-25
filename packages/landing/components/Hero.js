@@ -1,11 +1,11 @@
 // Opening band — one full-viewport section, two worlds. The editorial column
-// sits dead-center inside the WebGL ring-world (see HeroCanvas): a compact
-// torus web hugs the copy, Tbilisi's skyline stands on the far arc of the
-// surface ellipse, and the underground holdings hang beneath the same plane.
+// sits dead-center inside the WebGL ring-world (see HeroCanvas) and carries
+// ONLY the eyebrow, the headline, and the lead — the calls to action and the
+// figure strip live on the band's bottom edge, so the center keeps its air.
 // The switcher dives the camera below the surface, turns the band navy, and
-// swaps the editorial column for the other audience. Each stack remounts on
-// the flip, so the masked headline and staggered reveals re-choreograph
-// every time the world changes.
+// swaps both the column and the bottom edge for the other audience. Each
+// stack remounts on the flip, so the masked headline and staggered reveals
+// re-choreograph every time the world changes.
 export const Hero = {
   tag: 'section',
   flow: 'y',
@@ -13,7 +13,9 @@ export const Hero = {
   position: 'relative',
   width: '100%',
   minHeight: '100vh',
-  padding: 'E C',
+  // The deep bottom inset reserves the edge band's box, so the centered
+  // column can never collide with it on short viewports.
+  padding: 'E C F2',
   overflow: 'hidden',
   scope: {},
   state: { webglOk: false },
@@ -58,9 +60,10 @@ export const Hero = {
     '@tabletS': { display: 'none' }
   },
 
+  // ── the centered column: eyebrow, headline, lead — nothing else ──
   Inner: {
     flow: 'y',
-    gap: 'B2',
+    gap: 'C',
     align: 'center center',
     textAlign: 'center',
     width: '100%',
@@ -78,10 +81,9 @@ export const Hero = {
       '@reduceMotion': { animationName: 'none' }
     },
 
-    // ── the investor story, above ground ──
     ContentAbove: {
       flow: 'y',
-      gap: 'B2',
+      gap: 'C',
       align: 'center center',
       width: '100%',
       show: (el, s) => s.root.heroWorld !== 'under',
@@ -204,80 +206,12 @@ export const Hero = {
         text:
           'Buy compliant fractions of real-world assets on Solana. The registry caps every supply, the transfer hook clears every move, and payouts settle back to your wallet.',
         '@tabletS': { fontSize: 'A' }
-      },
-
-      Actions: {
-        flow: 'x',
-        align: 'center center',
-        gap: 'Z',
-        flexWrap: 'wrap',
-        animationName: 'fcReveal',
-        animationDuration: 'F',
-        animationDelay: 'C',
-        animationFillMode: 'both',
-        '@reduceMotion': { animationName: 'none' },
-
-        Link: {
-          href: 'https://fractyco--app.at.symbo.ls/signin',
-          text: '',
-          textDecoration: 'none',
-          display: 'inline-flex',
-          PillButton: { state: { tone: 'solid' }, text: 'Open an account' }
-        },
-        HowCta: {
-          display: 'inline-flex',
-          state: { anchor: 'how' },
-          onClick: (ev, el, s) => {
-            ev.preventDefault()
-            el.call('scrollToSection', s.anchor)
-          },
-          Link: {
-            // Same-document absolute URL — Link then leaves the click to the
-            // HowCta wrapper above. See components/NavItem.js.
-            href: (el) => {
-              const loc = el.node && el.node.ownerDocument.location
-              return loc ? `${loc.origin}${loc.pathname}#how` : '#how'
-            },
-            text: '',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            PillButton: { state: { tone: 'paper' }, text: 'See how it works' }
-          }
-        }
-      },
-
-      Stats: {
-        flow: 'x',
-        align: 'flex-start center',
-        gap: 'D',
-        flexWrap: 'wrap',
-        marginTop: 'Z',
-        paddingTop: 'B1',
-        borderTop: '1px solid line',
-        width: '100%',
-        textAlign: 'center',
-        animationName: 'fcReveal',
-        animationDuration: 'F',
-        animationDelay: 'C1',
-        animationFillMode: 'both',
-        '@reduceMotion': { animationName: 'none' },
-        '@tabletS': { gap: 'B' },
-
-        childProps: {
-          Value: { color: 'navy' },
-          Label: { color: 'muted' }
-        },
-        StatCell: { align: 'center center', state: { value: '$326T', label: 'Real assets worldwide' } },
-        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'Minimum subscription' } },
-        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'Target annual yield' } },
-        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: 'T+0', label: 'On-chain settlement' } }
       }
     },
 
-    // ── the asset-owner story, underground (navy band; explicit inks) ──
     ContentUnder: {
       flow: 'y',
-      gap: 'B2',
+      gap: 'C',
       align: 'center center',
       width: '100%',
       show: (el, s) => s.root.heroWorld === 'under',
@@ -400,7 +334,103 @@ export const Hero = {
         text:
           'A mine in Ashanti, a plant in Minas Gerais, a grain belt in the Mallee — if it produces yield, the registry can cap it, split it, and pay its holders. You keep the asset; the chain keeps the books.',
         '@tabletS': { fontSize: 'A' }
+      }
+    }
+  },
+
+  // ── the bottom edge: the calls to action over the figure strip ──
+  EdgeBand: {
+    position: 'absolute',
+    bottom: '0',
+    left: '0',
+    right: '0',
+    flow: 'y',
+    align: 'center center',
+    gap: 'B',
+    padding: '0 C C',
+    '@tabletS': { position: 'static', padding: 'C 0 0' },
+
+    EdgeAbove: {
+      flow: 'y',
+      align: 'center center',
+      gap: 'B',
+      width: '100%',
+      show: (el, s) => s.root.heroWorld !== 'under',
+
+      Actions: {
+        flow: 'x',
+        align: 'center center',
+        gap: 'Z',
+        flexWrap: 'wrap',
+        animationName: 'fcReveal',
+        animationDuration: 'F',
+        animationDelay: 'C',
+        animationFillMode: 'both',
+        '@reduceMotion': { animationName: 'none' },
+
+        Link: {
+          href: 'https://fractyco--app.at.symbo.ls/signin',
+          text: '',
+          textDecoration: 'none',
+          display: 'inline-flex',
+          PillButton: { state: { tone: 'solid' }, text: 'Open an account' }
+        },
+        HowCta: {
+          display: 'inline-flex',
+          state: { anchor: 'how' },
+          onClick: (ev, el, s) => {
+            ev.preventDefault()
+            el.call('scrollToSection', s.anchor)
+          },
+          Link: {
+            // Same-document absolute URL — Link then leaves the click to the
+            // HowCta wrapper above. See components/NavItem.js.
+            href: (el) => {
+              const loc = el.node && el.node.ownerDocument.location
+              return loc ? `${loc.origin}${loc.pathname}#how` : '#how'
+            },
+            text: '',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            PillButton: { state: { tone: 'paper' }, text: 'See how it works' }
+          }
+        }
       },
+
+      Stats: {
+        flow: 'x',
+        align: 'flex-start center',
+        gap: 'D',
+        flexWrap: 'wrap',
+        paddingTop: 'B',
+        borderTop: '1px solid line',
+        width: '100%',
+        maxWidth: 'I2',
+        textAlign: 'center',
+        animationName: 'fcReveal',
+        animationDuration: 'F',
+        animationDelay: 'C1',
+        animationFillMode: 'both',
+        '@reduceMotion': { animationName: 'none' },
+        '@tabletS': { gap: 'B' },
+
+        childProps: {
+          Value: { color: 'navy' },
+          Label: { color: 'muted' }
+        },
+        StatCell: { align: 'center center', state: { value: '$326T', label: 'Real assets worldwide' } },
+        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'Minimum subscription' } },
+        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'Target annual yield' } },
+        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: 'T+0', label: 'On-chain settlement' } }
+      }
+    },
+
+    EdgeUnder: {
+      flow: 'y',
+      align: 'center center',
+      gap: 'B',
+      width: '100%',
+      show: (el, s) => s.root.heroWorld === 'under',
 
       Actions: {
         flow: 'x',
@@ -446,11 +476,11 @@ export const Hero = {
         align: 'flex-start center',
         gap: 'D',
         flexWrap: 'wrap',
-        marginTop: 'Z',
-        paddingTop: 'B1',
+        paddingTop: 'B',
         borderTop: '1px solid',
         borderTopColor: 'ivory.16',
         width: '100%',
+        maxWidth: 'I2',
         textAlign: 'center',
         animationName: 'fcReveal',
         animationDuration: 'F',
@@ -459,83 +489,15 @@ export const Hero = {
         '@reduceMotion': { animationName: 'none' },
         '@tabletS': { gap: 'B' },
 
-        StatCell: {
-          align: 'center center',
-          state: { value: '6', label: 'Asset classes live' },
+        childProps: {
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         },
-        StatCell_1: {
-          extends: 'StatCell',
-          align: 'center center',
-          state: { value: '100%', label: 'Supply-capped issues' },
-          Value: { color: 'ivory' },
-          Label: { color: 'ivory.55' }
-        },
-        StatCell_2: {
-          extends: 'StatCell',
-          align: 'center center',
-          state: { value: '75 bps', label: 'Secondary-market fee' },
-          Value: { color: 'ivory' },
-          Label: { color: 'ivory.55' }
-        },
-        StatCell_3: {
-          extends: 'StatCell',
-          align: 'center center',
-          state: { value: '4', label: 'Anchor programs' },
-          Value: { color: 'ivory' },
-          Label: { color: 'ivory.55' }
-        }
+        StatCell: { align: 'center center', state: { value: '6', label: 'Asset classes live' } },
+        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '100%', label: 'Supply-capped issues' } },
+        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '75 bps', label: 'Secondary-market fee' } },
+        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: '4', label: 'Anchor programs' } }
       }
-    }
-  },
-
-  ScrollCue: {
-    flow: 'x',
-    align: 'center center',
-    gap: 'Z',
-    position: 'absolute',
-    bottom: 'B',
-    left: '0',
-    right: '0',
-    animationName: 'fcReveal',
-    animationDuration: 'F',
-    animationDelay: 'D',
-    animationFillMode: 'both',
-    '@reduceMotion': { animationName: 'none' },
-    '@tabletS': { display: 'none' },
-
-    Mask: {
-      position: 'relative',
-      width: 'X',
-      height: 'C',
-      overflow: 'hidden',
-      borderLeft: '1px solid line',
-
-      Line: {
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        height: '100%',
-        borderLeft: '1px solid slateInk',
-        animationName: 'cueDrop',
-        animationDuration: '2.2s',
-        animationTimingFunction: 'cubic-bezier(.6,.05,.3,.95)',
-        animationIterationCount: 'infinite',
-        '@reduceMotion': { animationName: 'none' }
-      }
-    },
-    Label: {
-      tag: 'span',
-      fontFamily: 'Mono',
-      fontSize: 'Y1',
-      letterSpacing: '.2em',
-      textTransform: 'uppercase',
-      color: 'muted',
-      transition: 'color .9s ease',
-      isUnder: (el, s) => s.root.heroWorld === 'under',
-      '.isUnder': { color: 'ivory.5' },
-      text: 'Scroll'
     }
   }
 }
