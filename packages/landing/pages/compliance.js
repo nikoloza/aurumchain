@@ -27,12 +27,11 @@ export const compliance = {
 
     PageHero: {
       state: {
-        eyebrow: 'Compliance',
-        titleTop: 'Policy that',
-        title: 'executes itself',
-        lead:
-          'Compliance is not a screen in front of the ledger — it runs inside the transfer path. An unverified wallet cannot receive tokens even through a direct transfer, because the token itself refuses the move.',
-        chips: ['SPL Token-2022', 'Transfer hook', 'Eligibility record', 'Audit trail']
+        eyebrow: 'page.compliance.eyebrow',
+        titleTop: 'page.compliance.titleTop',
+        title: 'page.compliance.title',
+        lead: 'page.compliance.lead',
+        chips: ['SPL Token-2022', 'chip.transferHook', 'chip.eligibilityRecord', 'chip.auditTrail']
       }
     },
 

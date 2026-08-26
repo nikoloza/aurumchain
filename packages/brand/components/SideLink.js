@@ -22,7 +22,7 @@ export const SideLink = {
   // Icon-strip rail below tabletL: square hit target, glyph centred, the
   // native tooltip carries the hidden label.
   '@tabletL': { align: 'center center', padding: 'Y' },
-  title: (el, s) => s.label || '',
+  title: (el, s) => el.call('polyglot', s.label || '', s.root.lang),
 
   href: (el, s) => s.path,
   ariaCurrent: (el, s) => (s.root.route === s.path ? 'page' : null),
@@ -45,7 +45,7 @@ export const SideLink = {
     Icon: { name: (el, s) => s.icon || 'chart' }
   },
 
-  Label: { tag: 'span', text: (el, s) => s.label || '', '@tabletL': { display: 'none' } },
+  Label: { tag: 'span', text: (el, s) => el.call('polyglot', s.label || '', s.root.lang), '@tabletL': { display: 'none' } },
 
   // Diamond marker — the brand's node shape, lit only on the active route.
   Marker: {

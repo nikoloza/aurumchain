@@ -22,8 +22,7 @@ export const MissionSection = {
         letterSpacing: '-.025em',
         color: 'title',
         margin: '0',
-        text:
-          'Most of the world’s value sits in assets that never trade: land, plants, concessions, credit. We give each one a supply-capped token, a compliance hook, and a payout path — and leave custody with the owner.',
+        text: '{{ company.mission.quote | polyglot }}',
         '@tabletS': { fontSize: 'B1' }
       },
       Cite: {
@@ -33,7 +32,7 @@ export const MissionSection = {
         letterSpacing: '.12em',
         textTransform: 'uppercase',
         color: 'caption',
-        text: '— The reason the four programs exist'
+        text: '{{ company.mission.cite | polyglot }}'
       }
     }
   }
@@ -48,10 +47,10 @@ export const ValuesSection = {
     SectionHeading: {
       state: {
         num: '01',
-        eyebrow: 'Principles',
-        titleTop: 'Rules we wrote',
-        title: 'into the programs.',
-        lead: 'A principle you can’t enforce is a slogan. Each of ours is a constraint the chain checks on every transaction.'
+        eyebrow: 'company.values.eyebrow',
+        titleTop: 'company.values.titleTop',
+        title: 'company.values.title',
+        lead: 'company.values.lead'
       }
     },
 
@@ -64,10 +63,10 @@ export const ValuesSection = {
       childExtends: 'AssetTile',
       childrenAs: 'state',
       children: [
-        { revealDelay: '0s', icon: 'shield', name: 'Compliance is physics', line: 'The token itself refuses a non-compliant transfer — policy lives in the transfer path, not in a terms page.' },
-        { revealDelay: '.08s', icon: 'lock', name: 'Custody stays with you', line: 'Tokens mint to the investor wallet. We keep the ledger honest; we never hold the asset.' },
-        { revealDelay: '.16s', icon: 'audit', name: 'Auditable by anyone', line: 'Every authority action is a public transaction. Our console reads the same records an explorer does.' },
-        { revealDelay: '.24s', icon: 'coins', name: 'Yield settles on-chain', line: 'Payouts distribute in USDC against sealed snapshots — no cheques, no quarters, no trust required.' }
+        { revealDelay: '0s', icon: 'shield', name: 'company.values.physics.name', line: 'company.values.physics.line' },
+        { revealDelay: '.08s', icon: 'lock', name: 'company.values.custody.name', line: 'company.values.custody.line' },
+        { revealDelay: '.16s', icon: 'audit', name: 'company.values.audit.name', line: 'company.values.audit.line' },
+        { revealDelay: '.24s', icon: 'coins', name: 'company.values.yield.name', line: 'company.values.yield.line' }
       ]
     }
   }
@@ -81,9 +80,9 @@ export const MilestonesSection = {
     SectionHeading: {
       state: {
         num: '02',
-        eyebrow: 'Milestones',
-        titleTop: 'Shipping order,',
-        title: 'not press-release order.'
+        eyebrow: 'company.milestones.eyebrow',
+        titleTop: 'company.milestones.titleTop',
+        title: 'company.milestones.title'
       }
     },
 
@@ -95,12 +94,12 @@ export const MilestonesSection = {
       childExtends: 'Milestone',
       childrenAs: 'state',
       children: [
-        { revealDelay: '0s', when: '2024 Q4', what: 'First registry program on devnet — supply caps enforced on mint', done: true },
-        { revealDelay: '.08s', when: '2025 Q2', what: 'Transfer hook clears its first compliant transfer end-to-end', done: true },
-        { revealDelay: '.16s', when: '2025 Q4', what: 'Distribution epochs pay 312 devnet holders from one snapshot', done: true },
-        { revealDelay: '.24s', when: '2026 Q1', what: 'Secondary market escrow fills its first partial order', done: true },
-        { revealDelay: '.32s', when: '2026 Q3', what: 'Program audit of all four programs', done: false },
-        { revealDelay: '.4s', when: '2026 Q4', what: 'Mainnet — first regulated offering opens', done: false }
+        { revealDelay: '0s', when: '2024 Q4', what: 'company.milestones.m1', done: true },
+        { revealDelay: '.08s', when: '2025 Q2', what: 'company.milestones.m2', done: true },
+        { revealDelay: '.16s', when: '2025 Q4', what: 'company.milestones.m3', done: true },
+        { revealDelay: '.24s', when: '2026 Q1', what: 'company.milestones.m4', done: true },
+        { revealDelay: '.32s', when: '2026 Q3', what: 'company.milestones.m5', done: false },
+        { revealDelay: '.4s', when: '2026 Q4', what: 'company.milestones.m6', done: false }
       ]
     }
   }
@@ -143,7 +142,7 @@ export const Milestone = {
     fontSize: 'A',
     lineHeight: '1.5',
     color: (el, s) => (s.done ? 'title' : 'caption'),
-    text: (el, s) => s.what || ''
+    text: (el, s) => el.call('polyglot', s.what, s.root.lang)
   },
   Mark: {
     tag: 'span',
@@ -151,7 +150,8 @@ export const Milestone = {
     fontFamily: 'Mono',
     fontSize: 'Z',
     color: (el, s) => (s.done ? 'green' : 'caption'),
-    text: (el, s) => (s.done ? '✓ shipped' : '— ahead')
+    text: (el, s) =>
+      el.call('polyglot', s.done ? 'company.milestones.shipped' : 'company.milestones.ahead', s.root.lang)
   }
 }
 
@@ -194,8 +194,8 @@ export const ContactSection = {
       textTransform: 'uppercase',
       color: 'ivory',
       margin: '0',
-      Top: { tag: 'span', display: 'block', color: 'mist', text: 'Building the rails?' },
-      Main: { tag: 'span', display: 'block', text: 'Come build them here' },
+      Top: { tag: 'span', display: 'block', color: 'mist', text: '{{ company.contact.titleTop | polyglot }}' },
+      Main: { tag: 'span', display: 'block', text: '{{ company.contact.title | polyglot }}' },
       '@tabletS': { fontSize: 'D' }
     },
 
@@ -205,7 +205,7 @@ export const ContactSection = {
       lineHeight: '1.6',
       color: 'ivory.72',
       maxWidth: 'H+C',
-      text: 'We are a small team across Tbilisi and Lisbon: Rust on-chain, TypeScript off it, and one shared standard — if the chain can enforce it, don’t ask a human to.'
+      text: '{{ company.contact.lead | polyglot }}'
     },
 
     Actions: {

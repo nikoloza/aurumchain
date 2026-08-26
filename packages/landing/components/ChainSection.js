@@ -8,11 +8,10 @@ export const ChainSection = {
     SectionHeading: {
       state: {
         num: '05',
-        eyebrow: 'On-chain',
-        titleTop: 'Four programs,',
-        title: 'one settlement path.',
-        lead:
-          'The registry owns supply. Compliance owns permission. Distribution owns payouts. The market owns resale.'
+        eyebrow: 'chain.eyebrow',
+        titleTop: 'chain.titleTop',
+        title: 'chain.title',
+        lead: 'chain.lead'
       }
     },
 
@@ -26,8 +25,7 @@ export const ChainSection = {
         state: {
           revealDelay: '0s',
           name: 'project_registry',
-          purpose:
-            'Creates projects, binds the mint, caps supply per round, issues tokens directly to an investor wallet, and revokes the mint authority when the raise closes.',
+          purpose: 'chain.registry.purpose',
           calls: [
             'create_project',
             'set_project_mint',
@@ -43,8 +41,7 @@ export const ChainSection = {
         state: {
           revealDelay: '.1s',
           name: 'compliance_transfer',
-          purpose:
-            'Records verified wallets, validates every transfer through the SPL transfer hook, and holds the subscription record from commitment to settlement.',
+          purpose: 'chain.compliance.purpose',
           calls: [
             'record_verified_wallet',
             'transfer_validate',
@@ -60,8 +57,7 @@ export const ChainSection = {
         state: {
           revealDelay: '.2s',
           name: 'allocation_distribution',
-          purpose:
-            'Opens a payout epoch at a fixed profit per token, then pays each holder against a balance snapshot taken at the epoch boundary.',
+          purpose: 'chain.distribution.purpose',
           calls: ['initialize_config', 'create_epoch', 'execute_payout']
         }
       },
@@ -70,8 +66,7 @@ export const ChainSection = {
         state: {
           revealDelay: '.3s',
           name: 'secondary_market',
-          purpose:
-            'Escrows a seller position behind a sell order, fills orders against stablecoin, and takes a fee in basis points. Trades still clear the compliance hook.',
+          purpose: 'chain.market.purpose',
           calls: [
             'initialize_market',
             'create_sell_order',
@@ -120,7 +115,7 @@ export const TxLog = {
       letterSpacing: '.14em',
       textTransform: 'uppercase',
       color: 'mist.6',
-      text: 'settlement — devnet'
+      text: '{{ chain.log.title | polyglot }}'
     },
     Live: {
       flow: 'x',
@@ -144,7 +139,7 @@ export const TxLog = {
         letterSpacing: '.12em',
         textTransform: 'uppercase',
         color: 'green+20',
-        text: 'live'
+        text: '{{ chain.log.live | polyglot }}'
       }
     }
   },
@@ -162,10 +157,10 @@ export const TxLog = {
     childrenAs: 'state',
     children: [
       { delay: '.2s', tone: 'cmd', text: '$ fractyco settle --offering RBX-001 --epoch 14' },
-      { delay: '.5s', tone: 'ok', text: 'compliance_transfer ▸ destination wallet verified · hook cleared' },
-      { delay: '.8s', tone: 'ok', text: 'project_registry ▸ 12,400 RBX-001 minted → 7xKt…9fQ2' },
-      { delay: '1.1s', tone: 'ok', text: 'allocation_distribution ▸ epoch 14 snapshot sealed · 312 holders' },
-      { delay: '1.4s', tone: 'dim', text: 'payout 0.42 USDC / token · settlement T+0 · slot 289,441,102' }
+      { delay: '.5s', tone: 'ok', text: 'chain.log.cleared' },
+      { delay: '.8s', tone: 'ok', text: 'chain.log.minted' },
+      { delay: '1.1s', tone: 'ok', text: 'chain.log.snapshot' },
+      { delay: '1.4s', tone: 'dim', text: 'chain.log.payout' }
     ]
   }
 }
@@ -182,7 +177,7 @@ export const TxLogLine = {
   isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
   '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
   '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
-  text: (el, s) => s.text || '',
+  text: (el, s) => el.call('polyglot', s.text, s.root.lang),
 
   isCmd: (el, s) => s.tone === 'cmd',
   '.isCmd': { color: 'ivory' },

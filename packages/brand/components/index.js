@@ -8,6 +8,7 @@ export * from './NetworkPill.js'
 export * from './PillButton.js'
 export * from './ActionButton.js'
 export * from './ThemeToggle.js'
+export * from './LangSwitch.js'
 export * from './CallTag.js'
 
 // ── Marketing layout ────────────────────────────────────────────────────────

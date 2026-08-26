@@ -38,6 +38,8 @@ export const AppToast = {
   },
   Msg: {
     tag: 'span',
-    text: (el, s) => s.root.appNotice || ''
+    // `appNotice` holds a translation key — appNotify raises the key, the
+    // toast renders it in the active locale.
+    text: (el, s) => el.call('polyglot', s.root.appNotice || '', s.root.lang)
   }
 }

@@ -10,11 +10,10 @@ export const HowSection = {
     SectionHeading: {
       state: {
         num: '01',
-        eyebrow: 'How it works',
-        titleTop: 'Four states between',
-        title: 'signing up and getting paid.',
-        lead:
-          'Eligibility is a state machine, not a checkbox. An account advances one step at a time, and the on-chain compliance record advances with it.'
+        eyebrow: 'how.eyebrow',
+        titleTop: 'how.titleTop',
+        title: 'how.title',
+        lead: 'how.lead'
       }
     },
 
@@ -81,9 +80,8 @@ export const HowSection = {
         state: {
           revealDelay: '0s',
           step: '01',
-          title: 'Verify identity',
-          body:
-            'Complete the identity checks through the KYC provider. Approval writes an eligibility record and unlocks subscription.'
+          title: 'how.step1.title',
+          body: 'how.step1.body'
         }
       },
       StepCard_1: {
@@ -91,9 +89,8 @@ export const HowSection = {
         state: {
           revealDelay: '.09s',
           step: '02',
-          title: 'Link a wallet',
-          body:
-            'Sign a server-issued nonce to prove wallet ownership. The compliance program then records the verified wallet on-chain.'
+          title: 'how.step2.title',
+          body: 'how.step2.body'
         }
       },
       StepCard_2: {
@@ -101,9 +98,8 @@ export const HowSection = {
         state: {
           revealDelay: '.18s',
           step: '03',
-          title: 'Subscribe',
-          body:
-            'Commit stablecoin to an open offering. The operator finalizes the subscription and the registry mints tokens to the wallet.'
+          title: 'how.step3.title',
+          body: 'how.step3.body'
         }
       },
       StepCard_3: {
@@ -111,9 +107,8 @@ export const HowSection = {
         state: {
           revealDelay: '.27s',
           step: '04',
-          title: 'Hold and earn',
-          body:
-            'Positions accrue a payout each distribution epoch. Claim to the linked wallet, or list the position on the secondary market.'
+          title: 'how.step4.title',
+          body: 'how.step4.body'
         }
       }
     }

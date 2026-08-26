@@ -2,14 +2,14 @@ export const emergency = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Emergency — Fractyco Governance' },
   onRender: (el) =>
-    el.call('openPage', '/emergency', 'Emergency', 'Stop the system. Each switch takes effect on the next transaction.'),
+    el.call('openPage', '/emergency', 'page.emergency.title', 'page.emergency.lead'),
 
   Column: {
     Body: {
       Panel: {
         state: {
-          title: 'Global switches',
-          lead: 'The widest blast radius on the platform. Two of them need the super admin.'
+          title: 'panel.emergency.global.title',
+          lead: 'panel.emergency.global.lead'
         },
         List: {
           flow: 'y',
@@ -18,22 +18,22 @@ export const emergency = {
           childrenAs: 'state',
           children: [
             {
-              label: 'Registry emergency pause',
+              label: 'switch.registryPause.label',
               call: 'project_registry.set_emergency_pause',
-              note: 'Blocks issuance and status changes across every project.',
-              status: 'Off'
+              note: 'switch.registryPause.note',
+              status: 'common.off'
             },
             {
-              label: 'Global transfer pause',
+              label: 'switch.globalTransferPause.label',
               call: 'compliance_transfer.set_global_transfer_pause',
-              note: 'The transfer hook rejects every move while this is on.',
-              status: 'Off'
+              note: 'switch.globalTransferPause.note',
+              status: 'common.off'
             },
             {
-              label: 'Market pause',
+              label: 'switch.marketPause.label',
               call: 'secondary_market.update_market_config',
-              note: 'Stops new sell orders and fills. Cancels stay open.',
-              status: 'Off'
+              note: 'switch.marketPause.note',
+              status: 'common.off'
             }
           ]
         }
@@ -41,7 +41,7 @@ export const emergency = {
 
       EmptyNote: {
         state: {
-          text: 'A pause is not a rollback. Transactions already confirmed stay confirmed, and the audit trail keeps them.'
+          text: 'note.emergency'
         }
       }
     }

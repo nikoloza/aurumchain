@@ -8,7 +8,8 @@ export const appNotify = function appNotify (message) {
   const root = el.getRootState()
   const seq = (Number(root.appNoticeSeq) || 0) + 1
   root.update({
-    appNotice: message || 'Devnet preview — this action is not wired to the backend yet.',
+    // A translation key, not copy — AppToast resolves it through polyglot.
+    appNotice: message || 'toast.notWired',
     appNoticeOn: true,
     appNoticeSeq: seq
   }, { preventFetch: true })

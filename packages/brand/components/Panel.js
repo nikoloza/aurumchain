@@ -28,13 +28,13 @@ export const Panel = {
         fontWeight: '600',
         letterSpacing: '-.015em',
         color: 'title',
-        text: (el, s) => s.title || ''
+        text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
       },
       Lead: {
         tag: 'span',
         fontSize: 'Y1',
         color: 'caption',
-        text: (el, s) => s.lead || ''
+        text: (el, s) => el.call('polyglot', s.lead || '', s.root.lang)
       }
     }
   }

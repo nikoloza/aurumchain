@@ -2,7 +2,7 @@ export const offerings = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Offerings — Fractyco' },
   onRender: (el) => {
-    el.call('openPage', '/offerings', 'Offerings', 'Open subscriptions. The registry enforces the supply cap and the window.')
+    el.call('openPage', '/offerings', 'page.offerings.title', 'page.offerings.lead')
     el.call('loadOfferings')
   },
 
@@ -36,7 +36,7 @@ export const offerings = {
                 {
                   name: 'Riverbend Extraction',
                   symbol: 'RBX-001',
-                  status: 'Funding',
+                  status: 'status.funding',
                   price: '$25.00',
                   min: '$500',
                   raised: '$1.84M',
@@ -47,7 +47,7 @@ export const offerings = {
                 {
                   name: 'Kalgoorlie Tailings',
                   symbol: 'KGT-002',
-                  status: 'Funding',
+                  status: 'status.funding',
                   price: '$10.00',
                   min: '$250',
                   raised: '$620K',
@@ -58,7 +58,7 @@ export const offerings = {
                 {
                   name: 'Serra Verde Plant',
                   symbol: 'SVP-003',
-                  status: 'Completed',
+                  status: 'status.completed',
                   price: '$50.00',
                   min: '$1,000',
                   raised: '$3.10M',
@@ -72,9 +72,7 @@ export const offerings = {
       },
 
       EmptyNote: {
-        state: {
-          text: 'Subscription commits stablecoin and opens a subscription record. An operator finalizes it, and the registry then mints the tokens to your verified wallet.'
-        }
+        state: { text: 'note.subscriptionFlow' }
       },
 
       AppToast: {}

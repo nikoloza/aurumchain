@@ -20,8 +20,11 @@ export const OfferingItem = {
       ActionButton: {
         // ActionButton carries its own { tone } state — the offering row's
         // fields live one level up the state chain.
+        // The status arrives either as a key (`status.completed`) or as a raw
+        // backend word — match on the last dotted segment so both read alike,
+        // the same normalisation StatusPill's tone matchers use.
         disabled: (el, s) =>
-          String((s.parent && s.parent.status) || '').toLowerCase() === 'completed'
+          String((s.parent && s.parent.status) || '').split('.').pop().toLowerCase() === 'completed'
             ? true
             : null,
         ':disabled': { opacity: '.4', boxShadow: 'none', pointerEvents: 'none' },
@@ -43,9 +46,14 @@ export const OfferingItem = {
     // A completed sale reads "closed", never "closes closed".
     Closes: {
       text: (el, s) => {
+        // `lang` is read unconditionally so the signal is always tracked —
+        // an early return would leave the factory unsubscribed from it.
+        const lang = s.root.lang
         const when = String(s.closes || '')
         if (!when || when === '—') return ''
-        return when.toLowerCase() === 'closed' ? 'closed' : `closes ${when}`
+        return when.toLowerCase() === 'closed'
+          ? el.call('polyglot', 'offering.closed', lang)
+          : `${el.call('polyglot', 'offering.closes', lang)} ${when}`
       }
     }
   }

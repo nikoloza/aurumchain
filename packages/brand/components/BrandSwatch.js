@@ -29,7 +29,7 @@ export const BrandSwatch = {
       letterSpacing: '.12em',
       textTransform: 'uppercase',
       color: 'caption',
-      text: (el, s) => s.role || ''
+      text: (el, s) => el.call('polyglot', s.role || '', s.root.lang)
     },
     NameRow: {
       flow: 'x',

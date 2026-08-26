@@ -27,12 +27,11 @@ export const how = {
 
     PageHero: {
       state: {
-        eyebrow: 'How it works',
-        titleTop: 'From signed up,',
-        title: 'to getting paid',
-        lead:
-          'Eligibility is a state machine, not a checkbox. An account advances one step at a time — and the on-chain compliance record advances with it, so the application never has to trust a display tier.',
-        chips: ['KYC approved', 'Wallet verified', 'Supply-capped mint', 'Epoch payouts']
+        eyebrow: 'page.how.eyebrow',
+        titleTop: 'page.how.titleTop',
+        title: 'page.how.title',
+        lead: 'page.how.lead',
+        chips: ['chip.kycApproved', 'chip.walletVerified', 'chip.cappedMint', 'chip.epochPayouts']
       }
     },
 

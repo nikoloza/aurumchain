@@ -23,7 +23,7 @@ export const DataCell = {
           if (sess && sess.user && sess.user.email) return sess.user.email
         } catch (e) {}
       }
-      return s.text || ''
+      return el.call('polyglot', s.text || '', s.root.lang)
     }
   },
 

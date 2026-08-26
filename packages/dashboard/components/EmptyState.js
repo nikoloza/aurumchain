@@ -3,7 +3,8 @@
 // rides a wrapper so the float never overwrites the diamond's rotation.
 // It shows itself: `watch` names the list key ('rows' by default) and the
 // component walks the state chain for it, so a call site declares only its
-// copy. state: { title, caption, watch }
+// copy. `title` and `caption` are translation keys, resolved through polyglot.
+// state: { title, caption, watch }
 export const EmptyState = {
   show: (el, s) => {
     const key = s.watch || 'rows'
@@ -48,7 +49,7 @@ export const EmptyState = {
     fontWeight: '600',
     color: 'title',
     marginTop: 'Y',
-    text: (el, s) => s.title || ''
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
   },
 
   Caption: {
@@ -56,6 +57,6 @@ export const EmptyState = {
     fontSize: 'Y1',
     color: 'caption',
     maxWidth: '30em',
-    text: (el, s) => s.caption || ''
+    text: (el, s) => el.call('polyglot', s.caption || '', s.root.lang)
   }
 }

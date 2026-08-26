@@ -57,7 +57,7 @@ export const PageHero = {
         lineHeight: '1',
         textTransform: 'uppercase',
         color: 'caption',
-        text: (el, s) => s.eyebrow || ''
+        text: (el, s) => el.call('polyglot', s.eyebrow, s.root.lang)
       },
       Rule: {
         flex: '1',
@@ -83,12 +83,16 @@ export const PageHero = {
         tag: 'span',
         display: 'block',
         overflow: 'hidden',
+        // Georgian descenders drop far below the baseline — the mask needs
+        // real room or it shears the tails off. Taken back outside the mask.
+        paddingBottom: '.26em',
+        marginBottom: '-.26em',
         Top: {
           tag: 'span',
           display: 'block',
           lineHeight: '1.04',
           color: 'accentInk',
-          text: (el, s) => s.titleTop || '',
+          text: (el, s) => el.call('polyglot', s.titleTop, s.root.lang),
           animationName: 'lineUp',
           animationDuration: 'E',
           animationDelay: 'Z',
@@ -102,11 +106,15 @@ export const PageHero = {
         tag: 'span',
         display: 'block',
         overflow: 'hidden',
+        // Georgian descenders drop far below the baseline — the mask needs
+        // real room or it shears the tails off. Taken back outside the mask.
+        paddingBottom: '.26em',
+        marginBottom: '-.26em',
         Main: {
           tag: 'span',
           display: 'block',
           lineHeight: '1.04',
-          text: (el, s) => s.title || '',
+          text: (el, s) => el.call('polyglot', s.title, s.root.lang),
           animationName: 'lineUp',
           animationDuration: 'E',
           animationDelay: 'A',
@@ -133,7 +141,7 @@ export const PageHero = {
       color: 'paragraph',
       margin: '0',
       maxWidth: 'I',
-      text: (el, s) => s.lead || '',
+      text: (el, s) => el.call('polyglot', s.lead, s.root.lang),
       show: (el, s) => !!s.lead,
       animationName: 'fcReveal',
       animationDuration: 'F',
@@ -154,7 +162,10 @@ export const PageHero = {
       animationFillMode: 'both',
       '@reduceMotion': { animationName: 'none' },
       childExtends: 'Chip',
-      children: (el, s) => (s.chips || []).map((c) => ({ text: c }))
+      // The factory short-circuits when there are no chips, so `lang` would
+      // never be tracked on that run — declare it so a locale switch re-fires.
+      childrenDeps: ['lang'],
+      children: (el, s) => (s.chips || []).map((c) => ({ text: el.call('polyglot', c, s.root.lang) }))
     }
   }
 }

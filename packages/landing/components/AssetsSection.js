@@ -9,11 +9,10 @@ export const AssetsSection = {
     SectionHeading: {
       state: {
         num: '02',
-        eyebrow: 'Asset classes',
-        titleTop: 'If it produces yield,',
-        title: 'it can be tokenized.',
-        lead:
-          'The registry holds the asset class as metadata; the mechanics stay identical. One supply cap, one compliance hook, one payout path — whatever the underlying.'
+        eyebrow: 'assets.eyebrow',
+        titleTop: 'assets.titleTop',
+        title: 'assets.title',
+        lead: 'assets.lead'
       }
     },
 
@@ -29,12 +28,12 @@ export const AssetsSection = {
       childExtends: 'AssetTile',
       childrenAs: 'state',
       children: [
-        { revealDelay: '0s', icon: 'layers', name: 'Real estate', line: 'Rental income distributes as USDC each epoch.' },
-        { revealDelay: '.07s', icon: 'coins', name: 'Mining & metals', line: 'Extraction revenue settles against the registry.' },
-        { revealDelay: '.14s', icon: 'chart', name: 'Energy', line: 'Generation contracts pay out on delivery.' },
-        { revealDelay: '.21s', icon: 'globe', name: 'Infrastructure', line: 'Long-dated concessions, fractioned to entry size.' },
-        { revealDelay: '.28s', icon: 'document', name: 'Agriculture', line: 'Harvest cycles map onto distribution epochs.' },
-        { revealDelay: '.35s', icon: 'wallet', name: 'Private credit', line: 'Repayment schedules stream to token holders.' }
+        { revealDelay: '0s', icon: 'layers', name: 'assets.realEstate.name', line: 'assets.realEstate.line' },
+        { revealDelay: '.07s', icon: 'coins', name: 'assets.mining.name', line: 'assets.mining.line' },
+        { revealDelay: '.14s', icon: 'chart', name: 'assets.energy.name', line: 'assets.energy.line' },
+        { revealDelay: '.21s', icon: 'globe', name: 'assets.infrastructure.name', line: 'assets.infrastructure.line' },
+        { revealDelay: '.28s', icon: 'document', name: 'assets.agriculture.name', line: 'assets.agriculture.line' },
+        { revealDelay: '.35s', icon: 'wallet', name: 'assets.credit.name', line: 'assets.credit.line' }
       ]
     }
   }
@@ -87,7 +86,7 @@ export const AssetTile = {
     letterSpacing: '-.015em',
     color: 'title',
     margin: '0',
-    text: (el, s) => s.name || ''
+    text: (el, s) => el.call('polyglot', s.name, s.root.lang)
   },
 
   P: {
@@ -95,6 +94,6 @@ export const AssetTile = {
     lineHeight: '1.6',
     color: 'paragraph',
     margin: '0',
-    text: (el, s) => s.line || ''
+    text: (el, s) => el.call('polyglot', s.line, s.root.lang)
   }
 }

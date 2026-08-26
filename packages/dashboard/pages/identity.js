@@ -2,7 +2,7 @@ export const identity = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Identity — Fractyco' },
   onRender: (el) =>
-    el.call('openPage', '/identity', 'Identity', 'The eligibility record is the single source of truth for what this account may do.'),
+    el.call('openPage', '/identity', 'page.identity.title', 'page.identity.lead'),
 
   Column: {
     Body: {
@@ -14,16 +14,16 @@ export const identity = {
         '@tabletL': { gridTemplateColumns: '1fr' },
 
         Panel: {
-          state: { title: 'Verification', lead: 'Handled by the identity provider, mirrored into the KYC profile.' },
+          state: { title: 'panel.verification.title', lead: 'panel.verification.lead' },
           DataTable: {
             state: {
-              columns: ['Field', 'Value'],
+              columns: ['table.field', 'table.value'],
               rows: [
-                { cells: [{ text: 'Provider' }, { text: 'Sumsub' }] },
-                { cells: [{ text: 'Level' }, { text: 'basic-kyc-level' }] },
-                { cells: [{ text: 'Submitted' }, { text: '2026-07-02', mono: true }] },
-                { cells: [{ text: 'Approved' }, { text: '2026-07-03', mono: true }] },
-                { cells: [{ text: 'Expires' }, { text: '2027-07-03', mono: true }] }
+                { cells: [{ text: 'cell.provider' }, { text: 'Sumsub' }] },
+                { cells: [{ text: 'cell.level' }, { text: 'basic-kyc-level' }] },
+                { cells: [{ text: 'cell.submitted' }, { text: '2026-07-02', mono: true }] },
+                { cells: [{ text: 'cell.approved' }, { text: '2026-07-03', mono: true }] },
+                { cells: [{ text: 'cell.expires' }, { text: '2027-07-03', mono: true }] }
               ]
             }
           }
@@ -31,17 +31,17 @@ export const identity = {
 
         Panel_1: {
           extends: 'Panel',
-          state: { title: 'Permissions', lead: 'Derived from the eligibility state and cached as flags.' },
+          state: { title: 'panel.permissions.title', lead: 'panel.permissions.lead' },
           Flags: {
             flow: 'y',
             width: '100%',
             childExtends: 'FlagRow',
             childrenAs: 'state',
             children: [
-              { text: 'Can invest', status: 'Approved' },
-              { text: 'Can withdraw', status: 'Approved' },
-              { text: 'Can receive payouts', status: 'Approved' },
-              { text: 'Lockup', status: 'Completed' }
+              { text: 'flag.canInvest', status: 'status.approved' },
+              { text: 'flag.canWithdraw', status: 'status.approved' },
+              { text: 'flag.canReceivePayouts', status: 'status.approved' },
+              { text: 'flag.lockup', status: 'status.completed' }
             ]
           }
         }

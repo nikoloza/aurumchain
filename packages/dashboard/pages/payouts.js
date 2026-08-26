@@ -2,45 +2,45 @@ export const payouts = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Payouts — Fractyco' },
   onRender: (el) =>
-    el.call('openPage', '/payouts', 'Payouts', 'One record per epoch per position. Claim sends stablecoin to the linked wallet.'),
+    el.call('openPage', '/payouts', 'page.payouts.title', 'page.payouts.lead'),
 
   Column: {
     Body: {
       KpiRow: {
         state: { inView: false },
         KpiTile: {
-          state: { revealDelay: '0s', label: 'Received to date', to: 2820, prefix: '$', delta: '4 epochs' }
+          state: { revealDelay: '0s', label: 'kpi.receivedToDate', to: 2820, prefix: '$', delta: 'kpi.delta4Epochs' }
         },
         KpiTile_1: {
           extends: 'KpiTile',
-          state: { revealDelay: '.07s', label: 'Unclaimed', to: 640, prefix: '$', delta: 'ready now' }
+          state: { revealDelay: '.07s', label: 'kpi.unclaimed', to: 640, prefix: '$', delta: 'kpi.readyNow' }
         },
         KpiTile_2: {
           extends: 'KpiTile',
-          state: { revealDelay: '.14s', label: 'Next epoch', value: 'Sep 30', delta: 'epoch 5', tone: 'flat' }
+          state: { revealDelay: '.14s', label: 'kpi.nextEpoch', value: 'Sep 30', delta: 'kpi.epoch5', tone: 'flat' }
         },
         KpiTile_3: {
           extends: 'KpiTile',
-          state: { revealDelay: '.21s', label: 'Average yield', to: 10.6, decimals: 1, suffix: '%', delta: 'annualized' }
+          state: { revealDelay: '.21s', label: 'kpi.averageYield', to: 10.6, decimals: 1, suffix: '%', delta: 'kpi.annualized' }
         }
       },
 
       Panel: {
-        state: { title: 'Payout records', lead: 'Entitlement is the epoch rate multiplied by your snapshot balance.' },
+        state: { title: 'panel.payoutRecords.title', lead: 'panel.payoutRecords.lead' },
         DataTable: {
           state: {
-            columns: ['Epoch', 'Asset', 'Snapshot', 'Rate', 'Amount', 'Status'],
+            columns: ['table.epoch', 'table.asset', 'table.snapshot', 'table.rate', 'table.amount', 'table.status'],
             rows: [
-              { cells: [{ text: 'Epoch 4', mono: true }, { text: 'RBX-001', mono: true }, { text: '500.0000', mono: true }, { text: '$1.28', mono: true }, { text: '$640.00', mono: true }, { status: 'Unclaimed' }] },
-              { cells: [{ text: 'Epoch 3', mono: true }, { text: 'RBX-001', mono: true }, { text: '500.0000', mono: true }, { text: '$1.14', mono: true }, { text: '$570.00', mono: true }, { status: 'Paid' }] },
-              { cells: [{ text: 'Epoch 3', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.60', mono: true }, { text: '$889.60', mono: true }, { status: 'Paid' }] },
-              { cells: [{ text: 'Epoch 2', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.30', mono: true }, { text: '$722.80', mono: true }, { status: 'Paid' }] }
+              { cells: [{ text: 'epoch.4', mono: true }, { text: 'RBX-001', mono: true }, { text: '500.0000', mono: true }, { text: '$1.28', mono: true }, { text: '$640.00', mono: true }, { status: 'status.unclaimed' }] },
+              { cells: [{ text: 'epoch.3', mono: true }, { text: 'RBX-001', mono: true }, { text: '500.0000', mono: true }, { text: '$1.14', mono: true }, { text: '$570.00', mono: true }, { status: 'status.paid' }] },
+              { cells: [{ text: 'epoch.3', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.60', mono: true }, { text: '$889.60', mono: true }, { status: 'status.paid' }] },
+              { cells: [{ text: 'epoch.2', mono: true }, { text: 'SVP-003', mono: true }, { text: '556.0000', mono: true }, { text: '$1.30', mono: true }, { text: '$722.80', mono: true }, { status: 'status.paid' }] }
             ]
           },
           EmptyState: {
             state: {
-              title: 'No payouts yet',
-              caption: 'Records appear after the first epoch closes with you on the snapshot.'
+              title: 'empty.payouts.title',
+              caption: 'empty.payouts.caption'
             }
           }
         }

@@ -23,7 +23,7 @@ export const SwitchRow = {
       fontSize: 'Z1',
       fontWeight: '600',
       color: 'title',
-      text: (el, s) => s.label || ''
+      text: (el, s) => el.call('polyglot', s.label || '', s.root.lang)
     },
     Call: {
       tag: 'span',
@@ -39,7 +39,7 @@ export const SwitchRow = {
       tag: 'span',
       fontSize: 'Y1',
       color: 'caption',
-      text: (el, s) => s.note || ''
+      text: (el, s) => el.call('polyglot', s.note || '', s.root.lang)
     }
   },
 
@@ -48,6 +48,6 @@ export const SwitchRow = {
     align: 'center center',
     gap: 'Z',
     StatusPill: {},
-    ActionButton: { state: { tone: 'secondary' }, text: 'Change' }
+    ActionButton: { state: { tone: 'secondary' }, text: '{{ common.change | polyglot }}' }
   }
 }

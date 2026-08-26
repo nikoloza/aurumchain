@@ -23,7 +23,7 @@ export const WorldSwitch = {
   transition: 'border-color .45s ease, background .45s ease',
 
   role: 'group',
-  ariaLabel: 'Choose a world',
+  ariaLabel: '{{ world.aria | polyglot }}',
 
   Thumb: {
     tag: 'span',
@@ -58,7 +58,7 @@ export const WorldSwitch = {
         ? (s.scrolled ? 'caption' : 'ivory.55')
         : (s.scrolled ? 'activeInk' : 'slateInkDeep'),
     transition: 'color .45s ease',
-    text: 'Above ground',
+    text: '{{ world.above | polyglot }}',
     ariaPressed: (el, s) => String(s.root.heroWorld !== 'under'),
     onClick: (ev, el) => el.call('setWorld', 'above')
   },
@@ -81,7 +81,7 @@ export const WorldSwitch = {
         ? (s.scrolled ? 'activeInk' : 'ivory')
         : (s.scrolled ? 'caption' : 'muted'),
     transition: 'color .45s ease',
-    text: 'Underground',
+    text: '{{ world.under | polyglot }}',
     ariaPressed: (el, s) => String(s.root.heroWorld === 'under'),
     onClick: (ev, el) => el.call('setWorld', 'under')
   }

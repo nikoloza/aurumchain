@@ -9,11 +9,10 @@ export const AuthoritySection = {
     SectionHeading: {
       state: {
         num: '01',
-        eyebrow: 'Authority model',
-        titleTop: 'Separate keys',
-        title: 'for separate powers.',
-        lead:
-          'The mint authority issues. The compliance authority permits. The distribution authority pays. The market authority pauses. None of them can do another one’s job.'
+        eyebrow: 'platform.authority.eyebrow',
+        titleTop: 'platform.authority.titleTop',
+        title: 'platform.authority.title',
+        lead: 'platform.authority.lead'
       }
     },
 
@@ -25,41 +24,41 @@ export const AuthoritySection = {
 
       AuthorityCard: {
         state: {
-          role: 'Mint authority',
+          role: 'platform.authority.mint.role',
           holder: 'project_registry · PDA ["project", mint]',
-          scope: 'Issues tokens against an open round, revoked at close',
-          limit: 'Hard cap: the round supply. After revoke: none, forever.',
-          status: 'active'
+          scope: 'platform.authority.mint.scope',
+          limit: 'platform.authority.mint.limit',
+          status: 'status.active'
         }
       },
       AuthorityCard_1: {
         extends: 'AuthorityCard',
         state: {
-          role: 'Compliance authority',
+          role: 'platform.authority.compliance.role',
           holder: 'compliance_transfer · PDA ["config"]',
-          scope: 'Records verified wallets, validates every transfer',
-          limit: 'Cannot mint, cannot move funds — permission only.',
-          status: 'active'
+          scope: 'platform.authority.compliance.scope',
+          limit: 'platform.authority.compliance.limit',
+          status: 'status.active'
         }
       },
       AuthorityCard_2: {
         extends: 'AuthorityCard',
         state: {
-          role: 'Distribution authority',
+          role: 'platform.authority.distribution.role',
           holder: 'allocation_distribution · PDA ["config"]',
-          scope: 'Opens payout epochs at a fixed profit per token',
-          limit: 'Pays only against the sealed balance snapshot.',
-          status: 'active'
+          scope: 'platform.authority.distribution.scope',
+          limit: 'platform.authority.distribution.limit',
+          status: 'status.active'
         }
       },
       AuthorityCard_3: {
         extends: 'AuthorityCard',
         state: {
-          role: 'Market authority',
+          role: 'platform.authority.market.role',
           holder: 'secondary_market · PDA ["market", mint]',
-          scope: 'Sets the fee destination and the per-project pause',
-          limit: 'Pause stops listings — it cannot touch escrowed funds.',
-          status: 'active'
+          scope: 'platform.authority.market.scope',
+          limit: 'platform.authority.market.limit',
+          status: 'status.active'
         }
       }
     }
@@ -74,11 +73,10 @@ export const SettleSection = {
     SectionHeading: {
       state: {
         num: '02',
-        eyebrow: 'Settlement path',
-        titleTop: 'One subscription,',
-        title: 'end to end.',
-        lead:
-          'From the stablecoin commitment to the tokens in the wallet, every hop is a program instruction — nothing settles by spreadsheet.'
+        eyebrow: 'platform.settle.eyebrow',
+        titleTop: 'platform.settle.titleTop',
+        title: 'platform.settle.title',
+        lead: 'platform.settle.lead'
       }
     },
 
@@ -91,36 +89,36 @@ export const SettleSection = {
       StepCard: {
         state: {
           revealDelay: '0s',
-          step: 'COMMIT',
+          step: 'platform.settle.commit.step',
           title: 'subscribe_investment',
-          body: 'USDC moves to the offering vault. The subscription record opens with the amount and the wallet.'
+          body: 'platform.settle.commit.body'
         }
       },
       StepCard_1: {
         extends: 'StepCard',
         state: {
           revealDelay: '.09s',
-          step: 'CLEAR',
+          step: 'platform.settle.clear.step',
           title: 'transfer_validate',
-          body: 'The hook checks the destination record, both pause flags, and the lockup window before anything moves.'
+          body: 'platform.settle.clear.body'
         }
       },
       StepCard_2: {
         extends: 'StepCard',
         state: {
           revealDelay: '.18s',
-          step: 'MINT',
+          step: 'platform.settle.mint.step',
           title: 'issue_tokens',
-          body: 'The registry mints against the round cap, straight to the investor wallet. Supply can never exceed the cap.'
+          body: 'platform.settle.mint.body'
         }
       },
       StepCard_3: {
         extends: 'StepCard',
         state: {
           revealDelay: '.27s',
-          step: 'PAY',
+          step: 'platform.settle.pay.step',
           title: 'execute_payout',
-          body: 'Each epoch pays profit-per-token against the sealed snapshot. Claims settle to the linked wallet, T+0.'
+          body: 'platform.settle.pay.body'
         }
       }
     }
@@ -143,11 +141,10 @@ export const SafetySection = {
       SectionHeading: {
         state: {
           num: '03',
-          eyebrow: 'Safety',
-          titleTop: 'Built to stop',
-          title: 'as well as to run.',
-          lead:
-            'Every moving part has a brake: a global pause, a per-project pause, lockup windows, and a mint that can be revoked outright.'
+          eyebrow: 'platform.safety.eyebrow',
+          titleTop: 'platform.safety.titleTop',
+          title: 'platform.safety.title',
+          lead: 'platform.safety.lead'
         }
       },
 
@@ -161,32 +158,32 @@ export const SafetySection = {
         FeatureItem: {
           state: {
             revealDelay: '.1s',
-            title: 'Two pause switches',
-            body: 'A global flag halts every transfer on the platform; a per-project flag halts one asset. Both are checked inside the hook, so a paused token simply refuses to move.'
+            title: 'platform.safety.f1.title',
+            body: 'platform.safety.f1.body'
           }
         },
         FeatureItem_1: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.22s',
-            title: 'Lockups enforced on-chain',
-            body: 'A subscription can carry a lockup window. Until it passes, the transfer hook rejects any move out of the wallet — including to the secondary market.'
+            title: 'platform.safety.f2.title',
+            body: 'platform.safety.f2.body'
           }
         },
         FeatureItem_2: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.34s',
-            title: 'Mint revocation is final',
-            body: 'When a raise closes, revoke_mint_authority burns the power to issue. The supply cap stops being a promise and becomes a property of the chain.'
+            title: 'platform.safety.f3.title',
+            body: 'platform.safety.f3.body'
           }
         },
         FeatureItem_3: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.46s',
-            title: 'Everything lands in the audit trail',
-            body: 'Every authority action is a transaction with a signer, a slot, and an account trail. The governance console reads the same records you can read on any explorer.'
+            title: 'platform.safety.f4.title',
+            body: 'platform.safety.f4.body'
           }
         }
       }

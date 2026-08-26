@@ -7,5 +7,5 @@ export const HeadCell = {
   letterSpacing: '.1em',
   textTransform: 'uppercase',
   color: 'caption',
-  text: (el, s) => s.text || ''
+  text: (el, s) => el.call('polyglot', s.text || '', s.root.lang)
 }

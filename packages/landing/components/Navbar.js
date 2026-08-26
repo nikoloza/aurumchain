@@ -81,7 +81,7 @@ export const Navbar = {
       isOverUnder: (el, s) => !s.scrolled && (s.root.route || '/') === '/' && s.root.heroWorld === 'under',
       '.isOverUnder': { color: 'ivory.8', borderColor: 'ivory.25', ':hover': { color: 'ivory', background: 'ivory.08' } },
       type: 'button',
-      ariaLabel: 'Menu',
+      ariaLabel: '{{ nav.menu | polyglot }}',
       ariaExpanded: (el, s) => String(!!s.menuOpen),
       onClick: (ev, el, s) => s.update({ menuOpen: !s.menuOpen }, { preventFetch: true }),
 
@@ -146,7 +146,7 @@ export const Navbar = {
           const sc = s.parent ? s.parent.scrolled : false
           return !sc && (s.root.route || '/') === '/' && s.root.heroWorld === 'under'
         },
-        text: 'Sign in'
+        text: '{{ common.signIn | polyglot }}'
       }
     },
     Link_1: {
@@ -168,7 +168,7 @@ export const Navbar = {
           const sc = s.parent ? s.parent.scrolled : false
           return !sc && (s.root.route || '/') === '/' && s.root.heroWorld === 'under'
         },
-        text: 'Open an account'
+        text: '{{ common.openAccount | polyglot }}'
       }
     }
   },
@@ -202,12 +202,12 @@ export const Navbar = {
         width: '100%',
         NavLink: { width: '100%' }
       },
-      NavItem: { state: { path: '/how', label: 'How it works' } },
-      NavItem_1: { extends: 'NavItem', state: { path: '/offerings', label: 'Offerings' } },
-      NavItem_2: { extends: 'NavItem', state: { path: '/compliance', label: 'Compliance' } },
-      NavItem_3: { extends: 'NavItem', state: { path: '/platform', label: 'Platform' } },
-      NavItem_4: { extends: 'NavItem', state: { path: '/company', label: 'Company' } },
-      NavItem_5: { extends: 'NavItem', state: { path: '/faq', label: 'FAQ' } }
+      NavItem: { state: { path: '/how', label: 'nav.how' } },
+      NavItem_1: { extends: 'NavItem', state: { path: '/offerings', label: 'nav.offerings' } },
+      NavItem_2: { extends: 'NavItem', state: { path: '/compliance', label: 'nav.compliance' } },
+      NavItem_3: { extends: 'NavItem', state: { path: '/platform', label: 'nav.platform' } },
+      NavItem_4: { extends: 'NavItem', state: { path: '/company', label: 'nav.company' } },
+      NavItem_5: { extends: 'NavItem', state: { path: '/faq', label: 'nav.faq' } }
     },
 
     ThemeRow: {
@@ -225,9 +225,27 @@ export const Navbar = {
         fontSize: 'Z1',
         fontWeight: '500',
         color: 'caption',
-        text: 'Theme'
+        text: '{{ common.theme | polyglot }}'
       },
       ThemeToggle: {}
+    },
+
+    LangRow: {
+      flow: 'x',
+      align: 'center space-between',
+      gap: 'Z',
+      borderTop: '1px solid hairline',
+      padding: 'Y Z Z',
+      onClick: (ev) => ev.stopPropagation(),
+
+      Label: {
+        tag: 'span',
+        fontSize: 'Z1',
+        fontWeight: '500',
+        color: 'caption',
+        text: '{{ common.language | polyglot }}'
+      },
+      LangSwitch: {}
     }
   }
 }

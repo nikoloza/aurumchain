@@ -58,7 +58,8 @@ export const KpiTile = {
       letterSpacing: '.1em',
       textTransform: 'uppercase',
       color: 'caption',
-      text: (el, s) => s.label || ''
+      // `label` and `delta` are translation keys, resolved through polyglot.
+      text: (el, s) => el.call('polyglot', s.label || '', s.root.lang)
     }
   },
 
@@ -92,7 +93,7 @@ export const KpiTile = {
     fontFamily: 'Mono',
     fontSize: 'Y1',
     fontVariantNumeric: 'tabular-nums',
-    text: (el, s) => s.delta || '',
+    text: (el, s) => el.call('polyglot', s.delta || '', s.root.lang),
     color: (el, s) => (s.tone === 'down' ? 'red' : s.tone === 'flat' ? 'caption' : 'green')
   }
 }

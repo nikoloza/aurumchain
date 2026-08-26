@@ -11,7 +11,7 @@ export const FooterCol = {
     letterSpacing: '.12em',
     textTransform: 'uppercase',
     color: 'title',
-    text: (el, s) => s.title || ''
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
   },
 
   Links: {

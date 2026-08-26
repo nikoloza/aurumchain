@@ -20,7 +20,7 @@ export const AuthorityCard = {
       fontSize: 'A',
       fontWeight: '600',
       color: 'title',
-      text: (el, s) => s.role || ''
+      text: (el, s) => el.call('polyglot', s.role || '', s.root.lang)
     },
     StatusPill: {}
   },
@@ -40,7 +40,7 @@ export const AuthorityCard = {
     paddingTop: 'Z',
     borderTop: '1px solid hairline',
 
-    Scope: { tag: 'span', fontSize: 'Y1', color: 'caption', text: (el, s) => s.scope || '' },
-    Limit: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', color: 'paragraph', text: (el, s) => s.limit || '' }
+    Scope: { tag: 'span', fontSize: 'Y1', color: 'caption', text: (el, s) => el.call('polyglot', s.scope || '', s.root.lang) },
+    Limit: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', color: 'paragraph', text: (el, s) => el.call('polyglot', s.limit || '', s.root.lang) }
   }
 }

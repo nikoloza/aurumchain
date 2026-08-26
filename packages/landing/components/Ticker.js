@@ -56,12 +56,12 @@ export const TickerRun = {
   childExtends: 'TickerItem',
   childrenAs: 'state',
   children: [
-    { label: 'Real estate' },
-    { label: 'Mining & metals' },
-    { label: 'Energy' },
-    { label: 'Infrastructure' },
-    { label: 'Agriculture' },
-    { label: 'Private credit' }
+    { label: 'ticker.realEstate' },
+    { label: 'ticker.mining' },
+    { label: 'ticker.energy' },
+    { label: 'ticker.infrastructure' },
+    { label: 'ticker.agriculture' },
+    { label: 'ticker.credit' }
   ]
 }
 
@@ -69,12 +69,12 @@ export const TickerRun = {
 export const TickerRunAlt = {
   extends: 'TickerRun',
   children: [
-    { label: 'Compliant fractions' },
-    { label: 'On-chain payouts' },
-    { label: 'Supply-capped tokens' },
-    { label: 'Transfer-hook cleared' },
-    { label: 'T+0 settlement' },
-    { label: 'Registry enforced' }
+    { label: 'ticker.fractions' },
+    { label: 'ticker.payouts' },
+    { label: 'ticker.capped' },
+    { label: 'ticker.cleared' },
+    { label: 'ticker.settlement' },
+    { label: 'ticker.registry' }
   ]
 }
 
@@ -102,6 +102,6 @@ export const TickerItem = {
     textTransform: 'uppercase',
     whiteSpace: 'nowrap',
     color: 'caption',
-    text: (el, s) => s.label || ''
+    text: (el, s) => el.call('polyglot', s.label, s.root.lang)
   }
 }

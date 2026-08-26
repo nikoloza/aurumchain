@@ -11,8 +11,8 @@ export const login = {
 
   LoginCard: {
     state: {
-      title: 'Investor sign in',
-      lead: 'Your positions, payouts, and subscriptions.'
+      title: 'auth.investorTitle',
+      lead: 'auth.investorLead'
     }
   }
 }

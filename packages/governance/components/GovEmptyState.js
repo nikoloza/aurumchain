@@ -23,13 +23,13 @@ export const GovEmptyState = {
     fontSize: 'Z1',
     fontWeight: '600',
     color: 'title',
-    text: (el, s) => s.title || ''
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
   },
 
   Caption: {
     tag: 'span',
     fontSize: 'Y1',
     color: 'caption',
-    text: (el, s) => s.caption || ''
+    text: (el, s) => el.call('polyglot', s.caption || '', s.root.lang)
   }
 }

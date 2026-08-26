@@ -2,15 +2,15 @@ export const audit = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Audit log — Fractyco Governance' },
   onRender: (el) =>
-    el.call('openPage', '/audit', 'Audit log', 'Append-only. No page in this console can update or delete a row here.'),
+    el.call('openPage', '/audit', 'page.audit.title', 'page.audit.lead'),
 
   Column: {
     Body: {
       Panel: {
-        state: { title: 'Recent events', lead: 'Every row carries the actor, the role, and the before and after state.' },
+        state: { title: 'panel.audit.events.title', lead: 'panel.audit.events.lead' },
         DataTable: {
           state: {
-            columns: ['Time', 'Event', 'Subject', 'Actor', 'Role'],
+            columns: ['table.time', 'table.event', 'table.subject', 'table.actor', 'table.role'],
             rows: [
               { cells: [{ text: '2026-08-17 09:41', mono: true }, { text: 'payout_completed', mono: true }, { text: 'epoch 4 · RBX-001', mono: true }, { text: 'admin@fractyco.example' }, { text: 'admin' }] },
               { cells: [{ text: '2026-08-17 08:12', mono: true }, { text: 'kyc_approved', mono: true }, { text: 'a.kovacs@example.com' }, { text: 'kyc@fractyco.example' }, { text: 'compliance_officer' }] },
@@ -25,7 +25,7 @@ export const audit = {
 
       EmptyNote: {
         state: {
-          text: 'The table takes inserts only. Read access is limited to the account itself, and to the admin and super-admin roles.'
+          text: 'note.audit'
         }
       }
     }

@@ -46,14 +46,14 @@ export const LoginCard = {
       fontWeight: '700',
       letterSpacing: '-.02em',
       color: 'title',
-      text: (el, s) => s.title || 'Sign in'
+      text: (el, s) => el.call('polyglot', s.title || 'auth.title', s.root.lang)
     },
     Lead: {
       tag: 'p',
       margin: '0',
       fontSize: 'Z',
       color: 'caption',
-      text: (el, s) => s.lead || ''
+      text: (el, s) => el.call('polyglot', s.lead || 'auth.lead', s.root.lang)
     }
   },
 
@@ -66,7 +66,7 @@ export const LoginCard = {
     color: 'dangerInk',
     fontSize: 'Y1',
     fontWeight: '500',
-    text: (el, s) => s.root.authError || ''
+    text: (el, s) => el.call('polyglot', s.root.authError || '', s.root.lang)
   },
 
   Form: {
@@ -83,7 +83,7 @@ export const LoginCard = {
       gap: 'X',
       Label: {
         tag: 'label',
-        text: 'Email',
+        text: '{{ auth.email | polyglot }}',
         fontSize: 'Y1',
         fontWeight: '600',
         color: 'paragraph'
@@ -117,7 +117,7 @@ export const LoginCard = {
       gap: 'X',
       Label: {
         tag: 'label',
-        text: 'Password',
+        text: '{{ auth.password | polyglot }}',
         fontSize: 'Y1',
         fontWeight: '600',
         color: 'paragraph'
@@ -126,7 +126,7 @@ export const LoginCard = {
         tag: 'input',
         type: 'password',
         autocomplete: 'current-password',
-        placeholder: 'Your password',
+        placeholder: '{{ auth.passwordPlaceholder | polyglot }}',
         required: true,
         value: (el, s) => s.root.signinPassword || '',
         padding: 'Z A',
@@ -161,7 +161,7 @@ export const LoginCard = {
       cursor: 'pointer',
       transition: 'opacity .15s ease',
       opacity: (el, s) => (s.root.authLoading ? '.6' : '1'),
-      text: (el, s) => (s.root.authLoading ? 'Signing in…' : 'Sign in')
+      text: (el, s) => el.call('polyglot', s.root.authLoading ? 'auth.working' : 'auth.submit', s.root.lang)
     }
   },
 
@@ -171,6 +171,6 @@ export const LoginCard = {
     textAlign: 'center',
     fontSize: 'Y',
     color: 'caption',
-    text: (el, s) => s.note || 'Access is provisioned by the Fractyco team.'
+    text: (el, s) => el.call('polyglot', s.note || 'auth.note', s.root.lang)
   }
 }

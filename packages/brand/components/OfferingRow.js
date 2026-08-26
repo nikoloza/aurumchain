@@ -23,14 +23,18 @@ export const OfferingRow = {
         fontSize: 'A1',
         fontWeight: '600',
         color: 'title',
-        text: (el, s) => s.name || ''
+        text: (el, s) => el.call('polyglot', s.name || '', s.root.lang)
       },
       Symbol: {
         tag: 'span',
         fontFamily: 'Mono',
         fontSize: 'Y1',
         color: 'caption',
-        text: (el, s) => `${s.symbol || ''} · ${s.price || ''} per token · min ${s.min || ''}`
+        // The figures stay put; only the connective words resolve through
+        // polyglot, so neither language has to fight the other's word order.
+        text: (el, s) =>
+          `${s.symbol || ''} · ${s.price || ''} ${el.call('polyglot', 'offering.perToken', s.root.lang)}` +
+          ` · ${el.call('polyglot', 'offering.min', s.root.lang)} ${s.min || ''}`
       }
     },
 
@@ -39,7 +43,7 @@ export const OfferingRow = {
       align: 'center center',
       gap: 'Z',
       StatusPill: {},
-      ActionButton: { text: 'Subscribe' }
+      ActionButton: { text: '{{ offering.subscribe | polyglot }}' }
     }
   },
 
@@ -70,7 +74,14 @@ export const OfferingRow = {
     fontSize: 'Y1',
     color: 'caption',
 
-    Raised: { tag: 'span', text: (el, s) => `${s.raised || ''} of ${s.goal || ''} raised` },
-    Closes: { tag: 'span', text: (el, s) => `closes ${s.closes || ''}` }
+    Raised: {
+      tag: 'span',
+      text: (el, s) =>
+        `${s.raised || ''} / ${s.goal || ''} ${el.call('polyglot', 'offering.raised', s.root.lang)}`
+    },
+    Closes: {
+      tag: 'span',
+      text: (el, s) => `${el.call('polyglot', 'offering.closes', s.root.lang)} ${s.closes || ''}`
+    }
   }
 }

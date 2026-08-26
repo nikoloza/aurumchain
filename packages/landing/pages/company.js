@@ -27,12 +27,11 @@ export const company = {
 
     PageHero: {
       state: {
-        eyebrow: 'Company',
-        titleTop: 'The asset layer',
-        title: 'for real things',
-        lead:
-          'A mine in Ashanti and a solar plant in Minas Gerais should be as easy to hold a fraction of as a public stock — without giving up the compliance that makes them real investments.',
-        chips: ['Founded 2024', 'Devnet live', 'Four programs', 'Audit in progress']
+        eyebrow: 'page.company.eyebrow',
+        titleTop: 'page.company.titleTop',
+        title: 'page.company.title',
+        lead: 'page.company.lead',
+        chips: ['chip.founded', 'chip.devnetLive', 'chip.fourPrograms', 'chip.auditInProgress']
       }
     },
 

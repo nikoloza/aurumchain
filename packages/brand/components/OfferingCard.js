@@ -43,7 +43,7 @@ export const OfferingCard = {
     },
 
     ChipAccent: {
-      text: (el, s) => s.status || '',
+      text: (el, s) => el.call('polyglot', s.status || '', s.root.lang),
       // A live offering carries a breathing node before its label.
       Dot: {
         tag: 'span',
@@ -56,7 +56,7 @@ export const OfferingCard = {
         animationDuration: '2.4s',
         animationIterationCount: 'infinite',
         '@reduceMotion': { animationName: 'none' },
-        show: (el, s) => (s.status || '').toLowerCase() === 'funding'
+        show: (el, s) => String(s.status || '').split('.').pop().toLowerCase() === 'funding'
       }
     }
   },
@@ -108,7 +108,7 @@ export const OfferingCard = {
         animationTimingFunction: 'cubic-bezier(.6,.05,.4,.95)',
         animationIterationCount: 'infinite',
         '@reduceMotion': { animationName: 'none' },
-        show: (el, s) => (s.status || '').toLowerCase() === 'funding'
+        show: (el, s) => String(s.status || '').split('.').pop().toLowerCase() === 'funding'
       }
     }
   },

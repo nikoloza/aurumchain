@@ -19,7 +19,7 @@ export const PositionCard = {
       fontSize: 'A',
       fontWeight: '600',
       color: 'title',
-      text: (el, s) => s.name || ''
+      text: (el, s) => el.call('polyglot', s.name || '', s.root.lang)
     },
     Chip: { text: (el, s) => s.symbol || '' }
   },
@@ -33,25 +33,25 @@ export const PositionCard = {
     Tokens: {
       flow: 'y',
       gap: 'W',
-      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: 'Tokens' },
+      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: '{{ position.tokens | polyglot }}' },
       V: { tag: 'span', fontFamily: 'Mono', fontSize: 'A', color: 'title', text: (el, s) => s.tokens || '' }
     },
     Invested: {
       flow: 'y',
       gap: 'W',
-      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: 'Invested' },
+      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: '{{ position.invested | polyglot }}' },
       V: { tag: 'span', fontFamily: 'Mono', fontSize: 'A', color: 'title', text: (el, s) => s.invested || '' }
     },
     Avg: {
       flow: 'y',
       gap: 'W',
-      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: 'Avg price' },
+      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: '{{ position.avgPrice | polyglot }}' },
       V: { tag: 'span', fontFamily: 'Mono', fontSize: 'A', color: 'title', text: (el, s) => s.avg || '' }
     },
     Return: {
       flow: 'y',
       gap: 'W',
-      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: 'Return' },
+      K: { tag: 'span', fontSize: 'Y', letterSpacing: '.08em', textTransform: 'uppercase', color: 'caption', text: '{{ position.return | polyglot }}' },
       V: {
         tag: 'span',
         fontFamily: 'Mono',
@@ -67,8 +67,11 @@ export const PositionCard = {
     gap: 'Z',
     paddingTop: 'Z',
     borderTop: '1px solid hairline',
+    // Two buttons side by side outrun a phone once the labels are Georgian —
+    // let the row wrap rather than push the card past the viewport.
+    flexWrap: 'wrap',
 
-    ActionButton: { state: { tone: 'secondary' }, text: 'List on marketplace' },
-    ActionButton_1: { extends: 'ActionButton', state: { tone: 'ghost' }, text: 'View payouts' }
+    ActionButton: { state: { tone: 'secondary' }, text: '{{ position.list | polyglot }}' },
+    ActionButton_1: { extends: 'ActionButton', state: { tone: 'ghost' }, text: '{{ position.viewPayouts | polyglot }}' }
   }
 }

@@ -12,7 +12,7 @@ export const StatTile = {
     letterSpacing: '.06em',
     textTransform: 'uppercase',
     color: 'caption',
-    text: (el, s) => s.label || ''
+    text: (el, s) => el.call('polyglot', s.label || '', s.root.lang)
   },
 
   Value: {
@@ -29,7 +29,7 @@ export const StatTile = {
     tag: 'span',
     fontFamily: 'Mono',
     fontSize: 'Y1',
-    text: (el, s) => s.delta || '',
+    text: (el, s) => el.call('polyglot', s.delta || '', s.root.lang),
     color: (el, s) => (s.tone === 'down' ? 'red' : s.tone === 'flat' ? 'caption' : 'green')
   }
 }

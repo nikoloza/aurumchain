@@ -67,7 +67,7 @@ export const ProgramCard = {
         textTransform: 'uppercase',
         color: 'caption',
         whiteSpace: 'nowrap',
-        text: 'Anchor program'
+        text: (el, s) => el.call('polyglot', 'program.anchorProgram', s.root.lang)
       }
     }
   },
@@ -77,7 +77,7 @@ export const ProgramCard = {
     lineHeight: '1.6',
     color: 'paragraph',
     margin: '0',
-    text: (el, s) => s.purpose || ''
+    text: (el, s) => el.call('polyglot', s.purpose || '', s.root.lang)
   },
 
   Calls: {

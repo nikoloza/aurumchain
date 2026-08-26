@@ -90,7 +90,7 @@ export const SectionHeading = {
       isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
       '.isInView': { opacity: '1' },
       '@reduceMotion': { opacity: '1', transition: 'none' },
-      text: (el, s) => s.eyebrow || ''
+      text: (el, s) => el.call('polyglot', s.eyebrow || '', s.root.lang)
     },
     Rule: {
       flex: '1',
@@ -127,36 +127,36 @@ export const SectionHeading = {
       tag: 'span',
       display: 'block',
       overflow: 'hidden',
-      paddingBottom: '.1em',
-      marginBottom: '-.1em',
+      paddingBottom: '.26em',
+      marginBottom: '-.26em',
       show: (el, s) => !!s.titleTop,
       Top: {
         tag: 'span',
         display: 'block',
         color: 'accentInk',
-        transform: 'translate3d(0, 112%, 0)',
+        transform: 'translate3d(0, 130%, 0)',
         transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .1s',
         isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
         '.isInView': { transform: 'translate3d(0, 0, 0)' },
         '@reduceMotion': { transform: 'none', transition: 'none' },
-        text: (el, s) => s.titleTop || ''
+        text: (el, s) => el.call('polyglot', s.titleTop || '', s.root.lang)
       }
     },
     MainMask: {
       tag: 'span',
       display: 'block',
       overflow: 'hidden',
-      paddingBottom: '.1em',
-      marginBottom: '-.1em',
+      paddingBottom: '.26em',
+      marginBottom: '-.26em',
       Main: {
         tag: 'span',
         display: 'block',
-        transform: 'translate3d(0, 112%, 0)',
+        transform: 'translate3d(0, 130%, 0)',
         transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .22s',
         isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
         '.isInView': { transform: 'translate3d(0, 0, 0)' },
         '@reduceMotion': { transform: 'none', transition: 'none' },
-        text: (el, s) => s.title || ''
+        text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
       }
     }
   },
@@ -174,7 +174,7 @@ export const SectionHeading = {
     isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
     '.isInView': { opacity: '1', transform: 'translate3d(0, 0, 0)' },
     '@reduceMotion': { opacity: '1', transform: 'none', transition: 'none' },
-    text: (el, s) => s.lead || '',
+    text: (el, s) => el.call('polyglot', s.lead || '', s.root.lang),
     show: (el, s) => !!s.lead
   }
 }

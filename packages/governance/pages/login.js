@@ -11,8 +11,8 @@ export const login = {
 
   LoginCard: {
     state: {
-      title: 'Governance sign in',
-      lead: 'Authorities, policies, and queues.'
+      title: 'auth.gov.title',
+      lead: 'auth.gov.lead'
     }
   }
 }

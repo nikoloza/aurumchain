@@ -8,11 +8,10 @@ export const MarketSection = {
     SectionHeading: {
       state: {
         num: '06',
-        eyebrow: 'Secondary market',
-        titleTop: 'Exit before',
-        title: 'the asset completes.',
-        lead:
-          'A holder lists part of a position at a chosen price. A buyer fills it in whole or in part. The escrow releases the tokens, the seller receives stablecoin, and both portfolios update from the trade.'
+        eyebrow: 'market.eyebrow',
+        titleTop: 'market.titleTop',
+        title: 'market.title',
+        lead: 'market.lead'
       }
     },
 
@@ -30,9 +29,9 @@ export const MarketSection = {
       childExtends: 'MarketFigure',
       childrenAs: 'state',
       children: [
-        { to: 75, suffix: ' bps', label: 'Taker fee, sent on-chain' },
-        { to: 100, suffix: '%', label: 'Of listed tokens held in escrow' },
-        { to: 24, suffix: '/7', label: 'Order book, no market hours' }
+        { to: 75, suffix: ' bps', label: 'market.fig1.label' },
+        { to: 100, suffix: '%', label: 'market.fig2.label' },
+        { to: 24, suffix: '/7', label: 'market.fig3.label' }
       ]
     },
 
@@ -44,28 +43,25 @@ export const MarketSection = {
 
       StepCard: {
         state: {
-          step: 'LIST',
-          title: 'Create a sell order',
-          body:
-            'The tokens move into a program escrow. The order records the amount, the unit price, and a sequence seed that makes the order address unique.'
+          step: 'market.step1.step',
+          title: 'market.step1.title',
+          body: 'market.step1.body'
         }
       },
       StepCard_1: {
         extends: 'StepCard',
         state: {
-          step: 'FILL',
-          title: 'Fill in part or in full',
-          body:
-            'A buyer takes any amount up to the remainder. The fee is taken in basis points and sent to the fee destination.'
+          step: 'market.step2.step',
+          title: 'market.step2.title',
+          body: 'market.step2.body'
         }
       },
       StepCard_2: {
         extends: 'StepCard',
         state: {
-          step: 'SETTLE',
-          title: 'Positions rebalance',
-          body:
-            'A database trigger reduces the seller position at its average cost and raises the buyer position at the paid price.'
+          step: 'market.step3.step',
+          title: 'market.step3.title',
+          body: 'market.step3.body'
         }
       }
     }
@@ -115,6 +111,6 @@ export const MarketFigure = {
     fontSize: 'Z',
     letterSpacing: '.04em',
     color: 'caption',
-    text: (el, s) => s.label || ''
+    text: (el, s) => el.call('polyglot', s.label, s.root.lang)
   }
 }

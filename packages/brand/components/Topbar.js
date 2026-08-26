@@ -19,6 +19,10 @@ export const Topbar = {
     flow: 'x',
     align: 'center flex-start',
     gap: 'Y',
+    // The breadcrumb yields before the controls do — a Georgian page name is
+    // longer than its English source and would otherwise push the language
+    // and theme switches off a phone.
+    minWidth: '0',
 
     Diamond: {
       tag: 'span',
@@ -36,7 +40,10 @@ export const Topbar = {
       letterSpacing: '.14em',
       textTransform: 'uppercase',
       color: 'caption',
-      text: (el, s) => s.root.pageTitle || ''
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      text: (el, s) => el.call('polyglot', s.root.pageTitle || '', s.root.lang)
     }
   },
 
@@ -44,7 +51,9 @@ export const Topbar = {
     flow: 'x',
     align: 'center center',
     gap: 'Z',
+    flexShrink: '0',
 
+    LangSwitch: {},
     ThemeToggle: {},
 
     Account: {
@@ -83,7 +92,7 @@ export const Topbar = {
     SignOutBtn: {
       extends: 'ActionButton',
       state: { tone: 'ghost' },
-      text: 'Sign out',
+      text: '{{ common.signOut | polyglot }}',
       onClick: (ev, el) => el.call('signout')
     }
   }

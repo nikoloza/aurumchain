@@ -12,7 +12,7 @@ export const SideGroup = {
     letterSpacing: '.12em',
     textTransform: 'uppercase',
     color: 'caption',
-    text: (el, s) => s.title || '',
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang),
     // Icon-strip rail: the group is separated by spacing alone.
     '@tabletL': { display: 'none' }
   },

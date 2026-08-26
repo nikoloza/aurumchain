@@ -2,26 +2,26 @@ export const portfolio = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Portfolio — Fractyco' },
   onRender: (el) =>
-    el.call('openPage', '/portfolio', 'Portfolio', 'Aggregated holdings per project, updated by trigger on every settlement.'),
+    el.call('openPage', '/portfolio', 'page.portfolio.title', 'page.portfolio.lead'),
 
   Column: {
     Body: {
       KpiRow: {
         state: { inView: false },
         KpiTile: {
-          state: { revealDelay: '0s', label: 'Total value', to: 48120, prefix: '$', delta: '+6.2%' }
+          state: { revealDelay: '0s', label: 'kpi.totalValue', to: 48120, prefix: '$', delta: '+6.2%' }
         },
         KpiTile_1: {
           extends: 'KpiTile',
-          state: { revealDelay: '.07s', label: 'Total invested', to: 45300, prefix: '$', delta: '3 positions', tone: 'flat' }
+          state: { revealDelay: '.07s', label: 'kpi.totalInvested', to: 45300, prefix: '$', delta: 'kpi.delta3Positions', tone: 'flat' }
         },
         KpiTile_2: {
           extends: 'KpiTile',
-          state: { revealDelay: '.14s', label: 'Payouts received', to: 2820, prefix: '$', delta: '+$640' }
+          state: { revealDelay: '.14s', label: 'kpi.payoutsReceived', to: 2820, prefix: '$', delta: '+$640' }
         },
         KpiTile_3: {
           extends: 'KpiTile',
-          state: { revealDelay: '.21s', label: 'Unrealized', to: 0, prefix: '$', delta: 'no mark yet', tone: 'flat' }
+          state: { revealDelay: '.21s', label: 'kpi.unrealized', to: 0, prefix: '$', delta: 'kpi.noMarkYet', tone: 'flat' }
         }
       },
 
@@ -52,8 +52,8 @@ export const portfolio = {
         EmptyState: {
           state: {
             watch: 'positions',
-            title: 'No positions yet',
-            caption: 'Subscribe to an open offering and the holding settles here on finalization.'
+            title: 'empty.positions.title',
+            caption: 'empty.positions.caption'
           }
         }
       }

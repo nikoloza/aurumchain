@@ -66,16 +66,16 @@ export const ShellPage = {
             tag: 'span',
             display: 'block',
             // Descender room inside the mask, taken back outside it.
-            paddingBottom: '.1em',
-            marginBottom: '-.1em',
-            transform: 'translate3d(0, 112%, 0)',
+            paddingBottom: '.26em',
+            marginBottom: '-.26em',
+            transform: 'translate3d(0, 130%, 0)',
             animationName: 'lineUp',
             animationDuration: 'E',
             animationTimingFunction: 'cubic-bezier(.22,.68,.24,.98)',
             animationFillMode: 'both',
             animationDelay: '.06s',
             '@reduceMotion': { animationName: 'none', transform: 'none' },
-            text: (el, s) => s.root.pageTitle || ''
+            text: (el, s) => el.call('polyglot', s.root.pageTitle || '', s.root.lang)
           }
         },
         Lead: {
@@ -91,7 +91,7 @@ export const ShellPage = {
           animationFillMode: 'both',
           animationDelay: '.2s',
           '@reduceMotion': { animationName: 'none', opacity: '1' },
-          text: (el, s) => s.root.pageLead || ''
+          text: (el, s) => el.call('polyglot', s.root.pageLead || '', s.root.lang)
         },
         Rule: {
           width: '100%',

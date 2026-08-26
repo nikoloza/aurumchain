@@ -20,6 +20,6 @@ export const StatCell = {
     letterSpacing: '.06em',
     textTransform: 'uppercase',
     color: 'caption',
-    text: (el, s) => s.label || ''
+    text: (el, s) => el.call('polyglot', s.label || '', s.root.lang)
   }
 }

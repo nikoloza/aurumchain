@@ -2,7 +2,7 @@ export const authorities = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Authorities — Fractyco Governance' },
   onRender: (el) =>
-    el.call('openPage', '/authorities', 'Authorities', 'Transfer an authority through the program. A key change is never a database edit.'),
+    el.call('openPage', '/authorities', 'page.authorities.title', 'page.authorities.lead'),
 
   Column: {
     Body: {
@@ -29,58 +29,58 @@ export const authorities = {
         children: [
           {
             revealDelay: '0s',
-            role: 'Super admin',
+            role: 'authority.superAdmin.role',
             holder: '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4',
-            scope: 'Sets the KYC bypass, transfers any authority, revokes the mint.',
-            limit: 'no operational limit',
-            status: 'Active'
+            scope: 'authority.superAdmin.scope',
+            limit: 'authority.superAdmin.limit',
+            status: 'status.active'
           },
           {
             revealDelay: '.07s',
-            role: 'Operational admin',
+            role: 'authority.operationalAdmin.role',
             holder: '4mNq8ZaWpKcHrTvBx2GdLeYs9UjRfXo1CvPnAiKtMbQe',
-            scope: 'Creates projects, issues tokens, opens epochs, runs payouts.',
-            limit: 'limit 250,000 tokens per action',
-            status: 'Active'
+            scope: 'authority.operationalAdmin.scope',
+            limit: 'authority.operationalAdmin.limit',
+            status: 'status.active'
           },
           {
             revealDelay: '.14s',
-            role: 'Compliance officer',
+            role: 'authority.complianceOfficer.role',
             holder: '2wXk6HqLmRtYvB9ZcNpJdFa4SgEu7oTiKrXbAyMnQfPd',
-            scope: 'Approves identity, records verified wallets, revokes a wallet.',
-            limit: 'no issuance rights',
-            status: 'Active'
+            scope: 'authority.complianceOfficer.scope',
+            limit: 'authority.complianceOfficer.limit',
+            status: 'status.active'
           },
           {
             revealDelay: '.21s',
-            role: 'Market authority',
+            role: 'authority.marketAuthority.role',
             holder: '9RqVyvWA4ficqK351PoYh674mP1au4NmNzVM6LQcenjm',
-            scope: 'Sets the market fee, the fee destination, and the project pause.',
-            limit: 'fee capped at 200 bps',
-            status: 'Active'
+            scope: 'authority.marketAuthority.scope',
+            limit: 'authority.marketAuthority.limit',
+            status: 'status.active'
           },
           {
             revealDelay: '.28s',
-            role: 'Mint authority · RBX-001',
+            role: 'authority.mintRbx.role',
             holder: 'AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf',
-            scope: 'Issues tokens for this project only.',
-            limit: 'revoke when the raise closes',
-            status: 'Active'
+            scope: 'authority.mintRbx.scope',
+            limit: 'authority.mintRbx.limit',
+            status: 'status.active'
           },
           {
             revealDelay: '.35s',
-            role: 'Mint authority · SVP-003',
+            role: 'authority.mintSvp.role',
             holder: '—',
-            scope: 'Raise closed. Supply is now fixed.',
-            limit: 'revoked 2026-06-30',
-            status: 'Revoked'
+            scope: 'authority.mintSvp.scope',
+            limit: 'authority.mintSvp.limit',
+            status: 'status.revoked'
           }
         ]
       },
 
       EmptyNote: {
         state: {
-          text: 'transfer_authority takes a role flag and an optional new limit. The registry rejects a transfer from a caller that does not already hold the role.'
+          text: 'note.authorities'
         }
       }
     }

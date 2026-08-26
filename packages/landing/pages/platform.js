@@ -28,12 +28,11 @@ export const platform = {
 
     PageHero: {
       state: {
-        eyebrow: 'Platform · Solana devnet',
-        titleTop: 'One asset,',
-        title: 'four authorities',
-        lead:
-          'No single key can mint, move, pay, and pause. Each power lives with a different program authority, and every use of it lands in the audit trail.',
-        chips: ['Anchor × 4', 'SPL Token-2022', 'Transfer hook', 'USDC settlement']
+        eyebrow: 'page.platform.eyebrow',
+        titleTop: 'page.platform.titleTop',
+        title: 'page.platform.title',
+        lead: 'page.platform.lead',
+        chips: ['Anchor × 4', 'SPL Token-2022', 'chip.transferHook', 'chip.usdcSettlement']
       }
     },
 

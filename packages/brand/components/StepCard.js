@@ -66,7 +66,12 @@ export const StepCard = {
     }
   },
 
-  // Ghost numeral — the section watermark's grammar carried into the card.
+  // `step` arrives either as a numeral ('01') or as a word ('LIST'). Both
+  // resolve through polyglot — a numeral simply passes back out — but they
+  // cannot share one treatment: a numeral reads as a watermark behind the
+  // card, while a word at that size runs straight through the title. So the
+  // numeral takes the ghost and the word takes an inline mono marker, chosen
+  // on the RESOLVED length so Georgian (longer than English) picks correctly.
   Ghost: {
     tag: 'span',
     position: 'absolute',
@@ -80,7 +85,24 @@ export const StepCard = {
     color: 'hairline',
     pointerEvents: 'none',
     userSelect: 'none',
-    text: (el, s) => s.step || ''
+    // Behind the copy: an absolute box paints above in-flow siblings by
+    // default, and a long Georgian title is one unbreakable token that can
+    // outrun the padding below — so the watermark must sit under the text.
+    zIndex: '0',
+    show: (el, s) => el.call('polyglot', s.step || '', s.root.lang).length <= 3,
+    text: (el, s) => el.call('polyglot', s.step || '', s.root.lang)
+  },
+
+  Marker: {
+    tag: 'span',
+    fontFamily: 'Mono',
+    fontSize: 'Y1',
+    fontWeight: '700',
+    letterSpacing: '.14em',
+    textTransform: 'uppercase',
+    color: 'accentInk',
+    show: (el, s) => el.call('polyglot', s.step || '', s.root.lang).length > 3,
+    text: (el, s) => el.call('polyglot', s.step || '', s.root.lang)
   },
 
   H3: {
@@ -90,7 +112,13 @@ export const StepCard = {
     letterSpacing: '-.015em',
     color: 'title',
     margin: '0',
-    text: (el, s) => s.title || ''
+    position: 'relative',
+    zIndex: '1',
+    // Keep the title clear of the ghost numeral in the corner — a long
+    // title (Georgian runs longer than English) would otherwise wrap under it.
+    isGhosted: (el, s) => el.call('polyglot', s.step || '', s.root.lang).length <= 3,
+    '.isGhosted': { paddingRight: 'C' },
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
   },
 
   // Dashed rule between the head and the body, drawing after the card lands.
@@ -111,6 +139,6 @@ export const StepCard = {
     lineHeight: '1.62',
     color: 'paragraph',
     margin: '0',
-    text: (el, s) => s.body || ''
+    text: (el, s) => el.call('polyglot', s.body || '', s.root.lang)
   }
 }

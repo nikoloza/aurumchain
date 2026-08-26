@@ -121,7 +121,7 @@ export const Hero = {
           lineHeight: '1',
           textTransform: 'uppercase',
           color: 'muted',
-          text: 'For investors'
+          text: '{{ hero.above.eyebrow | polyglot }}'
         },
         RuleR: {
           flex: '1',
@@ -137,6 +137,11 @@ export const Hero = {
         fontSize: 'K',
         lineHeight: '.95',
         fontWeight: '400',
+        // Anton is a single-weight condensed face and has no Georgian, so the
+        // ka locale falls through to Contractica — whose Regular reads far
+        // lighter next to Anton's mass. Its Black restores the display voice.
+        isKa: (el, s) => (s.root.lang || 'en') === 'ka',
+        '.isKa': { fontWeight: '900', letterSpacing: '-.01em' },
         letterSpacing: '.008em',
         textTransform: 'uppercase',
         color: 'navy',
@@ -149,12 +154,16 @@ export const Hero = {
           tag: 'span',
           display: 'block',
           overflow: 'hidden',
+          // Georgian descenders drop far below the baseline — the mask needs
+          // real room or it shears the tails off. Taken back outside the mask.
+          paddingBottom: '.26em',
+          marginBottom: '-.26em',
           Top: {
             tag: 'span',
             display: 'block',
             lineHeight: '1.02',
             color: 'slateInk',
-            text: 'Real assets,',
+            text: '{{ hero.above.titleTop | polyglot }}',
             animationName: 'lineUp',
             animationDuration: 'E',
             animationDelay: 'Z',
@@ -167,11 +176,15 @@ export const Hero = {
           tag: 'span',
           display: 'block',
           overflow: 'hidden',
+          // Georgian descenders drop far below the baseline — the mask needs
+          // real room or it shears the tails off. Taken back outside the mask.
+          paddingBottom: '.26em',
+          marginBottom: '-.26em',
           Main: {
             tag: 'span',
             display: 'block',
             lineHeight: '1.02',
-            text: 'made liquid',
+            text: '{{ hero.above.title | polyglot }}',
             animationName: 'lineUp',
             animationDuration: 'E',
             animationDelay: 'A',
@@ -203,8 +216,7 @@ export const Hero = {
         animationDelay: 'B',
         animationFillMode: 'both',
         '@reduceMotion': { animationName: 'none' },
-        text:
-          'Buy compliant fractions of real-world assets on Solana. The registry caps every supply, the transfer hook clears every move, and payouts settle back to your wallet.',
+        text: '{{ hero.above.lead | polyglot }}',
         '@tabletS': { fontSize: 'A' }
       }
     },
@@ -249,7 +261,7 @@ export const Hero = {
           lineHeight: '1',
           textTransform: 'uppercase',
           color: 'ivory.6',
-          text: 'For asset owners'
+          text: '{{ hero.under.eyebrow | polyglot }}'
         },
         RuleR: {
           flex: '1',
@@ -265,6 +277,11 @@ export const Hero = {
         fontSize: 'K',
         lineHeight: '.95',
         fontWeight: '400',
+        // Anton is a single-weight condensed face and has no Georgian, so the
+        // ka locale falls through to Contractica — whose Regular reads far
+        // lighter next to Anton's mass. Its Black restores the display voice.
+        isKa: (el, s) => (s.root.lang || 'en') === 'ka',
+        '.isKa': { fontWeight: '900', letterSpacing: '-.01em' },
         letterSpacing: '.008em',
         textTransform: 'uppercase',
         color: 'ivory',
@@ -277,12 +294,16 @@ export const Hero = {
           tag: 'span',
           display: 'block',
           overflow: 'hidden',
+          // Georgian descenders drop far below the baseline — the mask needs
+          // real room or it shears the tails off. Taken back outside the mask.
+          paddingBottom: '.26em',
+          marginBottom: '-.26em',
           Top: {
             tag: 'span',
             display: 'block',
             lineHeight: '1.02',
             color: 'mist',
-            text: 'Solid value,',
+            text: '{{ hero.under.titleTop | polyglot }}',
             animationName: 'lineUp',
             animationDuration: 'E',
             animationDelay: 'Z',
@@ -295,11 +316,15 @@ export const Hero = {
           tag: 'span',
           display: 'block',
           overflow: 'hidden',
+          // Georgian descenders drop far below the baseline — the mask needs
+          // real room or it shears the tails off. Taken back outside the mask.
+          paddingBottom: '.26em',
+          marginBottom: '-.26em',
           Main: {
             tag: 'span',
             display: 'block',
             lineHeight: '1.02',
-            text: 'made divisible',
+            text: '{{ hero.under.title | polyglot }}',
             animationName: 'lineUp',
             animationDuration: 'E',
             animationDelay: 'A',
@@ -331,8 +356,7 @@ export const Hero = {
         animationDelay: 'B',
         animationFillMode: 'both',
         '@reduceMotion': { animationName: 'none' },
-        text:
-          'A mine in Ashanti, a plant in Minas Gerais, a grain belt in the Mallee — if it produces yield, the registry can cap it, split it, and pay its holders. You keep the asset; the chain keeps the books.',
+        text: '{{ hero.under.lead | polyglot }}',
         '@tabletS': { fontSize: 'A' }
       }
     }
@@ -373,7 +397,7 @@ export const Hero = {
           text: '',
           textDecoration: 'none',
           display: 'inline-flex',
-          PillButton: { state: { tone: 'solid' }, text: 'Open an account' }
+          PillButton: { state: { tone: 'solid' }, text: '{{ common.openAccount | polyglot }}' }
         },
         HowCta: {
           display: 'inline-flex',
@@ -392,7 +416,7 @@ export const Hero = {
             text: '',
             textDecoration: 'none',
             display: 'inline-flex',
-            PillButton: { state: { tone: 'paper' }, text: 'See how it works' }
+            PillButton: { state: { tone: 'paper' }, text: '{{ cta.seeHow | polyglot }}' }
           }
         }
       },
@@ -418,10 +442,10 @@ export const Hero = {
           Value: { color: 'navy' },
           Label: { color: 'muted' }
         },
-        StatCell: { align: 'center center', state: { value: '$326T', label: 'Real assets worldwide' } },
-        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'Minimum subscription' } },
-        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'Target annual yield' } },
-        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: 'T+0', label: 'On-chain settlement' } }
+        StatCell: { align: 'center center', state: { value: '$326T', label: 'hero.stat.assets' } },
+        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '$250', label: 'hero.stat.minimum' } },
+        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '6–9%', label: 'hero.stat.yield' } },
+        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: 'T+0', label: 'hero.stat.settlement' } }
       }
     },
 
@@ -448,7 +472,7 @@ export const Hero = {
           text: '',
           textDecoration: 'none',
           display: 'inline-flex',
-          PillButton: { state: { tone: 'inverse' }, text: 'Tokenize an asset' }
+          PillButton: { state: { tone: 'inverse' }, text: '{{ cta.tokenize | polyglot }}' }
         },
         PlatformCta: {
           display: 'inline-flex',
@@ -466,7 +490,7 @@ export const Hero = {
             text: '',
             textDecoration: 'none',
             display: 'inline-flex',
-            PillButton: { state: { tone: 'outline' }, text: 'Read the platform' }
+            PillButton: { state: { tone: 'outline' }, text: '{{ cta.platform | polyglot }}' }
           }
         }
       },
@@ -493,10 +517,10 @@ export const Hero = {
           Value: { color: 'ivory' },
           Label: { color: 'ivory.55' }
         },
-        StatCell: { align: 'center center', state: { value: '6', label: 'Asset classes live' } },
-        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '100%', label: 'Supply-capped issues' } },
-        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '75 bps', label: 'Secondary-market fee' } },
-        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: '4', label: 'Anchor programs' } }
+        StatCell: { align: 'center center', state: { value: '6', label: 'hero.stat.classes' } },
+        StatCell_1: { extends: 'StatCell', align: 'center center', state: { value: '100%', label: 'hero.stat.capped' } },
+        StatCell_2: { extends: 'StatCell', align: 'center center', state: { value: '75 bps', label: 'hero.stat.fee' } },
+        StatCell_3: { extends: 'StatCell', align: 'center center', state: { value: '4', label: 'hero.stat.programs' } }
       }
     }
   }

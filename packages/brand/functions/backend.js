@@ -85,7 +85,7 @@ export const loadRegistry = async function loadRegistry () {
           { text: p.mint_address ? p.mint_address.slice(0, 4) + '…' + p.mint_address.slice(-4) : '—', mono: true },
           { text: String((Number(p.total_tokens) || 0) - (Number(p.available_tokens) || 0)), mono: true },
           { text: String(p.total_tokens ?? '—'), mono: true },
-          { text: p.is_paused ? 'paused' : '—' },
+          { text: p.is_paused ? 'status.paused' : '—' },
           { status: (p.status || 'draft').replace(/^./, (c) => c.toUpperCase()) }
         ]
       })),

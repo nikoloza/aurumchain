@@ -30,7 +30,7 @@ export const TypeSpecimen = {
       textTransform: 'uppercase',
       color: 'caption',
       lineHeight: '1.5',
-      text: (el, s) => s.role || ''
+      text: (el, s) => el.call('polyglot', s.role || '', s.root.lang)
     }
   },
 

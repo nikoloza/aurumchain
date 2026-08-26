@@ -22,11 +22,10 @@ export const ComplianceSection = {
         SectionHeading: {
           state: {
             num: '04',
-            eyebrow: 'Compliance',
-            titleTop: 'The token itself refuses',
-            title: 'a non-compliant transfer.',
-            lead:
-              'Compliance is not a screen in front of the ledger. It runs inside the transfer path, so an unverified wallet cannot receive tokens even through a direct transfer.'
+            eyebrow: 'compliance.eyebrow',
+            titleTop: 'compliance.titleTop',
+            title: 'compliance.title',
+            lead: 'compliance.lead'
           }
         },
 
@@ -43,36 +42,32 @@ export const ComplianceSection = {
         FeatureItem: {
           state: {
             revealDelay: '.1s',
-            title: 'A transfer hook on every movement',
-            body:
-              'The token uses the SPL Token-2022 transfer hook. Each transfer calls the compliance program, which validates the wallet, the pause flags, and the lockup window before it allows the move.'
+            title: 'compliance.f1.title',
+            body: 'compliance.f1.body'
           }
         },
         FeatureItem_1: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.22s',
-            title: 'Eligibility as the single source of truth',
-            body:
-              'One eligibility record per account holds the can-invest, can-withdraw, and can-receive-payout flags. The application reads that record, never a display tier.'
+            title: 'compliance.f2.title',
+            body: 'compliance.f2.body'
           }
         },
         FeatureItem_2: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.34s',
-            title: 'Wallet ownership proven by signature',
-            body:
-              'A wallet links only after the holder signs a server-issued nonce. The signature and its timestamp stay on the wallet-link record.'
+            title: 'compliance.f3.title',
+            body: 'compliance.f3.body'
           }
         },
         FeatureItem_3: {
           extends: 'FeatureItem',
           state: {
             revealDelay: '.46s',
-            title: 'An append-only audit trail',
-            body:
-              'Identity decisions, eligibility changes, subscriptions, and payouts write an immutable audit row that carries the actor, the role, and the before and after state.'
+            title: 'compliance.f4.title',
+            body: 'compliance.f4.body'
           }
         }
       }
@@ -153,7 +148,7 @@ export const HookFlow = {
       border: '1px solid hairline',
       background: 'surfaceWash',
       Dot: { tag: 'span', width: 'X', height: 'X', background: 'caption', transform: 'rotate(45deg)' },
-      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', letterSpacing: '.1em', color: 'caption', text: 'WALLET A' }
+      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', letterSpacing: '.1em', color: 'caption', text: '{{ compliance.hook.walletA | polyglot }}' }
     },
 
     HookNode: {
@@ -167,7 +162,7 @@ export const HookFlow = {
       borderColor: 'slate.45',
       background: 'surfaceWash',
       Diamond: { tag: 'span', width: 'X1', height: 'X1', background: 'accentInk', transform: 'rotate(45deg)' },
-      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', fontWeight: '600', letterSpacing: '.1em', color: 'accentInk', text: 'TRANSFER HOOK' }
+      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', fontWeight: '600', letterSpacing: '.1em', color: 'accentInk', text: '{{ compliance.hook.node | polyglot }}' }
     },
 
     EndB: {
@@ -180,7 +175,7 @@ export const HookFlow = {
       border: '1px solid hairline',
       background: 'surfaceWash',
       Dot: { tag: 'span', width: 'X', height: 'X', background: 'caption', transform: 'rotate(45deg)' },
-      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', letterSpacing: '.1em', color: 'caption', text: 'WALLET B' }
+      Label: { tag: 'span', fontFamily: 'Mono', fontSize: 'Y1', letterSpacing: '.1em', color: 'caption', text: '{{ compliance.hook.walletB | polyglot }}' }
     }
   },
 
@@ -191,6 +186,6 @@ export const HookFlow = {
     letterSpacing: '.04em',
     lineHeight: '1.6',
     color: 'caption',
-    text: 'compliance_transfer validates the wallet, the pause flags, and the lockup — a failed check reverts the move.'
+    text: '{{ compliance.hook.caption | polyglot }}'
   }
 }

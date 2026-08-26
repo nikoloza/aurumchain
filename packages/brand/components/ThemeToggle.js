@@ -27,7 +27,7 @@ export const ThemeToggle = {
   transition: 'color .18s ease, background .18s ease',
   ':hover': { color: 'title', background: 'veil' },
   type: 'button',
-  ariaLabel: 'Switch color theme',
+  ariaLabel: (el, s) => el.call('polyglot', 'theme.switch', s.root.lang),
 
   onRender: (el, s) => {
     try {

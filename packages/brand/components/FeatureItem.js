@@ -52,14 +52,14 @@ export const FeatureItem = {
       fontWeight: '600',
       color: 'title',
       margin: '0',
-      text: (el, s) => s.title || ''
+      text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
     },
     P: {
       fontSize: 'Z',
       lineHeight: '1.6',
       color: 'paragraph',
       margin: '0',
-      text: (el, s) => s.body || ''
+      text: (el, s) => el.call('polyglot', s.body || '', s.root.lang)
     }
   }
 }

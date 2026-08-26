@@ -88,7 +88,10 @@ export const signin = async function signin () {
   const password = root.signinPassword || ''
 
   if (!email || !password) {
-    root.update({ authError: 'Email and password are required.', authLoading: false })
+    // Auth failures are stored as translation KEYS — LoginCard's banner runs
+    // them through polyglot, and a raw provider message passes through it
+    // unchanged.
+    root.update({ authError: 'auth.errRequired', authLoading: false })
     return
   }
 
@@ -117,8 +120,8 @@ export const signin = async function signin () {
     root.update({
       authLoading: false,
       authError: e.message === 'Invalid login credentials'
-        ? 'Wrong email or password.'
-        : (e.message || 'Sign-in failed.')
+        ? 'auth.errCredentials'
+        : (e.message || 'auth.errFailed')
     })
   }
 }

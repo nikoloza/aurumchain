@@ -10,6 +10,9 @@
 export default {
   // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
   themeMode: '',
+  // Active locale. The polyglot plugin re-reads the stored choice on boot and
+  // `setLang` (the LangSwitch) writes it — declared here so it is reactive.
+  lang: 'en',
 
   // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
   signedIn: false,
@@ -26,38 +29,38 @@ export default {
   route: '/',
   // routeSoft (brand) raises this while the old page dips out.
   pageLeave: false,
-  pageTitle: 'Control plane',
-  pageLead: 'Who holds which authority, and what is currently paused.',
+  pageTitle: 'page.controlPlane.title',
+  pageLead: 'page.controlPlane.lead',
 
   nav: [
     {
-      title: 'Control',
+      title: 'nav.group.control',
       items: [
-        { label: 'Control plane', icon: 'shield', path: '/' },
-        { label: 'Authorities', icon: 'lock', path: '/authorities' },
-        { label: 'Roles', icon: 'users', path: '/roles' },
-        { label: 'Emergency', icon: 'alert', path: '/emergency' }
+        { label: 'nav.controlPlane', icon: 'shield', path: '/' },
+        { label: 'nav.authorities', icon: 'lock', path: '/authorities' },
+        { label: 'nav.roles', icon: 'users', path: '/roles' },
+        { label: 'nav.emergency', icon: 'alert', path: '/emergency' }
       ]
     },
     {
-      title: 'Policy',
+      title: 'nav.group.policy',
       items: [
-        { label: 'Compliance', icon: 'shield', path: '/compliance' },
-        { label: 'Market', icon: 'exchange', path: '/market' },
-        { label: 'Projects', icon: 'layers', path: '/projects' }
+        { label: 'nav.compliance', icon: 'shield', path: '/compliance' },
+        { label: 'nav.market', icon: 'exchange', path: '/market' },
+        { label: 'nav.projects', icon: 'layers', path: '/projects' }
       ]
     },
     {
-      title: 'Operations',
+      title: 'nav.group.operations',
       items: [
-        { label: 'Subscriptions', icon: 'coins', path: '/subscriptions' },
-        { label: 'Distributions', icon: 'receipt', path: '/distributions' },
-        { label: 'Reconciliation', icon: 'chart', path: '/reconciliation' }
+        { label: 'nav.subscriptions', icon: 'coins', path: '/subscriptions' },
+        { label: 'nav.distributions', icon: 'receipt', path: '/distributions' },
+        { label: 'nav.reconciliation', icon: 'chart', path: '/reconciliation' }
       ]
     },
     {
-      title: 'Record',
-      items: [{ label: 'Audit log', icon: 'audit', path: '/audit' }]
+      title: 'nav.group.record',
+      items: [{ label: 'nav.auditLog', icon: 'audit', path: '/audit' }]
     }
   ]
 }

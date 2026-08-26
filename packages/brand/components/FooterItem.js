@@ -27,6 +27,6 @@ export const FooterItem = {
       const anchor = st.anchor || ''
       return loc ? `${loc.origin}${loc.pathname}#${anchor}` : `#${anchor}`
     },
-    text: (el, s) => s.label || ''
+    text: (el, s) => el.call('polyglot', s.label || '', s.root.lang)
   }
 }

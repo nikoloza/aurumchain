@@ -34,7 +34,7 @@ export const SurfaceCard = {
       letterSpacing: '-.015em',
       color: 'title',
       margin: '0',
-      text: (el, s) => s.name || ''
+      text: (el, s) => el.call('polyglot', s.name || '', s.root.lang)
     },
     Arrow: {
       color: 'accentInk',
@@ -47,7 +47,7 @@ export const SurfaceCard = {
     lineHeight: '1.6',
     color: 'paragraph',
     margin: '0',
-    text: (el, s) => s.purpose || ''
+    text: (el, s) => el.call('polyglot', s.purpose || '', s.root.lang)
   },
 
   Host: {

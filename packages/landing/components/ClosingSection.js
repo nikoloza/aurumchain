@@ -70,31 +70,49 @@ export const ClosingSection = {
         tag: 'span',
         display: 'block',
         overflow: 'hidden',
+        // Georgian descenders drop far below the baseline — the mask needs
+        // real room or it shears the tails off. Taken back outside the mask.
+        paddingBottom: '.26em',
+        marginBottom: '-.26em',
         Top: {
           tag: 'span',
           display: 'block',
           color: 'mist',
-          transform: 'translate3d(0, 112%, 0)',
+          transform: 'translate3d(0, 130%, 0)',
           transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .1s',
           isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
           '.isInView': { transform: 'translate3d(0, 0, 0)' },
           '@reduceMotion': { transform: 'none', transition: 'none' },
-          text: (el, s) => (s.root.heroWorld === 'under' ? 'Your asset stays yours,' : 'Open an account,')
+          text: (el, s) =>
+            el.call(
+              'polyglot',
+              s.root.heroWorld === 'under' ? 'closing.under.titleTop' : 'closing.above.titleTop',
+              s.root.lang
+            )
         }
       },
       MainMask: {
         tag: 'span',
         display: 'block',
         overflow: 'hidden',
+        // Georgian descenders drop far below the baseline — the mask needs
+        // real room or it shears the tails off. Taken back outside the mask.
+        paddingBottom: '.26em',
+        marginBottom: '-.26em',
         Main: {
           tag: 'span',
           display: 'block',
-          transform: 'translate3d(0, 112%, 0)',
+          transform: 'translate3d(0, 130%, 0)',
           transition: 'transform .85s cubic-bezier(.22,.68,.24,.98) .22s',
           isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
           '.isInView': { transform: 'translate3d(0, 0, 0)' },
           '@reduceMotion': { transform: 'none', transition: 'none' },
-          text: (el, s) => (s.root.heroWorld === 'under' ? 'its yield goes liquid' : 'see the offerings')
+          text: (el, s) =>
+            el.call(
+              'polyglot',
+              s.root.heroWorld === 'under' ? 'closing.under.title' : 'closing.above.title',
+              s.root.lang
+            )
         }
       }
     },
@@ -106,9 +124,11 @@ export const ClosingSection = {
       color: 'ivory.72',
       maxWidth: 'H+C',
       text: (el, s) =>
-        s.root.heroWorld === 'under'
-          ? 'The registry caps the supply, the hook clears every holder, and payout epochs settle in USDC. You keep custody; the chain keeps the books.'
-          : 'Identity approval takes minutes. Wallet verification takes one signature. Subscription opens as soon as both clear.'
+        el.call(
+          'polyglot',
+          s.root.heroWorld === 'under' ? 'closing.under.lead' : 'closing.above.lead',
+          s.root.lang
+        )
     },
 
     ActionsAbove: {
@@ -123,14 +143,14 @@ export const ClosingSection = {
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',
-        PillButton: { state: { tone: 'inverse' }, text: 'Open an account' }
+        PillButton: { state: { tone: 'inverse' }, text: '{{ common.openAccount | polyglot }}' }
       },
       Link_1: {
         href: 'mailto:hello@fractyco.app',
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',
-        PillButton: { state: { tone: 'outline' }, text: 'Talk to us' }
+        PillButton: { state: { tone: 'outline' }, text: '{{ common.talkToUs | polyglot }}' }
       }
     },
 
@@ -146,7 +166,7 @@ export const ClosingSection = {
         text: '',
         textDecoration: 'none',
         display: 'inline-flex',
-        PillButton: { state: { tone: 'inverse' }, text: 'Tokenize an asset' }
+        PillButton: { state: { tone: 'inverse' }, text: '{{ cta.tokenize | polyglot }}' }
       },
       PlatformCta: {
         display: 'inline-flex',
@@ -162,7 +182,7 @@ export const ClosingSection = {
           text: '',
           textDecoration: 'none',
           display: 'inline-flex',
-          PillButton: { state: { tone: 'outline' }, text: 'Read the platform' }
+          PillButton: { state: { tone: 'outline' }, text: '{{ cta.platform | polyglot }}' }
         }
       }
     }

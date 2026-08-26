@@ -9,9 +9,8 @@ export const main = {
   theme: 'document',
 
   metadata: {
-    title: 'Fractyco — Brand',
-    description:
-      'The Fractyco brand system, rendered live: palette, typography, the mark, and the component library shared by every surface.'
+    title: '{{ brand.meta.title | polyglot }}',
+    description: '{{ brand.meta.description | polyglot }}'
   },
 
   TopRow: {
@@ -34,7 +33,8 @@ export const main = {
       flow: 'x',
       align: 'center center',
       gap: 'Z',
-      ChipAccent: { text: 'Brand 2.0' },
+      ChipAccent: { text: '{{ brand.chip | polyglot }}' },
+      LangSwitch: {},
       ThemeToggle: {}
     }
   },
@@ -99,7 +99,7 @@ export const main = {
             lineHeight: '1',
             textTransform: 'uppercase',
             color: 'caption',
-            text: 'Fractyco · Brand system'
+            text: '{{ brand.hero.eyebrow | polyglot }}'
           },
           Rule: {
             flex: '1',
@@ -125,11 +125,11 @@ export const main = {
           '@reduceMotion': { animationName: 'none' },
           '@tabletS': { fontSize: 'F' },
 
-          Top: { tag: 'span', display: 'block', color: 'accentInk', text: 'One identity,' },
+          Top: { tag: 'span', display: 'block', color: 'accentInk', text: '{{ brand.hero.titleTop | polyglot }}' },
           Main: {
             tag: 'span',
             display: 'block',
-            text: 'three surfaces',
+            text: '{{ brand.hero.title | polyglot }}',
             Dot: {
               tag: 'span',
               display: 'inline-block',
@@ -154,8 +154,7 @@ export const main = {
           animationDelay: 'B',
           animationFillMode: 'both',
           '@reduceMotion': { animationName: 'none' },
-          text:
-            'Deep navy ink on a soft ivory ground, slate structure, mist accents — flat by rule, condensed at display size, mono for every figure. This sheet renders from the live tokens, so what you see here is what every surface ships.'
+          text: '{{ brand.hero.lead | polyglot }}'
         },
 
         Meta: {
@@ -172,9 +171,9 @@ export const main = {
           animationFillMode: 'both',
           '@reduceMotion': { animationName: 'none' },
 
-          M1: { tag: 'span', text: '4 brand colors' },
-          M2: { tag: 'span', text: '4 type roles' },
-          M3: { tag: 'span', text: '2 schemes · light-first' },
+          M1: { tag: 'span', text: '{{ brand.hero.m1 | polyglot }}' },
+          M2: { tag: 'span', text: '{{ brand.hero.m2 | polyglot }}' },
+          M3: { tag: 'span', text: '{{ brand.hero.m3 | polyglot }}' },
           M4: { tag: 'span', text: 'fractyco/uikit 2.0.0' }
         }
       }
@@ -189,11 +188,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '01',
-            eyebrow: 'Brand color',
-            titleTop: 'Four colors,',
-            title: 'every shade by modifier.',
-            lead:
-              'The palette lives once in the design system. Components read semantic pairs — title, caption, hairline, accentInk — that flip with the scheme, so nothing is written twice.'
+            eyebrow: 'brand.color.eyebrow',
+            titleTop: 'brand.color.titleTop',
+            title: 'brand.color.title',
+            lead: 'brand.color.lead'
           }
         },
 
@@ -207,10 +205,10 @@ export const main = {
           childExtends: 'BrandSwatch',
           childrenAs: 'state',
           children: [
-            { token: 'navy', role: 'Primary · 45%', name: 'Deep Navy', hex: '#082439' },
-            { token: 'ivory', role: 'Neutral · 35%', name: 'Soft Ivory', hex: '#F5F2EC', light: true },
-            { token: 'slate', role: 'Secondary · 15%', name: 'Slate Blue', hex: '#607D94' },
-            { token: 'mist', role: 'Accent · 5%', name: 'Mist Blue', hex: '#A8C0CF' }
+            { token: 'navy', role: 'brand.color.rolePrimary', name: 'Deep Navy', hex: '#082439' },
+            { token: 'ivory', role: 'brand.color.roleNeutral', name: 'Soft Ivory', hex: '#F5F2EC', light: true },
+            { token: 'slate', role: 'brand.color.roleSecondary', name: 'Slate Blue', hex: '#607D94' },
+            { token: 'mist', role: 'brand.color.roleAccent', name: 'Mist Blue', hex: '#A8C0CF' }
           ]
         },
 
@@ -243,7 +241,7 @@ export const main = {
           textTransform: 'uppercase',
           color: 'caption',
           marginTop: 'Z',
-          text: 'Every shade is a modifier — never a new hex'
+          text: '{{ brand.color.modsNote | polyglot }}'
         },
         Mods: {
           flow: 'x',
@@ -273,11 +271,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '02',
-            eyebrow: 'Scale & shape',
-            titleTop: 'One ladder',
-            title: 'for space, type, and radius.',
-            lead:
-              'Spacing and type share the letter sequence (base 16, ratio 1.25) — em-relative, so everything breathes with the reading size. Radii are fixed pixels, so product geometry never drifts with the font.'
+            eyebrow: 'brand.scale.eyebrow',
+            titleTop: 'brand.scale.titleTop',
+            title: 'brand.scale.title',
+            lead: 'brand.scale.lead'
           }
         },
 
@@ -346,9 +343,9 @@ export const main = {
         SectionHeading: {
           state: {
             num: '03',
-            eyebrow: 'Typography',
-            titleTop: 'Condensed voice,',
-            title: 'grotesk body, mono figures.'
+            eyebrow: 'brand.type.eyebrow',
+            titleTop: 'brand.type.titleTop',
+            title: 'brand.type.title'
           }
         },
 
@@ -359,10 +356,10 @@ export const main = {
           childExtends: 'TypeSpecimen',
           childrenAs: 'state',
           children: [
-            { face: 'Anton', role: 'Brand — wordmark & display', fam: 'Brand', sample: 'Real assets, made liquid', size: 'D', caps: true, tracking: '.01em' },
-            { face: 'Hanken Grotesk', role: 'Display — headings', fam: 'Display', sample: 'Four states between signing up and getting paid.', size: 'C', weight: '700', tracking: '-.02em' },
-            { face: 'Inter', role: 'Default — body & interface', fam: 'Default', sample: 'Every transfer clears a compliance hook, every position settles against a registry, and every payout distributes on-chain.', size: 'A', tone: 'body', tracking: '0' },
-            { face: 'IBM Plex Mono', role: 'Mono — every figure', fam: 'Mono', sample: '$1.84M / $2.40M · 77% · T+0', size: 'B', weight: '600', tracking: '-.02em' }
+            { face: 'Anton', role: 'brand.type.roleBrand', fam: 'Brand', sample: 'Real assets, made liquid', size: 'D', caps: true, tracking: '.01em' },
+            { face: 'Hanken Grotesk', role: 'brand.type.roleDisplay', fam: 'Display', sample: 'Four states between signing up and getting paid.', size: 'C', weight: '700', tracking: '-.02em' },
+            { face: 'Inter', role: 'brand.type.roleDefault', fam: 'Default', sample: 'Every transfer clears a compliance hook, every position settles against a registry, and every payout distributes on-chain.', size: 'A', tone: 'body', tracking: '0' },
+            { face: 'IBM Plex Mono', role: 'brand.type.roleMono', fam: 'Mono', sample: '$1.84M / $2.40M · 77% · T+0', size: 'B', weight: '600', tracking: '-.02em' }
           ]
         }
       }
@@ -377,11 +374,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '04',
-            eyebrow: 'Brand logo',
-            titleTop: 'The arcs and the diamond,',
-            title: 'from the brandbook vectors.',
-            lead:
-              'Two open arcs hold the value diamond. The mark ships as a 24×24 currentColor icon, so it takes any ink the chrome gives it — never stretched, never shadowed, never gradiented.'
+            eyebrow: 'brand.logo.eyebrow',
+            titleTop: 'brand.logo.titleTop',
+            title: 'brand.logo.title',
+            lead: 'brand.logo.lead'
           }
         },
 
@@ -423,11 +419,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '05',
-            eyebrow: 'Motion',
-            titleTop: 'Flat moves,',
-            title: 'never decoration.',
-            lead:
-              'Every keyframe lives in the design system and respects prefers-reduced-motion. No gradients, no blurs — opacity, transform, and time.'
+            eyebrow: 'brand.motion.eyebrow',
+            titleTop: 'brand.motion.titleTop',
+            title: 'brand.motion.title',
+            lead: 'brand.motion.lead'
           }
         },
 
@@ -460,11 +455,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '06',
-            eyebrow: 'Iconography',
-            titleTop: 'One stroke weight,',
-            title: 'twenty-five glyphs.',
-            lead:
-              'Rendered through Icon from designSystem/icons.js — 24-viewbox, currentColor, no fills. The mark itself is one of them.'
+            eyebrow: 'brand.icons.eyebrow',
+            titleTop: 'brand.icons.titleTop',
+            title: 'brand.icons.title',
+            lead: 'brand.icons.lead'
           }
         },
 
@@ -516,11 +510,10 @@ export const main = {
         SectionHeading: {
           state: {
             num: '07',
-            eyebrow: 'Components',
-            titleTop: 'The library,',
-            title: 'wearing the identity.',
-            lead:
-              'Every control below is the shared component itself — the same objects the landing, the investor app, and the governance console compose.'
+            eyebrow: 'brand.cmp.eyebrow',
+            titleTop: 'brand.cmp.titleTop',
+            title: 'brand.cmp.title',
+            lead: 'brand.cmp.lead'
           }
         },
 
@@ -529,12 +522,12 @@ export const main = {
           align: 'center flex-start',
           gap: 'Z',
           flexWrap: 'wrap',
-          PillButton: { text: 'Open an account' },
-          PillButton_1: { state: { tone: 'secondary' }, text: 'See how it works' },
-          PillButton_2: { state: { tone: 'ghost' }, text: 'Ghost' },
-          ActionButton: { text: 'Subscribe' },
-          ActionButton_1: { state: { tone: 'secondary' }, text: 'Export' },
-          ActionButton_2: { state: { tone: 'ghost' }, text: 'Sign out' }
+          PillButton: { text: '{{ common.openAccount | polyglot }}' },
+          PillButton_1: { state: { tone: 'secondary' }, text: '{{ brand.cmp.seeHow | polyglot }}' },
+          PillButton_2: { state: { tone: 'ghost' }, text: '{{ brand.cmp.ghost | polyglot }}' },
+          ActionButton: { text: '{{ offering.subscribe | polyglot }}' },
+          ActionButton_1: { state: { tone: 'secondary' }, text: '{{ common.export | polyglot }}' },
+          ActionButton_2: { state: { tone: 'ghost' }, text: '{{ common.signOut | polyglot }}' }
         },
 
         NavyStrip: {
@@ -545,8 +538,8 @@ export const main = {
           padding: 'A B',
           borderRadius: 'radiusCard',
           theme: 'inverted',
-          PillButton: { state: { tone: 'inverse' }, text: 'On the navy band' },
-          PillButton_1: { state: { tone: 'outline' }, text: 'Talk to us' }
+          PillButton: { state: { tone: 'inverse' }, text: '{{ brand.cmp.onNavy | polyglot }}' },
+          PillButton_1: { state: { tone: 'outline' }, text: '{{ common.talkToUs | polyglot }}' }
         },
 
         Chips: {
@@ -554,11 +547,11 @@ export const main = {
           align: 'center flex-start',
           gap: 'Y',
           flexWrap: 'wrap',
-          Chip: { text: 'Neutral' },
-          ChipAccent: { text: 'Accent' },
-          Chip_1: { theme: 'chipPositive', text: 'Funded' },
-          Chip_2: { theme: 'chipPending', text: 'Pending' },
-          Chip_3: { theme: 'chipNegative', text: 'Paused' }
+          Chip: { text: '{{ brand.cmp.neutral | polyglot }}' },
+          ChipAccent: { text: '{{ brand.cmp.accent | polyglot }}' },
+          Chip_1: { theme: 'chipPositive', text: '{{ status.funded | polyglot }}' },
+          Chip_2: { theme: 'chipPending', text: '{{ status.pending | polyglot }}' },
+          Chip_3: { theme: 'chipNegative', text: '{{ status.paused | polyglot }}' }
         },
 
         Stats: {
@@ -567,9 +560,9 @@ export const main = {
           gap: 'A',
           '@tabletS': { gridTemplateColumns: '1fr' },
 
-          StatTile: { state: { label: 'Portfolio value', value: '$12,480.20', delta: '+4.2% this epoch', tone: 'up' } },
-          StatTile_1: { state: { label: 'Unclaimed payouts', value: '$318.44', delta: 'claim to wallet', tone: 'flat' } },
-          StatTile_2: { state: { label: 'Positions', value: '7', delta: '2 listed on market', tone: 'flat' } }
+          StatTile: { state: { label: 'stat.portfolioValue', value: '$12,480.20', delta: 'brand.cmp.deltaEpoch', tone: 'up' } },
+          StatTile_1: { state: { label: 'stat.unclaimedPayouts', value: '$318.44', delta: 'brand.cmp.claimToWallet', tone: 'flat' } },
+          StatTile_2: { state: { label: 'stat.positions', value: '7', delta: 'brand.cmp.listedOnMarket', tone: 'flat' } }
         },
 
         Offering: {
@@ -582,7 +575,7 @@ export const main = {
             state: {
               name: 'Riverbend Extraction',
               location: 'Ashanti, Ghana',
-              status: 'Funding',
+              status: 'status.funding',
               raised: '$1.84M',
               goal: '$2.40M',
               pct: 77,
@@ -618,7 +611,7 @@ export const main = {
             state: {
               name: 'Serra Verde Plant',
               location: 'Minas Gerais, Brazil',
-              status: 'Feature',
+              status: 'status.feature',
               raised: '$3.10M',
               goal: '$3.10M',
               pct: 100,
@@ -640,9 +633,9 @@ export const main = {
         SectionHeading: {
           state: {
             num: '08',
-            eyebrow: 'The surfaces',
-            titleTop: 'Same tokens,',
-            title: 'three applications.'
+            eyebrow: 'brand.surfaces.eyebrow',
+            titleTop: 'brand.surfaces.titleTop',
+            title: 'brand.surfaces.title'
           }
         },
 
@@ -656,20 +649,20 @@ export const main = {
           childrenAs: 'state',
           children: [
             {
-              name: 'Landing',
-              purpose: 'The public story: what tokenization is, how eligibility works, what an offering looks like.',
+              name: 'brand.surfaces.landingName',
+              purpose: 'brand.surfaces.landingPurpose',
               url: 'https://fractyco--landing.at.symbo.ls',
               host: 'fractyco--landing.at.symbo.ls'
             },
             {
-              name: 'Investor app',
-              purpose: 'Positions, payouts, subscriptions, and the secondary market for signed-in investors.',
+              name: 'brand.surfaces.appName',
+              purpose: 'brand.surfaces.appPurpose',
               url: 'https://fractyco--app.at.symbo.ls',
               host: 'fractyco--app.at.symbo.ls'
             },
             {
-              name: 'Governance',
-              purpose: 'The operator console: registry, compliance queues, distributions, and audit.',
+              name: 'brand.surfaces.govName',
+              purpose: 'brand.surfaces.govPurpose',
               url: 'https://fractyco--governance.at.symbo.ls',
               host: 'fractyco--governance.at.symbo.ls'
             }
@@ -705,8 +698,8 @@ export const main = {
         lineHeight: '1.1',
         color: 'ivory',
         margin: '0',
-        Top: { tag: 'span', display: 'block', color: 'mist', text: 'Publish brand first,' },
-        Main: { tag: 'span', display: 'block', text: 'then the surfaces.' }
+        Top: { tag: 'span', display: 'block', color: 'mist', text: '{{ brand.band.titleTop | polyglot }}' },
+        Main: { tag: 'span', display: 'block', text: '{{ brand.band.title | polyglot }}' }
       },
       P: {
         margin: '0',
@@ -714,8 +707,7 @@ export const main = {
         lineHeight: '1.6',
         color: 'ivory.6',
         maxWidth: 'I',
-        text:
-          'The surfaces embed this library at their own publish time. The developer reference lives in docs/BRAND.md; the source identity in Brandbook.ai at the repo root.'
+        text: '{{ brand.band.lead | polyglot }}'
       },
 
       GhostWord: {

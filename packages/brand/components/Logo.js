@@ -15,7 +15,7 @@ export const Logo = {
   textDecoration: 'none',
   cursor: 'pointer',
   href: '/',
-  ariaLabel: 'Fractyco — home',
+  ariaLabel: (el, s) => el.call('polyglot', 'logo.home', s.root.lang),
   transition: 'opacity .25s ease, transform .2s ease',
   ':active': { transform: 'scale(.98)' },
 

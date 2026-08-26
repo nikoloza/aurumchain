@@ -1,5 +1,8 @@
 // Root state for the investor application.
 //
+// Copy on this state is stored as TRANSLATION KEYS, not English — the rail,
+// the topbar, and the page head all resolve them through polyglot.
+//
 // `nav` drives the left rail. `route`, `pageTitle`, and `pageLead` are set by
 // each page in its onCreate, so the topbar and the active rail entry follow the
 // router without a second source of truth.
@@ -9,6 +12,9 @@
 export default {
   // '' = follow the document default; the ThemeToggle writes 'light'/'dark'.
   themeMode: '',
+  // Active locale. The polyglot plugin re-reads the stored choice on boot and
+  // `setLang` (the LangSwitch) writes it — declared here so it is reactive.
+  lang: 'en',
 
   // ── Auth/session — driven by brand/functions/auth.js ─────────────────────
   signedIn: false,
@@ -30,32 +36,32 @@ export default {
   route: '/',
   // routeSoft (brand) raises this while the old page dips out.
   pageLeave: false,
-  pageTitle: 'Overview',
-  pageLead: 'Your positions, payouts, and open subscriptions.',
+  pageTitle: 'page.overview.title',
+  pageLead: 'page.overview.lead',
 
   nav: [
     {
-      title: 'Invest',
+      title: 'nav.group.invest',
       items: [
-        { label: 'Overview', icon: 'chart', path: '/' },
-        { label: 'Offerings', icon: 'layers', path: '/offerings' },
-        { label: 'Portfolio', icon: 'coins', path: '/portfolio' },
-        { label: 'Marketplace', icon: 'exchange', path: '/marketplace' }
+        { label: 'nav.overview', icon: 'chart', path: '/' },
+        { label: 'nav.offerings', icon: 'layers', path: '/offerings' },
+        { label: 'nav.portfolio', icon: 'coins', path: '/portfolio' },
+        { label: 'nav.marketplace', icon: 'exchange', path: '/marketplace' }
       ]
     },
     {
-      title: 'Money',
+      title: 'nav.group.money',
       items: [
-        { label: 'Payouts', icon: 'receipt', path: '/payouts' },
-        { label: 'Transactions', icon: 'document', path: '/transactions' },
-        { label: 'Wallet', icon: 'wallet', path: '/wallet' }
+        { label: 'nav.payouts', icon: 'receipt', path: '/payouts' },
+        { label: 'nav.transactions', icon: 'document', path: '/transactions' },
+        { label: 'nav.wallet', icon: 'wallet', path: '/wallet' }
       ]
     },
     {
-      title: 'Account',
+      title: 'nav.group.account',
       items: [
-        { label: 'Identity', icon: 'shield', path: '/identity' },
-        { label: 'Settings', icon: 'cog', path: '/settings' }
+        { label: 'nav.identity', icon: 'shield', path: '/identity' },
+        { label: 'nav.settings', icon: 'cog', path: '/settings' }
       ]
     }
   ]

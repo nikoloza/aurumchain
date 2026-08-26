@@ -27,12 +27,11 @@ export const offerings = {
 
     PageHero: {
       state: {
-        eyebrow: 'Offerings',
-        titleTop: 'Every asset,',
-        title: 'a capped issue',
-        lead:
-          'One offering, four fixed terms: the token symbol, the supply cap, the unit price, and the subscription window. The mint authority is revoked at close, so the cap stops being a promise and becomes a property of the chain.',
-        chips: ['RBX-001', 'KGT-002', 'SVP-003', 'Devnet data']
+        eyebrow: 'page.offerings.eyebrow',
+        titleTop: 'page.offerings.titleTop',
+        title: 'page.offerings.title',
+        lead: 'page.offerings.lead',
+        chips: ['RBX-001', 'KGT-002', 'SVP-003', 'chip.devnetData']
       }
     },
 

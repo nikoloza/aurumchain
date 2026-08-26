@@ -6,12 +6,21 @@
 //
 // The keys in font.js generate the @font-face family names referenced here —
 // keep the two files in step.
+//
+// 'TBCContractica' carries Georgian and sits DIRECTLY BEHIND the Latin brand
+// face in every stack — never at the end. Fallback resolves per glyph and
+// first match wins, so `system-ui`/`Helvetica`/`Arial` (which all ship
+// Georgian) would otherwise claim the ka locale before Contractica was ever
+// reached. In this order Latin keeps the brand face, Georgian gets Contractica,
+// and one run of text can hold both scripts. It is also what makes a bold
+// Georgian headline real rather than synthesised: Contractica ships to 900.
 
 export default {
   Default: {
     isDefault: true,
     value: [
       'Inter',
+      'TBCContractica',
       'system-ui',
       '-apple-system',
       'BlinkMacSystemFont',
@@ -26,6 +35,7 @@ export default {
     value: [
       'HankenGrotesk',
       '"Neue Haas Grotesk Display Pro"',
+      'TBCContractica',
       '"Helvetica Neue"',
       'Helvetica',
       'Inter',
@@ -36,6 +46,7 @@ export default {
   Brand: {
     value: [
       'Anton',
+      'TBCContractica',
       '"Arial Narrow"',
       'Impact',
       'sans-serif'
@@ -45,6 +56,7 @@ export default {
   Mono: {
     value: [
       'IBMPlexMono',
+      'TBCContractica',
       'ui-monospace',
       'SFMono-Regular',
       'Menlo',

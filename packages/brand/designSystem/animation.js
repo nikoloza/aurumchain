@@ -45,7 +45,7 @@ export default {
 
   // Masked headline lines — the span rises out of an overflow-hidden mask
   lineUp: {
-    from: { transform: 'translate3d(0, 112%, 0)' },
+    from: { transform: 'translate3d(0, 130%, 0)' },
     to: { transform: 'translate3d(0, 0, 0)' }
   },
 

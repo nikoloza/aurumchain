@@ -26,11 +26,10 @@ export const faq = {
 
     PageHero: {
       state: {
-        eyebrow: 'FAQ',
-        titleTop: 'Asked first,',
-        title: 'answered straight',
-        lead:
-          'The short version of everything the longer pages explain — eligibility, custody, transfers, payouts, and what is live on devnet today.'
+        eyebrow: 'page.faq.eyebrow',
+        titleTop: 'page.faq.titleTop',
+        title: 'page.faq.title',
+        lead: 'page.faq.lead'
       }
     },
 

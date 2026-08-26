@@ -8,11 +8,10 @@ export const OfferingsSection = {
     SectionHeading: {
       state: {
         num: '03',
-        eyebrow: 'Offerings',
-        titleTop: 'Each asset becomes',
-        title: 'a supply-capped token.',
-        lead:
-          'An offering fixes the token symbol, the supply cap, the unit price, and the subscription window. The registry enforces every one of them.'
+        eyebrow: 'offerings.eyebrow',
+        titleTop: 'offerings.titleTop',
+        title: 'offerings.title',
+        lead: 'offerings.lead'
       }
     },
 
@@ -53,7 +52,7 @@ export const OfferingsSection = {
           revealDelay: '0s',
           name: 'Riverbend Extraction',
           location: 'Ashanti, Ghana',
-          status: 'Funding',
+          status: 'status.funding',
           raised: '$1.84M',
           goal: '$2.40M',
           pct: 77,
@@ -68,7 +67,7 @@ export const OfferingsSection = {
           revealDelay: '.1s',
           name: 'Kalgoorlie Tailings',
           location: 'Western Australia',
-          status: 'Funding',
+          status: 'status.funding',
           raised: '$620K',
           goal: '$1.50M',
           pct: 41,
@@ -83,7 +82,7 @@ export const OfferingsSection = {
           revealDelay: '.2s',
           name: 'Serra Verde Plant',
           location: 'Minas Gerais, Brazil',
-          status: 'Closed',
+          status: 'status.closed',
           raised: '$3.10M',
           goal: '$3.10M',
           pct: 100,
@@ -105,8 +104,7 @@ export const OfferingsSection = {
       fontSize: 'Y1',
       letterSpacing: '.04em',
       color: 'caption',
-      text:
-        'The figures above are illustrative devnet data. Live offerings appear in the investor application after identity approval.'
+      text: '{{ offerings.note | polyglot }}'
     }
   }
 }

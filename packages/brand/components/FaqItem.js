@@ -45,7 +45,7 @@ export const FaqItem = {
       fontSize: 'A',
       fontWeight: '600',
       letterSpacing: '-.015em',
-      text: (el, s) => s.q || ''
+      text: (el, s) => el.call('polyglot', s.q || '', s.root.lang)
     },
 
     Caret: {
@@ -73,6 +73,6 @@ export const FaqItem = {
     transition: 'max-height .3s ease, opacity .25s ease, padding .25s ease',
     '.open': { maxHeight: '20em', opacity: '1', paddingBottom: 'A' },
     '!open': { maxHeight: '0', opacity: '0', paddingBottom: '0' },
-    text: (el, s) => s.a || ''
+    text: (el, s) => el.call('polyglot', s.a || '', s.root.lang)
   }
 }

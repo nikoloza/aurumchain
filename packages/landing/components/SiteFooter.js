@@ -36,8 +36,7 @@ export const SiteFooter = {
           fontSize: 'Z',
           lineHeight: '1.6',
           color: 'ivory.52',
-          text:
-            'Fractyco issues asset-backed tokens on Solana and settles investor payouts on-chain.'
+          text: '{{ footer.lead | polyglot }}'
         }
       },
 
@@ -57,29 +56,29 @@ export const SiteFooter = {
         childrenAs: 'state',
         children: [
           {
-            title: 'Product',
+            title: 'footer.col.product',
             links: [
-              { label: 'How it works', url: '/how' },
-              { label: 'Offerings', url: '/offerings' },
-              { label: 'Compliance', url: '/compliance' },
-              { label: 'FAQ', url: '/faq' }
+              { label: 'nav.how', url: '/how' },
+              { label: 'nav.offerings', url: '/offerings' },
+              { label: 'nav.compliance', url: '/compliance' },
+              { label: 'nav.faq', url: '/faq' }
             ]
           },
           {
-            title: 'Investors',
+            title: 'footer.col.investors',
             links: [
-              { label: 'Open an account', url: 'https://fractyco--app.at.symbo.ls/signin' },
-              { label: 'Sign in', url: 'https://fractyco--app.at.symbo.ls/signin' },
-              { label: 'Verify identity', url: 'https://fractyco--app.at.symbo.ls/identity' },
-              { label: 'Support', url: 'mailto:hello@fractyco.app' }
+              { label: 'common.openAccount', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'common.signIn', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'footer.link.verify', url: 'https://fractyco--app.at.symbo.ls/identity' },
+              { label: 'footer.link.support', url: 'mailto:hello@fractyco.app' }
             ]
           },
           {
-            title: 'Company',
+            title: 'footer.col.company',
             links: [
-              { label: 'Platform', url: '/platform' },
-              { label: 'About', url: '/company' },
-              { label: 'Contact', url: 'mailto:hello@fractyco.app' }
+              { label: 'nav.platform', url: '/platform' },
+              { label: 'footer.link.about', url: '/company' },
+              { label: 'footer.link.contact', url: 'mailto:hello@fractyco.app' }
             ]
           }
         ]
@@ -99,14 +98,14 @@ export const SiteFooter = {
         tag: 'span',
         fontSize: 'Y1',
         color: 'ivory.45',
-        text: 'Fractyco. Tokenized real-world assets.'
+        text: '{{ footer.copy | polyglot }}'
       },
       Note: {
         tag: 'span',
         fontFamily: 'Mono',
         fontSize: 'Y1',
         color: 'ivory.45',
-        text: 'Devnet build — not an offer to sell securities.'
+        text: '{{ footer.legal | polyglot }}'
       }
     },
 

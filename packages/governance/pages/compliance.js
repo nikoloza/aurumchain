@@ -2,38 +2,38 @@ export const compliance = {
   extends: ['Page', 'ShellPage'],
   metadata: { title: 'Compliance — Fractyco Governance' },
   onRender: (el) =>
-    el.call('openPage', '/compliance', 'Compliance', 'Identity decisions, wallet records, and the rules the transfer hook reads.'),
+    el.call('openPage', '/compliance', 'page.compliance.title', 'page.compliance.lead'),
 
   Column: {
     Body: {
       GovStatRow: {
         state: {
           tiles: [
-            { label: 'Awaiting review', to: 3, delta: 'oldest 4 days', tone: 'flat', revealDelay: '0s' },
-            { label: 'Approved, 30 days', to: 46, delta: '+12 on last month', revealDelay: '.07s' },
-            { label: 'Rejected, 30 days', to: 5, delta: '9.8% of decisions', tone: 'down', revealDelay: '.14s' },
-            { label: 'Verified wallets', to: 212, delta: 'on-chain records', revealDelay: '.21s' }
+            { label: 'stat.compliance.awaitingReview', to: 3, delta: 'stat.compliance.awaitingReview.delta', tone: 'flat', revealDelay: '0s' },
+            { label: 'stat.compliance.approved30', to: 46, delta: 'stat.compliance.approved30.delta', revealDelay: '.07s' },
+            { label: 'stat.compliance.rejected30', to: 5, delta: 'stat.compliance.rejected30.delta', tone: 'down', revealDelay: '.14s' },
+            { label: 'stat.compliance.verifiedWallets', to: 212, delta: 'stat.compliance.verifiedWallets.delta', revealDelay: '.21s' }
           ]
         }
       },
 
       Panel: {
-        state: { title: 'Review queue', lead: 'An approval writes the eligibility record and records the wallet on-chain.' },
+        state: { title: 'panel.compliance.queue.title', lead: 'panel.compliance.queue.lead' },
         DataTable: {
           state: {
-            columns: ['Account', 'Provider ref', 'Country', 'Submitted', 'Status'],
+            columns: ['table.account', 'table.providerRef', 'table.country', 'table.submitted', 'table.status'],
             rows: [
-              { cells: [{ text: 'p.novak@example.com' }, { text: 'sms_9f31c2', mono: true }, { text: 'Czechia' }, { text: '2026-08-13', mono: true }, { status: 'Under review' }] },
-              { cells: [{ text: 'm.orozco@example.com' }, { text: 'sms_7b88d1', mono: true }, { text: 'Mexico' }, { text: '2026-08-15', mono: true }, { status: 'Pending' }] },
-              { cells: [{ text: 'j.tanaka@example.com' }, { text: 'sms_2ac40e', mono: true }, { text: 'Japan' }, { text: '2026-08-16', mono: true }, { status: 'Pending' }] },
-              { cells: [{ text: 'l.smith@example.com' }, { text: 'sms_1de77a', mono: true }, { text: 'United States' }, { text: '2026-08-10', mono: true }, { status: 'Rejected' }] }
+              { cells: [{ text: 'p.novak@example.com' }, { text: 'sms_9f31c2', mono: true }, { text: 'country.czechia' }, { text: '2026-08-13', mono: true }, { status: 'status.underReview' }] },
+              { cells: [{ text: 'm.orozco@example.com' }, { text: 'sms_7b88d1', mono: true }, { text: 'country.mexico' }, { text: '2026-08-15', mono: true }, { status: 'status.pending' }] },
+              { cells: [{ text: 'j.tanaka@example.com' }, { text: 'sms_2ac40e', mono: true }, { text: 'country.japan' }, { text: '2026-08-16', mono: true }, { status: 'status.pending' }] },
+              { cells: [{ text: 'l.smith@example.com' }, { text: 'sms_1de77a', mono: true }, { text: 'country.unitedStates' }, { text: '2026-08-10', mono: true }, { status: 'status.rejected' }] }
             ]
           },
           GovEmptyState: {
             show: (el, s) => !((s.parent && s.parent.rows) || []).length,
             state: {
-              title: 'Queue is clear',
-              caption: 'Every submitted identity has a decision. New submissions land here first.'
+              title: 'empty.compliance.title',
+              caption: 'empty.compliance.caption'
             }
           }
         }
@@ -41,7 +41,7 @@ export const compliance = {
 
       Panel_1: {
         extends: 'Panel',
-        state: { title: 'Policy switches', lead: 'Each switch maps to one instruction on the compliance program.' },
+        state: { title: 'panel.compliance.switches.title', lead: 'panel.compliance.switches.lead' },
         List: {
           flow: 'y',
           width: '100%',
@@ -49,22 +49,22 @@ export const compliance = {
           childrenAs: 'state',
           children: [
             {
-              label: 'KYC bypass',
+              label: 'switch.kycBypass.label',
               call: 'compliance_transfer.set_kyc_bypass',
-              note: 'Testing only. Lets an unverified wallet receive tokens. Super admin, with a nonce.',
-              status: 'Off'
+              note: 'switch.kycBypass.note',
+              status: 'common.off'
             },
             {
-              label: 'Lockup bypass',
+              label: 'switch.lockupBypass.label',
               call: 'compliance_transfer.toggle_lockup_bypass',
-              note: 'Allows a transfer inside the lockup window for a named wallet.',
-              status: 'Off'
+              note: 'switch.lockupBypass.note',
+              status: 'common.off'
             },
             {
-              label: 'Mint compliance sync',
+              label: 'switch.mintComplianceSync.label',
               call: 'compliance_transfer.sync_mint_compliance',
-              note: 'Pulls the project pause and the lockup end from the registry into the mint record.',
-              status: 'Active'
+              note: 'switch.mintComplianceSync.note',
+              status: 'status.active'
             }
           ]
         }
