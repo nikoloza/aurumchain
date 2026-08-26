@@ -34,7 +34,9 @@ export const Rail = {
   overflowY: 'auto',
   // Below tabletL the rail collapses to an icon strip instead of vanishing —
   // SideGroup titles and SideLink labels hide themselves at the same break.
+  // On phones the strip narrows one more step; 100vh keeps it full height.
   '@tabletL': { width: 'D', padding: 'A Y', alignItems: 'center' },
+  '@mobileL': { width: 'C1', padding: 'A W' },
 
   Head: {
     padding: 'X Z',

@@ -56,7 +56,7 @@ Timing tokens come from the `timing` family (`brandEase`
 
 | Move | Where | Mechanics |
 | --- | --- | --- |
-| Route veil | every landing page | `routeVeil` (brand functions) stages root state: a navy curtain wipes up over the old page (`clip-path` inset), the router swaps under cover, the veil peels off the new page. The stage lives on root state so the next page mounts already covered — no flash. |
+| Route veil | every landing page | `routeVeil` (brand functions) stages root state: a band curtain (navy in light, graphite in dark) wipes up over the old page (`clip-path` inset), the router swaps under cover, the veil peels off the new page. The stage lives on root state so the next page mounts already covered — no flash. |
 | Masked line rise | hero, PageHero, SectionHeading, ClosingSection | headline lines rise out of `overflow: hidden` masks (`lineUp` on mount; state-gated transitions on scroll reveal). Masks carry a `.1em` pad so descenders never clip. |
 | Section reveal | every `Section` | an IntersectionObserver flips `inView` once; the heading choreographs (diamond pop → eyebrow fade → rule draw → lines rise → lead settles) while cards fade in on per-item `revealDelay` and their board pins land after. |
 | Rail glide | How section, HookFlow | a diamond glides the length of a dashed rail (`railGlide`) — once after the state-machine rail draws, on an infinite loop through the transfer hook. |

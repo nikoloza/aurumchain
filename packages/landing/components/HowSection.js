@@ -18,80 +18,64 @@ export const HowSection = {
       }
     },
 
-    // The state machine drawn as a rail: a rule that draws itself on reveal,
-    // with a diamond node landing over each step column.
-    FlowRail: {
-      position: 'relative',
-      width: '100%',
-      height: 'Z',
-      marginBottom: '-Z',
-      '@tabletL': { display: 'none' },
-
-      RailLine: {
-        position: 'absolute',
-        top: '50%',
-        left: '0',
-        right: '0',
-        borderTop: '1px dashed',
-        borderTopColor: 'hairline',
-        transformOrigin: 'left center',
-        transform: 'scaleX(0)',
-        transition: 'transform 1.4s cubic-bezier(.22,.68,.24,.98) .15s',
-        isInView: (el, s) => s.inView !== false,
-        '.isInView': { transform: 'scaleX(1)' },
-        '@reduceMotion': { transform: 'scaleX(1)', transition: 'none' }
-      },
-
-      // Once the rail has drawn, a diamond glides its full length once —
-      // the account moving through the state machine.
-      RailGlide: {
-        tag: 'span',
-        position: 'absolute',
-        top: '50%',
-        left: '0%',
-        width: 'X1',
-        height: 'X1',
-        background: 'accentInk',
-        transform: 'translate(-50%, -50%) rotate(45deg)',
-        opacity: '0',
-        isInView: (el, s) => s.inView !== false,
-        '.isInView': {
-          animationName: 'railGlide',
-          animationDuration: '2.8s',
-          animationDelay: '1.5s',
-          animationTimingFunction: 'cubic-bezier(.45,.05,.35,.95)',
-          animationFillMode: 'both'
-        },
-        '@reduceMotion': { animationName: 'none' }
-      },
-
-      Nodes: {
-        position: 'relative',
-        flow: 'x',
-        align: 'center space-between',
-        width: '100%',
-        height: '100%',
-        // Each node sits over the center of its step column below.
-        padding: '0 12.5%',
-
-        childExtends: 'RailNode',
-        childrenAs: 'state',
-        children: [
-          { nodeDelay: '.3s' },
-          { nodeDelay: '.55s' },
-          { nodeDelay: '.8s' },
-          { nodeDelay: '1.05s' }
-        ]
-      }
-    },
-
     Grid: {
       display: 'grid',
+      position: 'relative',
       // Container-driven 4 → 2 → 1 — stacked max-width column rules proved
       // cascade-fragile; px in minmax() since letter tokens don't resolve
       // inside it.
       gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
       gap: 'A1',
+
+      // The state machine drawn as a rail a step ('C') above the card tops —
+      // each card's stem (height 'C', in StepCard) rises from its pin to meet
+      // it exactly, and a diamond glides the full track once: the account
+      // moving through the states.
+      RailTrack: {
+        position: 'absolute',
+        top: '-C',
+        left: '0',
+        right: '0',
+        height: '0',
+        pointerEvents: 'none',
+        '@tabletL': { display: 'none' },
+
+        RailLine: {
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          borderTop: '1px dashed',
+          borderTopColor: 'hairline',
+          transformOrigin: 'left center',
+          transform: 'scaleX(0)',
+          transition: 'transform 1.4s cubic-bezier(.22,.68,.24,.98) .15s',
+          isInView: (el, s) => s.inView !== false,
+          '.isInView': { transform: 'scaleX(1)' },
+          '@reduceMotion': { transform: 'scaleX(1)', transition: 'none' }
+        },
+
+        RailGlide: {
+          tag: 'span',
+          position: 'absolute',
+          top: '0',
+          left: '0%',
+          width: 'X1',
+          height: 'X1',
+          background: 'accentInk',
+          transform: 'translate(-50%, -50%) rotate(45deg)',
+          opacity: '0',
+          isInView: (el, s) => s.inView !== false,
+          '.isInView': {
+            animationName: 'railGlide',
+            animationDuration: '2.8s',
+            animationDelay: '1.5s',
+            animationTimingFunction: 'cubic-bezier(.45,.05,.35,.95)',
+            animationFillMode: 'both'
+          },
+          '@reduceMotion': { animationName: 'none' }
+        }
+      },
 
       StepCard: {
         state: {
@@ -134,18 +118,4 @@ export const HowSection = {
       }
     }
   }
-}
-
-
-// One diamond node on the state-machine rail. state: { nodeDelay }
-export const RailNode = {
-  tag: 'span',
-  width: 'X1',
-  height: 'X1',
-  background: 'accentInk',
-  transform: 'rotate(45deg) scale(0)',
-  transition: (el, s) => 'transform .5s cubic-bezier(.34,1.5,.5,1) ' + (s.nodeDelay || '.3s'),
-  isInView: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
-  '.isInView': { transform: 'rotate(45deg) scale(1)' },
-  '@reduceMotion': { transform: 'rotate(45deg) scale(1)', transition: 'none' }
 }

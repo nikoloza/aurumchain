@@ -50,6 +50,10 @@ export default {
   // Card face as a token pair — for surfaces that need the panel ground
   // without the card theme's border (joined bands, cell fills)
   panel: ['white', 'charcoalSoft'],
+  // Page-scale brand bands — navy tiles on the light scheme, graphite lift in
+  // dark (same demotion as the app shell: navy is an accent there, not a ground)
+  band: ['navy', 'charcoal'],
+  bandDeep: ['navyDeep', 'charcoal'],
   // Sticky-navbar frost once the page scrolls (transparent at the very top)
   navWash: ['ivory.82', 'charcoalDeep.82'],
   // Active navigation wash + its ink

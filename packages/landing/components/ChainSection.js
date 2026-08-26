@@ -88,13 +88,13 @@ export const ChainSection = {
 }
 
 // The settlement path as it actually looks — a devnet log replaying one
-// subscription through all four programs. Always navy (explicit fills, like
-// every dark band here), mono voice, lines settling in sequence on reveal.
+// subscription through all four programs. A dark sheet in both schemes —
+// navy on ivory, graphite in dark — mono voice, lines settling on reveal.
 export const TxLog = {
   flow: 'y',
   width: '100%',
   borderRadius: 'radiusSheet',
-  background: 'navyDeep',
+  background: 'bandDeep',
   border: '1px solid',
   borderColor: 'mist.14',
   overflow: 'hidden',

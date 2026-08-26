@@ -13,7 +13,7 @@ export const RouteVeil = {
   zIndex: '90',
   flow: 'x',
   align: 'center center',
-  background: 'navy',
+  background: 'band',
   pointerEvents: 'none',
   clipPath: 'inset(100% 0 0 0)',
   attr: { 'aria-hidden': 'true' },

@@ -86,10 +86,11 @@ export default {
     '@dark': { borderColor: 'ivory.08' }
   },
 
-  // Stays navy in both modes — the brand's dark band
+  // The brand's dark band — navy on the ivory scheme, graphite lift in dark
+  // (navy is demoted to an accent there, same as the app shell grounds)
   inverted: {
     '@light': { background: 'navy', color: 'ivory' },
-    '@dark': { background: 'navy', color: 'ivory' }
+    '@dark': { background: 'charcoal', color: 'ivory' }
   },
 
   none: { color: 'none', background: 'none' },

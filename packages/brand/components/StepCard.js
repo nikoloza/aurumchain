@@ -1,4 +1,7 @@
-// One step of the investor journey. state: { step, title, body }
+// One step of the investor journey. state: { step, title, body, revealDelay }
+// The pin lands on the top edge, then a dashed stem rises from it to the
+// section's state-machine rail — HowSection draws that rail at 'C' above the
+// grid, so the stem height must stay 'C' to meet it.
 export const StepCard = {
   flow: 'y',
   gap: 'Z',
@@ -14,15 +17,69 @@ export const StepCard = {
   '@reduceMotion': { opacity: '1', transition: 'none' },
   onMousemove: (ev, el) => el.call('tiltCard', ev),
   onMouseout: (ev, el) => el.call('tiltReset', ev),
-  ':hover': { transform: 'translateY(-3px)', borderColor: 'slate.45' },
+  // Accent underline sweeping in on hover — the same grammar as the app's KPI
+  // tiles. Inset by the card radius so it never pokes past the rounded corner.
+  ':before': {
+    content: '""',
+    position: 'absolute',
+    bottom: '0',
+    left: 'Z',
+    right: 'Z',
+    height: 'W',
+    borderRadius: 'radiusPill',
+    background: 'accentInk',
+    transform: 'scaleX(0)',
+    transformOrigin: 'left center',
+    transition: 'transform .5s cubic-bezier(.22,.68,.24,.98)'
+  },
+  ':hover': {
+    transform: 'translateY(-3px)',
+    borderColor: 'slate.45',
+    ':before': { transform: 'scaleX(1)' }
+  },
 
-  Num: {
+  // Dashed stem from the pin up to the section rail — rises once the pin has
+  // landed. Width matches the pin so the flex centring lines them up exactly.
+  Stem: {
     tag: 'span',
-    fontFamily: 'Mono',
-    fontSize: 'Y1',
+    position: 'absolute',
+    bottom: '100%',
+    left: 'B',
+    width: 'Y',
+    height: 'C',
+    flow: 'x',
+    align: 'flex-start center',
+    pointerEvents: 'none',
+    transformOrigin: 'bottom center',
+    transform: 'scaleY(0)',
+    transition: (el, s) => 'transform .6s cubic-bezier(.22,.68,.24,.98) calc(' + (s.revealDelay || '0s') + ' + .55s)',
+    isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+    '.isRevealed': { transform: 'scaleY(1)' },
+    '@tabletL': { display: 'none' },
+    '@reduceMotion': { transform: 'scaleY(1)', transition: 'none' },
+
+    Line: {
+      tag: 'span',
+      height: '100%',
+      borderLeft: '1px dashed',
+      borderLeftColor: 'hairline'
+    }
+  },
+
+  // Ghost numeral — the section watermark's grammar carried into the card.
+  Ghost: {
+    tag: 'span',
+    position: 'absolute',
+    top: 'Z1',
+    right: 'B1',
+    fontFamily: 'Display',
+    fontSize: 'D',
     fontWeight: '700',
-    letterSpacing: '.1em',
-    color: 'accentInk',
+    letterSpacing: '-.04em',
+    lineHeight: '.8',
+    color: 'hairline',
+    pointerEvents: 'none',
+    userSelect: 'none',
     text: (el, s) => s.step || ''
   },
 
@@ -34,6 +91,19 @@ export const StepCard = {
     color: 'title',
     margin: '0',
     text: (el, s) => s.title || ''
+  },
+
+  // Dashed rule between the head and the body, drawing after the card lands.
+  Rule: {
+    width: '100%',
+    borderTop: '1px dashed',
+    borderTopColor: 'hairline',
+    transform: 'scaleX(0)',
+    transformOrigin: 'left center',
+    transition: (el, s) => 'transform .6s cubic-bezier(.22,.68,.24,.98) calc(' + (s.revealDelay || '0s') + ' + .35s)',
+    isRevealed: (el, s) => { let st = s; while (st) { if (st.inView !== undefined) return st.inView !== false; st = st.parent } return true },
+    '.isRevealed': { transform: 'scaleX(1)' },
+    '@reduceMotion': { transform: 'scaleX(1)', transition: 'none' }
   },
 
   P: {
