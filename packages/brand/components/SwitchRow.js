@@ -14,6 +14,9 @@ export const SwitchRow = {
     flow: 'y',
     gap: 'W',
     minWidth: 'H',
+    // Below tabletS the fixed label column alone exceeds the viewport —
+    // it has to yield and let the text wrap instead.
+    '@tabletS': { minWidth: '0' },
 
     Label: {
       tag: 'span',
@@ -27,6 +30,9 @@ export const SwitchRow = {
       fontFamily: 'Mono',
       fontSize: 'Y',
       color: 'accentInk',
+      // Instruction names are single unbreakable tokens — allow a break
+      // anywhere so they can never force the row past the viewport.
+      overflowWrap: 'anywhere',
       text: (el, s) => s.call || ''
     },
     Note: {
