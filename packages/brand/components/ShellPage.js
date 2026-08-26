@@ -54,6 +54,12 @@ export const ShellPage = {
         H1: {
           margin: '0',
           overflow: 'hidden',
+          // Descender room, taken back outside so layout is unchanged. It has
+          // to live on THIS element: `overflow` clips at the padding box, so
+          // padding on the inner line sits outside the clip and Georgian
+          // tails (ფ, ე, ვ, ღ) get sheared off.
+          paddingBottom: '.26em',
+          marginBottom: '-.26em',
           fontFamily: 'Display',
           fontSize: 'D',
           fontWeight: '700',
@@ -65,9 +71,6 @@ export const ShellPage = {
           Line: {
             tag: 'span',
             display: 'block',
-            // Descender room inside the mask, taken back outside it.
-            paddingBottom: '.26em',
-            marginBottom: '-.26em',
             transform: 'translate3d(0, 130%, 0)',
             animationName: 'lineUp',
             animationDuration: 'E',
