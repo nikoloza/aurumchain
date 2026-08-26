@@ -1,0 +1,14 @@
+{
+  "name": "@fractyco/brand",
+  "version": "1.0.0",
+  "description": "Fractyco design system and component library",
+  "private": true,
+  "type": "module",
+  "main": "./context.js",
+  "sideEffects": true,
+  "scripts": {
+    "start": "portless fractyco-brand sh -c 'rm -rf .parcel-cache && smbls start --no-cache -p $PORT'",
+    "build": "rm -rf .parcel-cache && smbls build",
+    "start:port": "rm -rf .parcel-cache && smbls start --no-cache"
+  }
+}

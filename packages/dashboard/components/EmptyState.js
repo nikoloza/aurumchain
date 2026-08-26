@@ -1,0 +1,62 @@
+// Centered blank slate for any list with nothing to show — the brand's value
+// diamond drifting over one title line and one caption line. The keyframe
+// rides a wrapper so the float never overwrites the diamond's rotation.
+// It shows itself: `watch` names the list key ('rows' by default) and the
+// component walks the state chain for it, so a call site declares only its
+// copy. `title` and `caption` are translation keys, resolved through polyglot.
+// state: { title, caption, watch }
+export const EmptyState = {
+  show: (el, s) => {
+    const key = s.watch || 'rows'
+    let st = s
+    while (st) {
+      if (st[key] !== undefined) return !(st[key] && st[key].length)
+      st = st.parent
+    }
+    return false
+  },
+
+  flow: 'y',
+  align: 'center center',
+  gap: 'Z',
+  width: '100%',
+  padding: 'D B',
+  textAlign: 'center',
+
+  Glyph: {
+    flow: 'x',
+    align: 'center center',
+    animationName: 'floatY',
+    animationDuration: '5s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+    '@reduceMotion': { animationName: 'none' },
+
+    Diamond: {
+      tag: 'span',
+      flexShrink: '0',
+      width: 'Z',
+      height: 'Z',
+      background: 'accentInk',
+      transform: 'rotate(45deg)'
+    }
+  },
+
+  Title: {
+    tag: 'span',
+    fontFamily: 'Display',
+    fontSize: 'A1',
+    fontWeight: '600',
+    color: 'title',
+    marginTop: 'Y',
+    text: (el, s) => el.call('polyglot', s.title || '', s.root.lang)
+  },
+
+  Caption: {
+    tag: 'span',
+    fontSize: 'Y1',
+    color: 'caption',
+    maxWidth: '30em',
+    text: (el, s) => el.call('polyglot', s.caption || '', s.root.lang)
+  }
+}

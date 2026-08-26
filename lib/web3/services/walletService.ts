@@ -17,8 +17,8 @@ export class WalletService {
   async depositUSDC(amount: number): Promise<string> {
     if (!this.wallet.publicKey) throw new Error("Wallet not connected");
 
-    const usdcMint = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
-    const treasuryWallet = new PublicKey(process.env.NEXT_PUBLIC_TREASURY_WALLET || '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4');
+    const usdcMint = new PublicKey(process.env.USDC_MINT || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    const treasuryWallet = new PublicKey(process.env.TREASURY_WALLET || '7STXs2LXLimTiPBuvrcnE1u7vQFCw9GoCKmhs3QsuSk4');
 
     const investorAta = getAssociatedTokenAddressSync(usdcMint, this.wallet.publicKey);
     const treasuryAta = getAssociatedTokenAddressSync(usdcMint, treasuryWallet);

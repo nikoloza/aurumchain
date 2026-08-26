@@ -1,0 +1,15 @@
+{
+  "name": "@fractyco/dashboard",
+  "version": "1.0.0",
+  "description": "Fractyco \u2014 investor dashboard",
+  "author": "fractyco",
+  "private": true,
+  "scripts": {
+    "start": "portless fractyco-app sh -c 'rm -rf .parcel-cache && smbls start --no-cache -p $PORT'",
+    "build": "rm -rf .parcel-cache && smbls build",
+    "start:port": "rm -rf .parcel-cache && smbls start --no-cache"
+  },
+  "dependencies": {
+    "@fractyco/brand": "workspace:*"
+  }
+}

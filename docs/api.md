@@ -1,6 +1,15 @@
-# AURUMCHAIN API Documentation final
+# FRACTYCO API Reference
 
-Below is the complete list of all Next.js Serverless API routes found in the `app/api` directory, grouped by their core modules, along with a description of what each handles.
+> [!WARNING]
+> **Not served by the `next` branch.** These are Next.js route handlers under
+> `app/api/`, which stayed on `main` (they are Vercel constructs) and are still
+> deployed at `www.aurc.app`. The services behind them — `lib/domains/*`,
+> `lib/web3/services/*`, `lib/supabase/server.ts` — are present and unchanged
+> on `next`; only the HTTP shell is missing. Treat this file as the contract to
+> reimplement. [TODO_BACKEND.md](./TODO_BACKEND.md) maps each route to its
+> tables, its service, and whether the legacy client actually calls it.
+
+The complete list of route handlers in `app/api/` on `main`, grouped by module, with what each one handles.
 
 ## 🔐 Auth & Identity APIs (`/api/auth`)
 

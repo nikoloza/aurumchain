@@ -1,0 +1,11 @@
+{
+  "owner": "fractyco",
+  "key": "landing",
+  "branch": "main",
+  "dir": ".",
+  "port": 5040,
+  "sharedLibraries": {
+    "fractyco/uikit": {}
+  },
+  "version": "1.22.1"
+}

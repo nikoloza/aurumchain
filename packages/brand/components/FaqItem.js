@@ -1,0 +1,78 @@
+// One expandable question. state: { n, q, a, open }
+// `open` is local to the row, so rows expand independently — the same idiom
+// the shared-library Accordion uses. `n` is the optional mono index.
+export const FaqItem = {
+  tag: 'article',
+  flow: 'y',
+  width: '100%',
+  borderBottom: '1px solid hairline',
+
+  Trigger: {
+    tag: 'button',
+    flow: 'x',
+    align: 'center space-between',
+    gap: 'Z',
+    width: '100%',
+    padding: 'A 0',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left',
+    color: 'title',
+    transition: 'color .25s ease, padding-left .3s cubic-bezier(.22,.68,.24,.98)',
+    ':hover': { color: 'accentInk', paddingLeft: 'X1' },
+    '@reduceMotion': { ':hover': { paddingLeft: '0' } },
+    attr: { 'aria-expanded': (el, s) => String(!!s.open) },
+    onClick: (ev, el, s) => s.update({ open: !s.open }),
+
+    Num: {
+      tag: 'span',
+      flexShrink: '0',
+      width: 'B2',
+      fontFamily: 'Mono',
+      fontSize: 'Z',
+      fontWeight: '600',
+      letterSpacing: '.08em',
+      color: 'accentInk',
+      text: (el, s) => s.n || '',
+      show: (el, s) => !!s.n
+    },
+
+    Q: {
+      tag: 'span',
+      flex: '1',
+      fontFamily: 'Display',
+      fontSize: 'A',
+      fontWeight: '600',
+      letterSpacing: '-.015em',
+      text: (el, s) => el.call('polyglot', s.q || '', s.root.lang)
+    },
+
+    Caret: {
+      flexShrink: '0',
+      display: 'inline-flex',
+      width: 'A',
+      height: 'A',
+      color: 'accentInk',
+      transition: 'transform .3s ease',
+      '.open': { transform: 'rotate(180deg)' },
+      Icon: { name: 'chevronDown', fontSize: 'A' }
+    }
+  },
+
+  Answer: {
+    tag: 'p',
+    margin: '0',
+    maxWidth: '720px',
+    // Indented past the index so the answer aligns with its question.
+    paddingLeft: (el, s) => (s.n ? 'B2+Z' : '0'),
+    fontSize: 'Z1',
+    lineHeight: '1.65',
+    color: 'paragraph',
+    overflow: 'hidden',
+    transition: 'max-height .3s ease, opacity .25s ease, padding .25s ease',
+    '.open': { maxHeight: '20em', opacity: '1', paddingBottom: 'A' },
+    '!open': { maxHeight: '0', opacity: '0', paddingBottom: '0' },
+    text: (el, s) => el.call('polyglot', s.a || '', s.root.lang)
+  }
+}

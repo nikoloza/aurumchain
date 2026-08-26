@@ -13,7 +13,7 @@ import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID,
 
 describe("subscription_lifecycle", () => {
   // Manual Provider Setup
-  const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
   const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
   
   const privateKeyStr = process.env.WALLET_PRIVATE_KEY!;
@@ -40,7 +40,7 @@ describe("subscription_lifecycle", () => {
   
   const authority = provider.wallet;
   console.log("   🔑 Test Wallet:", authority.publicKey.toBase58());
-  const mockUsdc = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || "AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf");
+  const mockUsdc = new PublicKey(process.env.USDC_MINT || "AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf");
 
   /**
    * Universal robust sender for all test steps

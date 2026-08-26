@@ -20,7 +20,7 @@ import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 async function main() {
   console.log("\n🚀 STARTING FULL FLOW SIMULATION...");
 
-  const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
   const connection = new Connection(RPC_URL, "confirmed");
 
   const privateKeyStr = process.env.WALLET_PRIVATE_KEY!;
@@ -93,7 +93,7 @@ async function main() {
       console.log("✅ Wallet already registered.");
     }
 
-    const mockUsdc = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || "AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf");
+    const mockUsdc = new PublicKey(process.env.USDC_MINT || "AJujcxZiQ1jUvSixiFLQNWFCpUtMuVsbyPCQ8ByU3jvf");
     
     // Fetch project account to get treasury wallet
     const projectData: any = await registryProgram.account.projectAccount.fetch(projectAccountPda);

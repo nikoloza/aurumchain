@@ -1,0 +1,11 @@
+{
+  "owner": "fractyco",
+  "key": "governance",
+  "branch": "main",
+  "dir": ".",
+  "port": 5042,
+  "sharedLibraries": {
+    "fractyco/uikit": {}
+  },
+  "version": "1.25.1"
+}

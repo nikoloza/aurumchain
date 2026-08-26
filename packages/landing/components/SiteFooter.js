@@ -1,0 +1,132 @@
+// Footer continues the navy band: link columns over the hairline, then the
+// wordmark as a ghost across the full width — the brand signing its own page.
+export const SiteFooter = {
+  tag: 'footer',
+  flow: 'y',
+  align: 'center center',
+  width: '100%',
+  padding: 'D C 0',
+  theme: 'inverted',
+  position: 'relative',
+  overflow: 'hidden',
+  borderTop: '1px solid',
+  borderTopColor: 'ivory.08',
+  '@tabletS': { padding: 'C A 0' },
+
+  Inner: {
+    flow: 'y',
+    gap: 'C',
+    width: '100%',
+    maxWidth: '1120px',
+    position: 'relative',
+
+    Top: {
+      flow: 'x',
+      align: 'flex-start space-between',
+      gap: 'C',
+      flexWrap: 'wrap',
+
+      Brand: {
+        flow: 'y',
+        gap: 'Z',
+        maxWidth: 'H1',
+        Logo: { color: 'ivory' },
+        P: {
+          margin: '0',
+          fontSize: 'Z',
+          lineHeight: '1.6',
+          color: 'ivory.52',
+          text: '{{ footer.lead | polyglot }}'
+        }
+      },
+
+      Cols: {
+        flow: 'x',
+        gap: 'D',
+        flexWrap: 'wrap',
+        childExtends: 'FooterCol',
+        childProps: {
+          Title: { color: 'ivory.92' },
+          Links: {
+            childProps: {
+              FooterLink: { color: 'ivory.52', ':hover': { color: 'ivory' } }
+            }
+          }
+        },
+        childrenAs: 'state',
+        children: [
+          {
+            title: 'footer.col.product',
+            links: [
+              { label: 'nav.how', url: '/how' },
+              { label: 'nav.offerings', url: '/offerings' },
+              { label: 'nav.compliance', url: '/compliance' },
+              { label: 'nav.faq', url: '/faq' }
+            ]
+          },
+          {
+            title: 'footer.col.investors',
+            links: [
+              { label: 'common.openAccount', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'common.signIn', url: 'https://fractyco--app.at.symbo.ls/signin' },
+              { label: 'footer.link.verify', url: 'https://fractyco--app.at.symbo.ls/identity' },
+              { label: 'footer.link.support', url: 'mailto:hello@fractyco.app' }
+            ]
+          },
+          {
+            title: 'footer.col.company',
+            links: [
+              { label: 'nav.platform', url: '/platform' },
+              { label: 'footer.link.about', url: '/company' },
+              { label: 'footer.link.contact', url: 'mailto:hello@fractyco.app' }
+            ]
+          }
+        ]
+      }
+    },
+
+    Bottom: {
+      flow: 'x',
+      align: 'center space-between',
+      gap: 'Z',
+      flexWrap: 'wrap',
+      paddingTop: 'A',
+      borderTop: '1px solid',
+      borderTopColor: 'ivory.08',
+
+      Copy: {
+        tag: 'span',
+        fontSize: 'Y1',
+        color: 'ivory.45',
+        text: '{{ footer.copy | polyglot }}'
+      },
+      Note: {
+        tag: 'span',
+        fontFamily: 'Mono',
+        fontSize: 'Y1',
+        color: 'ivory.45',
+        text: '{{ footer.legal | polyglot }}'
+      }
+    },
+
+    GhostWord: {
+      tag: 'span',
+      display: 'block',
+      width: '100%',
+      textAlign: 'center',
+      fontFamily: 'Brand',
+      fontSize: 'M',
+      lineHeight: '.72',
+      letterSpacing: '.01em',
+      textTransform: 'uppercase',
+      color: 'ivory.05',
+      whiteSpace: 'nowrap',
+      pointerEvents: 'none',
+      userSelect: 'none',
+      marginBottom: '-.32em',
+      attr: { 'aria-hidden': 'true' },
+      text: 'FRACTYCO',
+      '@tabletS': { fontSize: 'H' }
+    }
+  }
+}

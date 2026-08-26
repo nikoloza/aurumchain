@@ -1,0 +1,3 @@
+[install]
+# Workspace installs run from this root; smbls needs its postinstall.
+exact = false

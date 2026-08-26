@@ -28,7 +28,7 @@ async function main() {
     const investor = new PublicKey(investorStr);
     const subId = new BN(subIdStr);
 
-    const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+    const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
     const connection = new Connection(RPC_URL, "confirmed");
     const program = getComplianceProgram(connection);
 

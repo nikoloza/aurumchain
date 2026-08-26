@@ -31,7 +31,7 @@ import {
 
 describe("secondary_market_integration_tests", () => {
   // Manual Provider Setup to bypass environment pollution
-  const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
   const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
   
   const privateKeyStr = process.env.WALLET_PRIVATE_KEY!;

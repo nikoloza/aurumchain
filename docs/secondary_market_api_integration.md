@@ -2,6 +2,16 @@
 
 This document outlines the API endpoints used to power the secondary market frontend and synchronize off-chain database state with on-chain Solana transactions.
 
+> [!WARNING]
+> **Not served by the `next` branch.** These are Next.js route handlers under
+> `app/api/`, which stayed on `main` (they are Vercel constructs) and are still
+> deployed at `www.aurc.app`. The services behind them — `lib/domains/*`,
+> `lib/web3/services/*`, `lib/supabase/server.ts` — are present and unchanged
+> on `next`; only the HTTP shell is missing. Treat this file as the contract to
+> reimplement. [TODO_BACKEND.md](./TODO_BACKEND.md) maps each route to its
+> tables, its service, and whether the legacy client actually calls it.
+
+
 ## Base Path
 All routes are prefixed with `/api/secondary-market`
 

@@ -3,6 +3,12 @@
 This guide details how platform administrators can control the flow of the secondary market and adjust global settings. 
 These actions require interacting directly with the Solana smart contract using an authorized admin wallet.
 
+> [!NOTE]
+> Unaffected by the Symbols migration — every action here is a direct program
+> call. The governance surface mirrors these controls in its Market and
+> Emergency pages, but those switches are inert until the write paths are
+> wired ([TODO_BACKEND.md](./TODO_BACKEND.md)).
+
 ## 1. Global Market Pause
 Administrators can halt ALL trading on the secondary market simultaneously. This is useful for emergency situations or platform-wide migrations.
 

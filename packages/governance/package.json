@@ -1,0 +1,15 @@
+{
+  "name": "@fractyco/governance",
+  "version": "1.0.0",
+  "description": "Fractyco \u2014 governance and control-plane dashboard",
+  "author": "fractyco",
+  "private": true,
+  "scripts": {
+    "start": "portless fractyco-gov sh -c 'rm -rf .parcel-cache && smbls start --no-cache -p $PORT'",
+    "build": "rm -rf .parcel-cache && smbls build",
+    "start:port": "rm -rf .parcel-cache && smbls start --no-cache"
+  },
+  "dependencies": {
+    "@fractyco/brand": "workspace:*"
+  }
+}

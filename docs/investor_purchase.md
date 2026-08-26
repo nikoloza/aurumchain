@@ -1,6 +1,12 @@
 # Investor Purchase & Distribution Lifecycle
 
-This document outlines the end-to-end technical process of an investor purchasing tokens and receiving profit distributions within the Aurumchain platform.
+This document outlines the end-to-end technical process of an investor purchasing tokens and receiving profit distributions within the Fractyco platform.
+
+> [!NOTE]
+> The on-chain half of this lifecycle — the programs, PDAs and instructions —
+> is unchanged on `next`. The API calls it references are not served there yet
+> (see [TODO_BACKEND.md](./TODO_BACKEND.md)), and the dashboard Marketplace,
+> Portfolio and Payouts pages currently show placeholder content.
 
 ## 1. The Purchase Flow (Funding Round)
 
